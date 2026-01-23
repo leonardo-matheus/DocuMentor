@@ -1,20 +1,20 @@
 # DocuMentor 📚
 
-> Sistema inteligente de geração de documentação técnica para repositórios MoveMais.
+> Sistema inteligente de geração de documentação técnica com IA.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Node](https://img.shields.io/badge/node-18+-green.svg)
-![License](https://img.shields.io/badge/license-Proprietary-red.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## 🎯 Visão Geral
 
-O **DocuMentor** é uma plataforma completa que automatiza a criação de documentação técnica de alta qualidade. Utilizando IA avançada (Claude Opus 4.5 via Azure AI Foundry), o sistema analisa código fonte e gera documentação visual padronizada no estilo MoveMais.
+O **DocuMentor** é uma plataforma completa que automatiza a criação de documentação técnica de alta qualidade. Utilizando IA avançada (Claude via Azure AI Foundry ou API direta), o sistema analisa código fonte e gera documentação visual profissional.
 
 ### ✨ Principais Funcionalidades
 
-- 🔗 **Integração com Gitea** - Conecta automaticamente com code.movemais.com
-- 🤖 **IA Generativa** - Claude Opus 4.5 analisa código e gera documentação
-- 🎨 **Templates Visuais** - Documentação no padrão visual MoveMais
+- 🔗 **Integração com Git** - Suporta GitHub, GitLab, Gitea e outros
+- 🤖 **IA Generativa** - Claude analisa código e gera documentação
+- 🎨 **Templates Visuais** - Documentação profissional e customizável
 - 💬 **Chat com IA** - Edição em tempo real via conversação
 - 📄 **Export HTML** - Páginas standalone prontas para uso
 - 💾 **Versionamento** - Armazenamento e histórico de todas as versões
@@ -87,15 +87,15 @@ DocuMentor/
 
 - **Node.js** 18+ 
 - **npm** ou **yarn**
-- Acesso ao **Gitea** (code.movemais.com)
-- Credenciais **Azure AI Foundry** (Claude)
+- Acesso a um servidor Git (GitHub, GitLab, Gitea)
+- Credenciais **Azure AI Foundry** ou **Anthropic API** (Claude)
 
 ### Instalação
 
 ```bash
 # 1. Clone o repositório
-git clone https://code.movemais.com/movemais/documentor.git
-cd documentor
+git clone https://github.com/leonardo-matheus/DocuMentor.git
+cd DocuMentor
 
 # 2. Instalar dependências
 npm install
@@ -129,9 +129,9 @@ npm run dev
 Crie o arquivo `packages/backend/.env` baseado no `.env.example`:
 
 ```env
-# Gitea (Repositório de código)
-GITEA_URL=https://code.movemais.com
-GITEA_TOKEN=seu_token_gitea_aqui
+# Git (Repositório de código) - Configure conforme seu provedor
+GITEA_URL=https://github.com
+GITEA_TOKEN=seu_token_aqui
 
 # Claude AI (Azure AI Foundry)
 AZURE_AI_ENDPOINT=https://sua-conta.services.ai.azure.com/anthropic/v1/messages
@@ -147,12 +147,18 @@ PORT=3001
 FRONTEND_URL=http://localhost:5173
 ```
 
-### Como obter o Token do Gitea
+### Como obter o Token
 
-1. Acesse https://code.movemais.com
-2. Vá em **Settings** → **Applications** → **Access Tokens**
-3. Crie um token com permissões: `read:repository`, `read:organization`
+**GitHub:**
+1. Acesse https://github.com/settings/tokens
+2. Clique em **Generate new token (classic)**
+3. Selecione permissões: `repo`, `read:org`
 4. Copie o token para a variável `GITEA_TOKEN`
+
+**Gitea/GitLab:**
+1. Acesse Settings → Applications → Access Tokens
+2. Crie um token com permissões de leitura
+3. Copie o token para a variável `GITEA_TOKEN`
 
 ## 📜 Scripts Disponíveis
 
@@ -312,10 +318,10 @@ chore: manutenção
 
 ## 📄 Licença
 
-Copyright © 2026 MoveMais. Todos os direitos reservados.
+MIT License - Veja [LICENSE](LICENSE) para detalhes.
 
 ---
 
 <p align="center">
-  Feito com ❤️ pela equipe MoveMais
+  Feito com ❤️ por <a href="https://github.com/leonardo-matheus">Leonardo Matheus</a>
 </p>
