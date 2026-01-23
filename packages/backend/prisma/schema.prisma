@@ -22,6 +22,22 @@ model Project {
 
   sectionsList  Section[] @relation(name: "ProjectSections")
   metadata      ProjectMetadata?
+  versions      ProjectVersion[] @relation(name: "ProjectVersions")
+}
+
+model ProjectVersion {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade, name: "ProjectVersions")
+  
+  version     Int      // Auto-increment per project
+  message     String   // Commit message
+  sections    String   // JSON snapshot of all sections
+  createdAt   DateTime @default(now())
+  createdBy   String?  // Optional user identifier
+  
+  @@index([projectId])
+  @@unique([projectId, version])
 }
 
 model ProjectMetadata {

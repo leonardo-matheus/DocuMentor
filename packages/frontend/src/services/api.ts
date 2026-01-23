@@ -53,8 +53,35 @@ export const projectsApi = {
     api.post<Section>(`/projects/${projectId}/sections`, data),
   deleteSection: (projectId: string, sectionId: string) =>
     api.delete(`/projects/${projectId}/sections/${sectionId}`),
+  reorderSections: (projectId: string, sections: { id: string; order: number }[]) =>
+    api.put(`/projects/${projectId}/sections/reorder`, { sections }),
   exportHtml: (id: string) => 
     api.post(`/projects/${id}/export`, {}, { responseType: 'blob' }),
+  
+  // Versioning
+  getVersions: (projectId: string) =>
+    api.get<ProjectVersion[]>(`/projects/${projectId}/versions`),
+  createVersion: (projectId: string, message: string, createdBy?: string) =>
+    api.post<ProjectVersion>(`/projects/${projectId}/versions`, { message, createdBy }),
+  getVersion: (projectId: string, versionId: string) =>
+    api.get<ProjectVersion>(`/projects/${projectId}/versions/${versionId}`),
+  checkout: (projectId: string, versionId: string, createBackup?: boolean) =>
+    api.post(`/projects/${projectId}/versions/${versionId}/checkout`, { createBackup }),
+  rollback: (projectId: string, versionId: string) =>
+    api.post(`/projects/${projectId}/versions/${versionId}/rollback`),
+  deleteVersion: (projectId: string, versionId: string) =>
+    api.delete(`/projects/${projectId}/versions/${versionId}`),
+}
+
+// Project Version type
+export interface ProjectVersion {
+  id: string
+  projectId: string
+  version: number
+  message: string
+  sections?: string
+  createdAt: string
+  createdBy?: string
 }
 
 // ===== Repositories API =====

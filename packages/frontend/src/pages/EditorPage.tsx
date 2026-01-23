@@ -1,13 +1,31 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate, useBlocker } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
-  Save, Eye, Sparkles, Plus, Trash, ChevronDown, ChevronUp, 
-  Loader2, FileText, Settings, CheckCircle2, Clock, Zap, AlertTriangle
+  Eye, Sparkles, Plus, Trash, 
+  Loader2, FileText, Settings, CheckCircle2, Clock, Zap, AlertTriangle,
+  GripVertical, GitCommit, RotateCcw, History, Check, X
 } from 'lucide-react'
 import { projectsApi, aiApi } from '@/services/api'
 import toast from 'react-hot-toast'
 import AIChat from '@/components/AIChat'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 interface DocumentSection {
   id: string
@@ -49,6 +67,71 @@ const formatTime = (ms: number) => {
   return minutes > 0 ? `${minutes}m ${secs}s` : `${secs}s`
 }
 
+// =====================================================
+// SORTABLE SECTION ITEM (Drag and Drop)
+// =====================================================
+interface SortableSectionItemProps {
+  section: DocumentSection
+  isSelected: boolean
+  onSelect: () => void
+  onRemove: () => void
+}
+
+function SortableSectionItem({ section, isSelected, onSelect, onRemove }: SortableSectionItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: section.id })
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 1,
+  }
+  
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${
+        isSelected
+          ? 'border-primary bg-primary/5'
+          : 'border-transparent hover:border-gray-200 bg-white'
+      } ${isDragging ? 'shadow-lg' : ''}`}
+      onClick={onSelect}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {/* Drag Handle */}
+          <button
+            {...attributes}
+            {...listeners}
+            className="p-1 cursor-grab hover:bg-gray-100 rounded active:cursor-grabbing touch-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="w-4 h-4 text-gray-400" />
+          </button>
+          <span className="text-lg">
+            {SECTION_TYPES.find(s => s.type === section.type)?.icon || '📄'}
+          </span>
+          <span className="font-medium text-sm text-gray-900">{section.title}</span>
+        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onRemove() }}
+          className="p-1 hover:bg-red-100 rounded text-red-500 opacity-0 group-hover:opacity-100"
+        >
+          <Trash className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function EditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -56,6 +139,13 @@ export default function EditorPage() {
   const [sections, setSections] = useState<DocumentSection[]>([])
   const [selectedSection, setSelectedSection] = useState<string | null>(null)
   const [showAddSection, setShowAddSection] = useState(false)
+  const [showVersions, setShowVersions] = useState(false)
+  const [commitMessage, setCommitMessage] = useState('')
+  const [showCommitModal, setShowCommitModal] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [generationProgress, setGenerationProgress] = useState<GenerationProgress>({
     isGenerating: false,
     currentSection: '',
@@ -68,9 +158,28 @@ export default function EditorPage() {
     message: ''
   })
   
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+  
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
     queryFn: () => projectsApi.get(id!).then(res => res.data),
+    enabled: !!id,
+  })
+  
+  // Fetch versions
+  const { data: versions = [], refetch: refetchVersions } = useQuery({
+    queryKey: ['versions', id],
+    queryFn: () => projectsApi.getVersions(id!).then(res => res.data),
     enabled: !!id,
   })
   
@@ -81,8 +190,49 @@ export default function EditorPage() {
         ? JSON.parse(project.sections) 
         : project.sections
       setSections(loadedSections)
+      setHasUnsavedChanges(false)
     }
   }, [project])
+  
+  // Auto-save function
+  const autoSave = useCallback(async (sectionsToSave: DocumentSection[]) => {
+    if (!id) return
+    setIsSaving(true)
+    try {
+      await projectsApi.update(id, { sections: JSON.stringify(sectionsToSave) } as any)
+      setLastSaved(new Date())
+      setHasUnsavedChanges(false)
+    } catch (error) {
+      console.error('Auto-save failed:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }, [id])
+  
+  // Debounced auto-save when sections change
+  useEffect(() => {
+    if (sections.length === 0) return
+    if (!project) return
+    
+    // Mark as having unsaved changes
+    setHasUnsavedChanges(true)
+    
+    // Clear previous timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+    
+    // Set new timeout for auto-save (1.5 seconds debounce)
+    saveTimeoutRef.current = setTimeout(() => {
+      autoSave(sections)
+    }, 1500)
+    
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+    }
+  }, [sections, autoSave, project])
   
   // Timer for elapsed time
   useEffect(() => {
@@ -215,12 +365,6 @@ export default function EditorPage() {
     }
   }, [id, navigate, queryClient])
   
-  const saveMutation = useMutation({
-    mutationFn: () => projectsApi.update(id!, { sections: JSON.stringify(sections) } as any),
-    onSuccess: () => toast.success('Projeto salvo!'),
-    onError: () => toast.error('Erro ao salvar'),
-  })
-  
   const generateMutation = useMutation({
     mutationFn: (sectionType: string) => aiApi.generateSection(id!, sectionType, { project }),
     onSuccess: (response, sectionType) => {
@@ -258,17 +402,76 @@ export default function EditorPage() {
     }
   }
   
-  const moveSection = (sectionId: string, direction: 'up' | 'down') => {
-    const index = sections.findIndex(s => s.id === sectionId)
-    if (
-      (direction === 'up' && index === 0) ||
-      (direction === 'down' && index === sections.length - 1)
-    ) return
+  // Drag and Drop handler
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
     
-    const newSections = [...sections]
-    const targetIndex = direction === 'up' ? index - 1 : index + 1
-    ;[newSections[index], newSections[targetIndex]] = [newSections[targetIndex], newSections[index]]
-    setSections(newSections)
+    if (over && active.id !== over.id) {
+      setSections((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id)
+        const newIndex = items.findIndex((item) => item.id === over.id)
+        
+        const newItems = arrayMove(items, oldIndex, newIndex)
+        // Update order property
+        newItems.forEach((s, i) => s.order = i)
+        return newItems
+      })
+    }
+  }
+  
+  // Commit (create version)
+  const handleCommit = async () => {
+    if (!id || !commitMessage.trim()) return
+    
+    try {
+      await projectsApi.createVersion(id, commitMessage)
+      toast.success(`Versão criada: "${commitMessage}"`)
+      setCommitMessage('')
+      setShowCommitModal(false)
+      refetchVersions()
+    } catch (error) {
+      toast.error('Erro ao criar versão')
+    }
+  }
+  
+  // Checkout to version
+  const handleCheckout = async (versionId: string, versionNum: number) => {
+    if (!id) return
+    
+    const confirmed = window.confirm(
+      `Deseja fazer checkout para a versão ${versionNum}?\n\nIsso substituirá o conteúdo atual. Um backup será criado automaticamente.`
+    )
+    
+    if (!confirmed) return
+    
+    try {
+      await projectsApi.checkout(id, versionId, true)
+      toast.success(`Checkout para versão ${versionNum} realizado!`)
+      queryClient.invalidateQueries({ queryKey: ['project', id] })
+      refetchVersions()
+    } catch (error) {
+      toast.error('Erro ao fazer checkout')
+    }
+  }
+  
+  // Rollback to version
+  const handleRollback = async (versionId: string, versionNum: number) => {
+    if (!id) return
+    
+    const confirmed = window.confirm(
+      `Deseja fazer rollback para a versão ${versionNum}?\n\nIsso criará uma nova versão com o conteúdo da versão ${versionNum}.`
+    )
+    
+    if (!confirmed) return
+    
+    try {
+      await projectsApi.rollback(id, versionId)
+      toast.success(`Rollback para versão ${versionNum} realizado!`)
+      queryClient.invalidateQueries({ queryKey: ['project', id] })
+      refetchVersions()
+    } catch (error) {
+      toast.error('Erro ao fazer rollback')
+    }
   }
   
   if (isLoading) {
@@ -286,27 +489,51 @@ export default function EditorPage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="font-semibold text-gray-900">{project?.name || 'Novo Projeto'}</h1>
-            <p className="text-sm text-gray-500">Editor de Documentação</p>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <span>Editor de Documentação</span>
+              {isSaving && (
+                <span className="flex items-center gap-1 text-blue-500">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Salvando...
+                </span>
+              )}
+              {!isSaving && lastSaved && !hasUnsavedChanges && (
+                <span className="flex items-center gap-1 text-green-500">
+                  <Check className="w-3 h-3" />
+                  Salvo {lastSaved.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+              {!isSaving && hasUnsavedChanges && (
+                <span className="text-amber-500">• Alterações não salvas</span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowVersions(!showVersions)}
+              className={`btn ${showVersions ? 'btn-primary' : 'btn-secondary'}`}
+            >
+              <History className="w-4 h-4" />
+              Versões
+              {versions.length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 text-xs bg-gray-200 rounded-full">
+                  {versions.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setShowCommitModal(true)}
+              className="btn btn-success"
+            >
+              <GitCommit className="w-4 h-4" />
+              Commit
+            </button>
             <button
               onClick={() => navigate(`/projects/${id}/preview`)}
               className="btn btn-secondary"
             >
               <Eye className="w-4 h-4" />
               Preview
-            </button>
-            <button
-              onClick={() => saveMutation.mutate()}
-              disabled={saveMutation.isPending}
-              className="btn btn-primary"
-            >
-              {saveMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              Salvar
             </button>
           </div>
         </div>
@@ -420,50 +647,29 @@ export default function EditorPage() {
                 </div>
               )}
               
-              {/* Sections List */}
-              <div className="space-y-2">
-                {sections.map((section, index) => (
-                  <div
-                    key={section.id}
-                    className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${
-                      selectedSection === section.id
-                        ? 'border-primary bg-primary/5'
-                        : 'border-transparent hover:border-gray-200'
-                    }`}
-                    onClick={() => setSelectedSection(section.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">
-                          {SECTION_TYPES.find(s => s.type === section.type)?.icon || '📄'}
-                        </span>
-                        <span className="font-medium text-sm text-gray-900">{section.title}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); moveSection(section.id, 'up') }}
-                          disabled={index === 0}
-                          className="p-1 hover:bg-gray-100 rounded disabled:opacity-30"
-                        >
-                          <ChevronUp className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); moveSection(section.id, 'down') }}
-                          disabled={index === sections.length - 1}
-                          className="p-1 hover:bg-gray-100 rounded disabled:opacity-30"
-                        >
-                          <ChevronDown className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); removeSection(section.id) }}
-                          className="p-1 hover:bg-red-100 rounded text-red-500"
-                        >
-                          <Trash className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
+              {/* Sections List with Drag and Drop */}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={sections.map(s => s.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {sections.map((section) => (
+                      <SortableSectionItem
+                        key={section.id}
+                        section={section}
+                        isSelected={selectedSection === section.id}
+                        onSelect={() => setSelectedSection(section.id)}
+                        onRemove={() => removeSection(section.id)}
+                      />
+                    ))}
                   </div>
-                ))}
+                </SortableContext>
+              </DndContext>
                 
                 {sections.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
@@ -472,8 +678,79 @@ export default function EditorPage() {
                     <p className="text-xs">Clique em + para adicionar</p>
                   </div>
                 )}
-              </div>
             </div>
+            
+            {/* Versions Panel */}
+            {showVersions && (
+              <div className="doc-card p-4 mt-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <History className="w-4 h-4" />
+                    Histórico de Versões
+                  </h3>
+                  <button
+                    onClick={() => setShowVersions(false)}
+                    className="p-1 hover:bg-gray-100 rounded"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                {versions.length === 0 ? (
+                  <div className="text-center py-6 text-gray-500">
+                    <GitCommit className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Nenhuma versão ainda</p>
+                    <p className="text-xs">Clique em "Commit" para criar</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {versions.map((version) => (
+                      <div
+                        key={version.id}
+                        className="p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-primary/30 transition-all group"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-mono bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                v{version.version}
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                {new Date(version.createdAt).toLocaleDateString('pt-BR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </div>
+                            <p className="text-sm font-medium text-gray-900 mt-1 truncate">
+                              {version.message}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => handleCheckout(version.id, version.version)}
+                              className="p-1.5 hover:bg-blue-100 rounded text-blue-600"
+                              title="Checkout"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleRollback(version.id, version.version)}
+                              className="p-1.5 hover:bg-amber-100 rounded text-amber-600"
+                              title="Rollback"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           
           {/* Main Editor Area */}
@@ -584,6 +861,68 @@ export default function EditorPage() {
                 className="btn btn-secondary text-red-600 hover:bg-red-50"
               >
                 Sair Mesmo Assim
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Commit Modal */}
+      {showCommitModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCommitModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            <div className="bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <GitCommit className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Criar Nova Versão</h3>
+                  <p className="text-white/80 text-sm">Salve o estado atual da documentação</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Mensagem do Commit
+              </label>
+              <input
+                type="text"
+                value={commitMessage}
+                onChange={(e) => setCommitMessage(e.target.value)}
+                placeholder="Ex: Adicionado seção de FAQ, corrigido diagrama..."
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && commitMessage.trim()) {
+                    handleCommit()
+                  }
+                }}
+              />
+              <p className="text-xs text-gray-400 mt-2">
+                Descreva as alterações feitas nesta versão
+              </p>
+            </div>
+            
+            <div className="px-6 py-4 bg-gray-50 flex gap-3">
+              <button
+                onClick={handleCommit}
+                disabled={!commitMessage.trim()}
+                className="flex-1 btn btn-success disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <GitCommit className="w-4 h-4" />
+                Criar Versão
+              </button>
+              <button
+                onClick={() => {
+                  setShowCommitModal(false)
+                  setCommitMessage('')
+                }}
+                className="btn btn-secondary"
+              >
+                Cancelar
               </button>
             </div>
           </div>
