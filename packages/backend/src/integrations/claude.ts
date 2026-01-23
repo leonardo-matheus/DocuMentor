@@ -215,7 +215,11 @@ Responda APENAS em formato JSON válido:
 🚀 Frameworks Detectados: {{frameworks}}
 💻 Linguagens: {{languages}}
 
-📦 Dependências REAIS:
+� VERSÕES DETECTADAS AUTOMATICAMENTE (use estas versões!):
+Linguagens: {{languageVersions}}
+Frameworks: {{frameworkVersions}}
+
+�📦 Dependências REAIS:
 {{dependencies}}
 
 📂 Arquivos de Configuração:

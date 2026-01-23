@@ -98,7 +98,7 @@ function SortableSectionItem({ section, isSelected, onSelect, onRemove }: Sortab
     <div
       ref={setNodeRef}
       style={style}
-      className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${
+      className={`group p-3 rounded-xl border-2 transition-all cursor-pointer ${
         isSelected
           ? 'border-primary bg-primary/5'
           : 'border-transparent hover:border-gray-200 bg-white'
@@ -123,7 +123,8 @@ function SortableSectionItem({ section, isSelected, onSelect, onRemove }: Sortab
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onRemove() }}
-          className="p-1 hover:bg-red-100 rounded text-red-500 opacity-0 group-hover:opacity-100"
+          className="p-1.5 hover:bg-red-100 rounded-lg text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Excluir seção"
         >
           <Trash className="w-4 h-4" />
         </button>
@@ -140,6 +141,7 @@ export default function EditorPage() {
   const [selectedSection, setSelectedSection] = useState<string | null>(null)
   const [showAddSection, setShowAddSection] = useState(false)
   const [showVersions, setShowVersions] = useState(false)
+  const [showNavbarPreview, setShowNavbarPreview] = useState(true)
   const [commitMessage, setCommitMessage] = useState('')
   const [showCommitModal, setShowCommitModal] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -400,10 +402,20 @@ export default function EditorPage() {
   }
   
   const removeSection = (sectionId: string) => {
+    const section = sections.find(s => s.id === sectionId)
+    if (!section) return
+    
+    const confirmed = window.confirm(
+      `Deseja excluir a seção "${section.title}"?\n\nEssa ação não pode ser desfeita (a menos que você tenha uma versão salva).`
+    )
+    
+    if (!confirmed) return
+    
     setSections(sections.filter(s => s.id !== sectionId))
     if (selectedSection === sectionId) {
       setSelectedSection(null)
     }
+    toast.success(`Seção "${section.title}" excluída`)
   }
   
   // Drag and Drop handler
@@ -557,6 +569,39 @@ export default function EditorPage() {
                   <Plus className="w-5 h-5 text-gray-600" />
                 </button>
               </div>
+              
+              {/* NavBar Preview */}
+              {sections.filter(s => s.type !== 'hero').length > 0 && (
+                <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                  <button
+                    onClick={() => setShowNavbarPreview(!showNavbarPreview)}
+                    className="w-full text-xs font-medium text-gray-500 flex items-center justify-between hover:text-gray-700 transition-colors"
+                  >
+                    <span className="flex items-center gap-1">
+                      <Eye className={`w-3 h-3 transition-opacity ${showNavbarPreview ? '' : 'opacity-50'}`} />
+                      Preview da NavBar
+                    </span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${showNavbarPreview ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200 text-gray-500'}`}>
+                      {showNavbarPreview ? 'Visível' : 'Oculto'}
+                    </span>
+                  </button>
+                  {showNavbarPreview && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {sections
+                        .filter(s => s.type !== 'hero')
+                        .map((section) => (
+                          <span
+                            key={section.id}
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded-lg text-xs font-medium text-gray-700 shadow-sm border border-gray-100"
+                          >
+                            <span>{SECTION_TYPES.find(s => s.type === section.type)?.icon || '📄'}</span>
+                            <span className="truncate max-w-[80px]">{section.title}</span>
+                          </span>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
               
               {/* Add Section Modal */}
               {showAddSection && (

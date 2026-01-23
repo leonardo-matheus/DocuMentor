@@ -64,6 +64,9 @@ interface AnalysisResult {
   buildCommands: string[];
   dockerInfo: string;
   cicdInfo: string;
+  // NEW: Version detection
+  languageVersions: Record<string, string>;
+  frameworkVersions: Record<string, string>;
 }
 
 export const giteaService = {
@@ -344,6 +347,14 @@ export const giteaService = {
       } catch {}
     }
     
+    // NEW: Extract version information from config files
+    const { languageVersions, frameworkVersions } = await this.extractVersionInfo(
+      owner, 
+      repo, 
+      structure, 
+      dependencies
+    );
+    
     return {
       owner,
       repo,
@@ -362,7 +373,10 @@ export const giteaService = {
       frameworks,
       buildCommands,
       dockerInfo: dockerInfo.substring(0, 1500),
-      cicdInfo: cicdInfo.substring(0, 1000)
+      cicdInfo: cicdInfo.substring(0, 1000),
+      // Version info
+      languageVersions,
+      frameworkVersions
     };
   },
 
@@ -519,6 +533,256 @@ export const giteaService = {
     );
     
     return contents;
+  },
+
+  /**
+   * Extract version information from config files (pom.xml, Cargo.toml, package.json, go.mod, etc.)
+   */
+  async extractVersionInfo(
+    owner: string,
+    repo: string,
+    structure: string[],
+    dependencies: any
+  ): Promise<{ languageVersions: Record<string, string>; frameworkVersions: Record<string, string> }> {
+    const languageVersions: Record<string, string> = {};
+    const frameworkVersions: Record<string, string> = {};
+
+    // === Node.js / package.json ===
+    if (dependencies?.dependencies || dependencies?.devDependencies) {
+      // Get Node version from engines field
+      try {
+        const pkgJson = await this.getFileContent(owner, repo, 'package.json');
+        const pkg = JSON.parse(pkgJson);
+        if (pkg.engines?.node) {
+          languageVersions['Node.js'] = pkg.engines.node;
+        }
+        if (pkg.engines?.npm) {
+          languageVersions['npm'] = pkg.engines.npm;
+        }
+        
+        // Extract key framework versions
+        const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+        const frameworksToCheck = [
+          'react', 'vue', 'angular', 'next', 'nuxt', 'express', 'fastify', 'nestjs',
+          'typescript', 'tailwindcss', 'prisma', 'mongoose', 'sequelize', 'typeorm',
+          'jest', 'vitest', 'vite', 'webpack', 'esbuild', '@tanstack/react-query'
+        ];
+        
+        for (const fw of frameworksToCheck) {
+          if (deps[fw]) {
+            const name = fw.startsWith('@') ? fw.split('/')[1] : fw;
+            frameworkVersions[name.charAt(0).toUpperCase() + name.slice(1)] = deps[fw].replace(/[\^~]/g, '');
+          }
+        }
+      } catch {}
+    }
+
+    // === Java / pom.xml ===
+    if (structure.some(p => p === 'pom.xml' || p.includes('/pom.xml'))) {
+      try {
+        const pomXml = await this.getFileContent(owner, repo, 'pom.xml');
+        
+        // Extract Java version
+        const javaVersionMatch = pomXml.match(/<java\.version>([^<]+)<\/java\.version>/);
+        if (javaVersionMatch) {
+          languageVersions['Java'] = javaVersionMatch[1];
+        }
+        const mavenCompilerSource = pomXml.match(/<maven\.compiler\.source>([^<]+)<\/maven\.compiler\.source>/);
+        if (mavenCompilerSource) {
+          languageVersions['Java'] = mavenCompilerSource[1];
+        }
+        
+        // Extract Spring Boot version
+        const springBootVersion = pomXml.match(/<spring-boot\.version>([^<]+)<\/spring-boot\.version>/) ||
+                                  pomXml.match(/<version>([^<]+)<\/version>[\s\S]*?spring-boot-starter-parent/);
+        if (springBootVersion) {
+          frameworkVersions['Spring Boot'] = springBootVersion[1];
+        }
+        
+        // Check parent for Spring Boot
+        const parentArtifact = pomXml.match(/<parent>[\s\S]*?<artifactId>spring-boot-starter-parent<\/artifactId>[\s\S]*?<version>([^<]+)<\/version>/);
+        if (parentArtifact) {
+          frameworkVersions['Spring Boot'] = parentArtifact[1];
+        }
+        
+        // Extract Maven version (from wrapper if exists)
+        const mavenWrapperMatch = pomXml.match(/<maven\.version>([^<]+)<\/maven\.version>/);
+        if (mavenWrapperMatch) {
+          languageVersions['Maven'] = mavenWrapperMatch[1];
+        }
+      } catch {}
+    }
+
+    // === Java / build.gradle ===
+    if (structure.some(p => p === 'build.gradle' || p === 'build.gradle.kts')) {
+      try {
+        const gradleFile = structure.find(p => p === 'build.gradle.kts') || 'build.gradle';
+        const gradle = await this.getFileContent(owner, repo, gradleFile);
+        
+        // Extract Java version
+        const javaVersionMatch = gradle.match(/sourceCompatibility\s*=\s*['"]?(\d+)['"]?/) ||
+                                  gradle.match(/JavaVersion\.VERSION_(\d+)/) ||
+                                  gradle.match(/java\s*{\s*toolchain\s*{\s*languageVersion\.set\(JavaLanguageVersion\.of\((\d+)\)\)/);
+        if (javaVersionMatch) {
+          languageVersions['Java'] = javaVersionMatch[1];
+        }
+        
+        // Extract Spring Boot version
+        const springBootPlugin = gradle.match(/id\s*\(?['"]org\.springframework\.boot['"]\)?\s*version\s*['"]([^'"]+)['"]/);
+        if (springBootPlugin) {
+          frameworkVersions['Spring Boot'] = springBootPlugin[1];
+        }
+      } catch {}
+    }
+
+    // === Rust / Cargo.toml ===
+    if (structure.some(p => p === 'Cargo.toml')) {
+      try {
+        const cargoToml = await this.getFileContent(owner, repo, 'Cargo.toml');
+        
+        // Rust edition (2018, 2021, etc.)
+        const editionMatch = cargoToml.match(/edition\s*=\s*["'](\d+)["']/);
+        if (editionMatch) {
+          languageVersions['Rust Edition'] = editionMatch[1];
+        }
+        
+        // Extract key dependencies versions
+        const depsSection = cargoToml.match(/\[dependencies\]([\s\S]*?)(?:\[|$)/);
+        if (depsSection) {
+          const deps = depsSection[1];
+          const frameworks = ['tokio', 'actix-web', 'axum', 'rocket', 'serde', 'diesel', 'sqlx'];
+          for (const fw of frameworks) {
+            const versionMatch = deps.match(new RegExp(`${fw}\\s*=\\s*(?:\\{[^}]*version\\s*=\\s*)?["']([^"']+)["']`));
+            if (versionMatch) {
+              frameworkVersions[fw.charAt(0).toUpperCase() + fw.slice(1).replace(/-/g, ' ')] = versionMatch[1];
+            }
+          }
+        }
+      } catch {}
+    }
+
+    // === Go / go.mod ===
+    if (structure.some(p => p === 'go.mod')) {
+      try {
+        const goMod = await this.getFileContent(owner, repo, 'go.mod');
+        
+        // Go version
+        const goVersionMatch = goMod.match(/^go\s+(\d+\.\d+)/m);
+        if (goVersionMatch) {
+          languageVersions['Go'] = goVersionMatch[1];
+        }
+        
+        // Key dependencies
+        const frameworks = ['gin', 'echo', 'fiber', 'gorm', 'ent'];
+        for (const fw of frameworks) {
+          const versionMatch = goMod.match(new RegExp(`github\\.com/[^\\s]+${fw}[^\\s]*\\s+v([\\d.]+)`));
+          if (versionMatch) {
+            frameworkVersions[fw.charAt(0).toUpperCase() + fw.slice(1)] = versionMatch[1];
+          }
+        }
+      } catch {}
+    }
+
+    // === Python / pyproject.toml or setup.py ===
+    if (structure.some(p => p === 'pyproject.toml')) {
+      try {
+        const pyproject = await this.getFileContent(owner, repo, 'pyproject.toml');
+        
+        // Python version requirement
+        const pythonVersionMatch = pyproject.match(/python\s*=\s*["']([^"']+)["']/) ||
+                                   pyproject.match(/requires-python\s*=\s*["']([^"']+)["']/);
+        if (pythonVersionMatch) {
+          languageVersions['Python'] = pythonVersionMatch[1];
+        }
+        
+        // Framework versions
+        const frameworks = ['django', 'flask', 'fastapi', 'sqlalchemy', 'pydantic'];
+        for (const fw of frameworks) {
+          const versionMatch = pyproject.match(new RegExp(`${fw}\\s*=\\s*["']([^"']+)["']`));
+          if (versionMatch) {
+            frameworkVersions[fw.charAt(0).toUpperCase() + fw.slice(1)] = versionMatch[1];
+          }
+        }
+      } catch {}
+    }
+
+    // === .NET / .csproj ===
+    const csprojFile = structure.find(p => p.endsWith('.csproj'));
+    if (csprojFile) {
+      try {
+        const csproj = await this.getFileContent(owner, repo, csprojFile);
+        
+        // Target framework
+        const targetFramework = csproj.match(/<TargetFramework>([^<]+)<\/TargetFramework>/);
+        if (targetFramework) {
+          languageVersions['.NET'] = targetFramework[1];
+        }
+        
+        // C# version
+        const langVersion = csproj.match(/<LangVersion>([^<]+)<\/LangVersion>/);
+        if (langVersion) {
+          languageVersions['C#'] = langVersion[1];
+        }
+      } catch {}
+    }
+
+    // === PHP / composer.json ===
+    if (structure.some(p => p === 'composer.json')) {
+      try {
+        const composer = await this.getFileContent(owner, repo, 'composer.json');
+        const pkg = JSON.parse(composer);
+        
+        if (pkg.require?.php) {
+          languageVersions['PHP'] = pkg.require.php;
+        }
+        
+        // Framework versions
+        if (pkg.require?.['laravel/framework']) {
+          frameworkVersions['Laravel'] = pkg.require['laravel/framework'];
+        }
+        if (pkg.require?.['symfony/framework-bundle']) {
+          frameworkVersions['Symfony'] = pkg.require['symfony/framework-bundle'];
+        }
+      } catch {}
+    }
+
+    // === Ruby / Gemfile ===
+    if (structure.some(p => p === 'Gemfile')) {
+      try {
+        const gemfile = await this.getFileContent(owner, repo, 'Gemfile');
+        
+        // Ruby version
+        const rubyVersionMatch = gemfile.match(/ruby\s+['"]([^'"]+)['"]/);
+        if (rubyVersionMatch) {
+          languageVersions['Ruby'] = rubyVersionMatch[1];
+        }
+        
+        // Rails version
+        const railsMatch = gemfile.match(/gem\s+['"]rails['"].*?['"]([^'"]+)['"]/);
+        if (railsMatch) {
+          frameworkVersions['Rails'] = railsMatch[1];
+        }
+      } catch {}
+    }
+
+    // === .nvmrc / .node-version / .python-version ===
+    for (const versionFile of ['.nvmrc', '.node-version']) {
+      if (structure.some(p => p === versionFile)) {
+        try {
+          const version = await this.getFileContent(owner, repo, versionFile);
+          languageVersions['Node.js'] = version.trim().replace('v', '');
+        } catch {}
+      }
+    }
+
+    if (structure.some(p => p === '.python-version')) {
+      try {
+        const version = await this.getFileContent(owner, repo, '.python-version');
+        languageVersions['Python'] = version.trim();
+      } catch {}
+    }
+
+    return { languageVersions, frameworkVersions };
   },
 
   /**

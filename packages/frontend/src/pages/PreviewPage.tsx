@@ -13,6 +13,7 @@ import {
   FAQSection,
   SummaryCard,
   Footer,
+  EndpointsSection,
 } from '@/components/documentation'
 import AIChat from '@/components/AIChat'
 import toast from 'react-hot-toast'
@@ -1296,6 +1297,31 @@ export default function PreviewPage() {
               items={content.questions?.map((q: any) => ({
                 question: q.question,
                 answer: q.answer
+              })) || []}
+            />
+          </Section>
+        )
+        
+      case 'api':
+        return (
+          <Section
+            key={section.id}
+            id={section.id}
+            number={index}
+            title={section.title}
+            subtitle={content.description || 'Documentação da API'}
+            variant="alt"
+          >
+            <EndpointsSection
+              endpoints={content.endpoints?.map((ep: any) => ({
+                method: ep.method || 'GET',
+                path: ep.path || ep.endpoint,
+                summary: ep.summary || ep.description || '',
+                description: ep.description,
+                parameters: ep.parameters,
+                requestBody: ep.requestBody,
+                responses: ep.responses,
+                tags: ep.tags
               })) || []}
             />
           </Section>
