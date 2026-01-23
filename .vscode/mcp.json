@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "documentor-gitea": {
+      "command": "node",
+      "args": ["packages/mcp-server/dist/index.js"],
+      "env": {
+        "GITEA_URL": "https://code.movemais.com",
+        "GITEA_TOKEN": "your_gitea_token_here"
+      }
+    }
+  }
+}

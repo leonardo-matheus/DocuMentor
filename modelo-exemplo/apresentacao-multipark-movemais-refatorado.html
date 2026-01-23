@@ -1,0 +1,2192 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoveMais + Multipark  Apresentação de Integração</title>
+    <link rel="icon" type="image/png" href="img/favicon.png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Estilos externos -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-logos">
+                <div class="hero-logo movemais">
+                    <img src="https://static.wixstatic.com/media/e1e702_e37602ece92f43a7843291dc8f51b19e~mv2.png/v1/fill/w_313,h_147,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Logo_Move_Mais_preto.png" alt="MoveMais">
+                </div>
+                <div class="hero-plus">+</div>
+                <div class="hero-logo multipark">
+                    <img src="https://static.wixstatic.com/media/9beb4f_a80e75c3a0aa438fbf723047155bdae2~mv2.png/v1/fit/w_2500,h_1330,al_c/9beb4f_a80e75c3a0aa438fbf723047155bdae2~mv2.png" alt="Multipark">
+                </div>
+            </div>
+            <h1>Integração de Sistemas de Estacionamento</h1>
+            <p class="subtitle">Como a tecnologia MoveMais se conecta com a rede Multipark através das integradoras LINK, WPS e Parco</p>
+            
+            <div class="hero-meta">
+                <div class="hero-meta-item">
+                    <span>📅</span>
+                    <span>Janeiro 2026</span>
+                </div>
+                <div class="hero-meta-item">
+                    <span>📍</span>
+                    <span>São Paulo — Sede Multipark</span>
+                </div>
+                <div class="hero-meta-item">
+                    <span>👥</span>
+                    <span>Apresentação Técnica</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Navigation -->
+    <nav class="nav-bar">
+        <ul class="nav-list">
+            <li><a href="#planos">💳 Planos</a></li>
+            <li><a href="#ecossistema">🏗️ Ecossistema</a></li>
+            <li><a href="#tecnologias">📷 OCR vs RFID</a></li>
+            <li><a href="#integradoras">🔌 Integradoras</a></li>
+            <li><a href="#fluxos">🚗 Fluxos</a></li>
+            <li><a href="#comparativo">📊 Comparativo</a></li>
+            <li><a href="#beneficios">✨ Benefícios</a></li>
+            <li><a href="#faq">🔧 Troubleshooting</a></li>
+            <li><a href="#tecnico">⚙️ Técnico</a></li>
+        </ul>
+    </nav>
+
+    <!-- 1. Planos de Estacionamento (PRIMEIRO para executivos) -->
+    <section class="section" id="planos">
+        <div class="section-title">
+            <div class="section-number">1</div>
+            <h2>Planos MoveMais</h2>
+            <p>Conheça os 3 tipos de planos oferecidos aos clientes Multipark</p>
+        </div>
+
+        <!-- Visão Simplificada e Didática -->
+        <div class="highlight-box highlight-info" style="margin-bottom: 40px;">
+            <span class="highlight-icon">💡</span>
+            <div class="highlight-content">
+                <h4>O que são os Planos?</h4>
+                <p>Os planos definem <strong>como o cliente usa e paga</strong> pelo estacionamento. Desde o uso esporádico (Avulso) até contratos mensais fixos (Mensalista).</p>
+            </div>
+        </div>
+
+        <div class="plans-overview">
+            <div class="plan-card avulso">
+                <div class="plan-header">
+                    <div class="plan-icon">💳</div>
+                    <h3>Plano Avulso</h3>
+                    <span class="plan-badge">Para Visitantes</span>
+                </div>
+                <div class="plan-body">
+                    <div class="plan-feature">
+                        <span class="feature-icon">👤</span>
+                        <div>
+                            <strong>Para quem?</strong>
+                            <p>Visitantes esporádicos, sem vínculo mensal</p>
+                        </div>
+                    </div>
+                    <div class="plan-feature">
+                        <span class="feature-icon">💳</span>
+                        <div>
+                            <strong>Como paga?</strong>
+                            <p>Cartão de crédito com recarga</p>
+                        </div>
+                    </div>
+                    <div class="plan-feature">
+                        <span class="feature-icon">⚡</span>
+                        <div>
+                            <strong>Vantagem</strong>
+                            <p>Cadastro rápido e uso imediato</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="plan-card autorizado">
+                <div class="plan-header">
+                    <div class="plan-icon">🎫</div>
+                    <h3>Plano Autorizado</h3>
+                    <span class="plan-badge">Para Funcionários</span>
+                </div>
+                <div class="plan-body">
+                    <div class="plan-feature">
+                        <span class="feature-icon">👤</span>
+                        <div>
+                            <strong>Para quem?</strong>
+                            <p>Funcionários de empresas parceiras</p>
+                        </div>
+                    </div>
+                    <div class="plan-feature">
+                        <span class="feature-icon">🏢</span>
+                        <div>
+                            <strong>Vinculação</strong>
+                            <p>Associado a uma unidade específica</p>
+                        </div>
+                    </div>
+                    <div class="plan-feature">
+                        <span class="feature-icon">✅</span>
+                        <div>
+                            <strong>Vantagem</strong>
+                            <p>Entrada liberada automaticamente</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="plan-card mensalista">
+                <div class="plan-header">
+                    <div class="plan-icon">📋</div>
+                    <h3>Plano Mensalista</h3>
+                    <span class="plan-badge popular">Contrato Fixo</span>
+                </div>
+                <div class="plan-body">
+                    <div class="plan-feature">
+                        <span class="feature-icon">👤</span>
+                        <div>
+                            <strong>Para quem?</strong>
+                            <p>Clientes com uso frequente/diário</p>
+                        </div>
+                    </div>
+                    <div class="plan-feature">
+                        <span class="feature-icon">📅</span>
+                        <div>
+                            <strong>Contrato</strong>
+                            <p>Valor mensal fixo com a Multipark</p>
+                        </div>
+                    </div>
+                    <div class="plan-feature">
+                        <span class="feature-icon">🏆</span>
+                        <div>
+                            <strong>Vantagem</strong>
+                            <p>Vaga garantida + melhor custo-benefício</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumo Visual Simples -->
+        <div style="background: white; border-radius: 16px; padding: 30px; margin-top: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+            <h3 style="text-align: center; margin-bottom: 25px; color: var(--primary);">📊 Comparativo Rápido</h3>
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Plano</th>
+                            <th style="text-align: center;">Público</th>
+                            <th style="text-align: center;">Pagamento</th>
+                            <th style="text-align: center;">Entrada</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>💳 Avulso</strong></td>
+                            <td style="text-align: center;">Visitantes</td>
+                            <td style="text-align: center;">Por uso</td>
+                            <td style="text-align: center;">Ticket + Pagamento</td>
+                        </tr>
+                        <tr>
+                            <td><strong>🎫 Autorizado</strong></td>
+                            <td style="text-align: center;">Funcionários</td>
+                            <td style="text-align: center;">Empresa paga</td>
+                            <td style="text-align: center;">Liberado automaticamente</td>
+                        </tr>
+                        <tr>
+                            <td><strong>📋 Mensalista</strong></td>
+                            <td style="text-align: center;">Frequentes</td>
+                            <td style="text-align: center;">Mensal fixo</td>
+                            <td style="text-align: center;">Liberado automaticamente</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Ecossistema -->
+    <section class="section" id="ecossistema">
+        <div class="section-title">
+            <div class="section-number">2</div>
+            <h2>Ecossistema de Integração</h2>
+            <p>Como os sistemas MoveMais se conectam com a Multipark</p>
+        </div>
+
+        <div class="ecosystem-diagram">
+            <svg class="ecosystem-svg" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background -->
+                <defs>
+                    <linearGradient id="gradMoveMais" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="gradMultipark" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="gradLink" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="gradWps" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="gradParco" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                    </linearGradient>
+                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.15"/>
+                    </filter>
+                </defs>
+                
+                <!-- MoveMais Cloud -->
+                <g filter="url(#shadow)">
+                    <rect x="30" y="180" width="200" height="140" rx="20" fill="url(#gradMoveMais)"/>
+                    <text x="130" y="230" text-anchor="middle" fill="white" font-size="18" font-weight="800">☁️ HERMES</text>
+                    <text x="130" y="255" text-anchor="middle" fill="white" font-size="13" opacity="0.9">Servidor Central</text>
+                    <text x="130" y="275" text-anchor="middle" fill="white" font-size="12" opacity="0.8">MoveMais</text>
+                    <text x="130" y="300" text-anchor="middle" fill="white" font-size="11" opacity="0.7">Oracle Database</text>
+                </g>
+                
+                <!-- Dionisio (Gateway) -->
+                <g filter="url(#shadow)">
+                    <rect x="350" y="180" width="200" height="140" rx="20" fill="#2563eb"/>
+                    <text x="450" y="230" text-anchor="middle" fill="white" font-size="18" font-weight="800">🖥️ DIONISIO</text>
+                    <text x="450" y="255" text-anchor="middle" fill="white" font-size="13" opacity="0.9">Gateway de Borda</text>
+                    <text x="450" y="275" text-anchor="middle" fill="white" font-size="12" opacity="0.8">Raspberry Pi</text>
+                    <text x="450" y="300" text-anchor="middle" fill="white" font-size="11" opacity="0.7">PostgreSQL Local</text>
+                </g>
+                
+                <!-- Connection Hermes <-> Dionisio -->
+                <line x1="230" y1="250" x2="350" y2="250" stroke="#10b981" stroke-width="4" stroke-dasharray="8,4"/>
+                <polygon points="340,245 355,250 340,255" fill="#10b981"/>
+                <polygon points="240,245 225,250 240,255" fill="#10b981"/>
+                <text x="290" y="235" text-anchor="middle" fill="#059669" font-size="11" font-weight="600">REST API</text>
+                <text x="290" y="270" text-anchor="middle" fill="#059669" font-size="10">Sincronização</text>
+                
+                <!-- Integradoras Box -->
+                <rect x="620" y="30" width="250" height="440" rx="20" fill="#f8fafc" stroke="#e5e7eb" stroke-width="2"/>
+                <text x="745" y="65" text-anchor="middle" fill="#374151" font-size="14" font-weight="700">INTEGRADORAS</text>
+                
+                <!-- LINK -->
+                <g filter="url(#shadow)">
+                    <rect x="650" y="90" width="190" height="90" rx="15" fill="url(#gradLink)"/>
+                    <text x="745" y="125" text-anchor="middle" fill="white" font-size="16" font-weight="800">🔵 LINK</text>
+                    <text x="745" y="150" text-anchor="middle" fill="white" font-size="11" opacity="0.9">Socket + REST API</text>
+                    <text x="745" y="168" text-anchor="middle" fill="white" font-size="10" opacity="0.8">Bilheteria Completa</text>
+                </g>
+                
+                <!-- WPS -->
+                <g filter="url(#shadow)">
+                    <rect x="650" y="200" width="190" height="90" rx="15" fill="url(#gradWps)"/>
+                    <text x="745" y="235" text-anchor="middle" fill="white" font-size="16" font-weight="800">🟣 WPS</text>
+                    <text x="745" y="260" text-anchor="middle" fill="white" font-size="11" opacity="0.9">REST API</text>
+                    <text x="745" y="278" text-anchor="middle" fill="white" font-size="10" opacity="0.8">Controle de Acesso</text>
+                </g>
+                
+                <!-- PARCO -->
+                <g filter="url(#shadow)">
+                    <rect x="650" y="310" width="190" height="90" rx="15" fill="url(#gradParco)"/>
+                    <text x="745" y="345" text-anchor="middle" fill="white" font-size="16" font-weight="800">🟢 PARCO</text>
+                    <text x="745" y="370" text-anchor="middle" fill="white" font-size="11" opacity="0.9">REST API</text>
+                    <text x="745" y="388" text-anchor="middle" fill="white" font-size="10" opacity="0.8">Sistema Multipark</text>
+                </g>
+                
+                <!-- Connections Dionisio <-> Integradoras -->
+                <line x1="550" y1="220" x2="650" y2="135" stroke="#0ea5e9" stroke-width="3"/>
+                <polygon points="640,138 655,133 645,147" fill="#0ea5e9"/>
+                
+                <line x1="550" y1="250" x2="650" y2="245" stroke="#8b5cf6" stroke-width="3"/>
+                <polygon points="640,240 655,245 640,250" fill="#8b5cf6"/>
+                
+                <line x1="550" y1="280" x2="650" y2="355" stroke="#10b981" stroke-width="3"/>
+                <polygon points="640,352 655,357 645,343" fill="#10b981"/>
+                
+                <!-- Multipark Label -->
+                <g filter="url(#shadow)">
+                    <rect x="620" y="420" width="250" height="50" rx="10" fill="url(#gradMultipark)"/>
+                    <text x="745" y="452" text-anchor="middle" fill="white" font-size="14" font-weight="800">🅿️ REDE MULTIPARK</text>
+                </g>
+                
+                <!-- Veículo -->
+                <g filter="url(#shadow)">
+                    <rect x="350" y="400" width="200" height="70" rx="15" fill="#374151"/>
+                    <text x="450" y="435" text-anchor="middle" fill="white" font-size="16" font-weight="700">🚗 VEÍCULO</text>
+                    <text x="450" y="455" text-anchor="middle" fill="white" font-size="11" opacity="0.8">OCR / TAG RFID</text>
+                </g>
+                
+                <!-- Camera -->
+                <g filter="url(#shadow)">
+                    <rect x="100" y="400" width="140" height="70" rx="15" fill="#ec4899"/>
+                    <text x="170" y="435" text-anchor="middle" fill="white" font-size="14" font-weight="700">📷 CÂMERA</text>
+                    <text x="170" y="455" text-anchor="middle" fill="white" font-size="10" opacity="0.9">Leitura de Placa</text>
+                </g>
+                
+                <!-- Connection Veículo -> Dionisio -->
+                <line x1="450" y1="400" x2="450" y2="320" stroke="#374151" stroke-width="3"/>
+                <polygon points="445,330 450,315 455,330" fill="#374151"/>
+                
+                <!-- Connection Câmera -> Dionisio -->
+                <path d="M 240 435 Q 295 385 340 330" stroke="#ec4899" stroke-width="3" fill="none"/>
+                <polygon points="350,320 338,328 342,338" fill="#ec4899"/>
+                
+                
+                <!-- Legend -->
+                <rect x="30" y="30" width="180" height="120" rx="10" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+                <text x="45" y="55" fill="#374151" font-size="12" font-weight="700">LEGENDA</text>
+                <line x1="45" y1="75" x2="75" y2="75" stroke="#10b981" stroke-width="3" stroke-dasharray="6,3"/>
+                <text x="85" y="79" fill="#6b7280" font-size="10">Sincronização</text>
+                <line x1="45" y1="100" x2="75" y2="100" stroke="#2563eb" stroke-width="3"/>
+                <text x="85" y="104" fill="#6b7280" font-size="10">Comunicação</text>
+                <circle cx="55" cy="125" r="8" fill="#374151"/>
+                <text x="85" y="129" fill="#6b7280" font-size="10">Componente</text>
+            </svg>
+        </div>
+
+        <div class="highlight-box highlight-info" style="margin-top: 40px;">
+            <span class="highlight-icon">💡</span>
+            <div class="highlight-content">
+                <h4>Operação Offline Garantida</h4>
+                <p>O Dionisio opera localmente no estacionamento, mantendo uma cópia da lista de veículos cadastrados. Se a internet cair, o sistema continua funcionando normalmente usando os dados locais.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Tecnologias OCR vs RFID -->
+    <section class="section" id="tecnologias">
+        <div class="section-title">
+            <div class="section-number">3</div>
+            <h2>Tecnologias de Identificação</h2>
+            <p>Como identificamos os veículos: OCR (câmera) vs RFID (tag)</p>
+        </div>
+
+        <div class="comparison-grid">
+            <!-- OCR Card -->
+            <div class="tech-card ocr">
+                <div class="tech-header">
+                    <div class="tech-icon">📷</div>
+                    <h3>OCR</h3>
+                    <p class="tech-full-name">Optical Character Recognition</p>
+                </div>
+                <div class="tech-content">
+                    <div class="tech-feature">
+                        <div class="tech-feature-icon">🔍</div>
+                        <div>
+                            <h4>Como Funciona</h4>
+                            <p>Câmera fotografa a placa do veículo e um software de IA identifica os caracteres automaticamente</p>
+                        </div>
+                    </div>
+                    <div class="tech-feature">
+                        <div class="tech-feature-icon">⚡</div>
+                        <div>
+                            <h4>Velocidade</h4>
+                            <p>Processamento em menos de 1 segundo após a captura da imagem</p>
+                        </div>
+                    </div>
+                    <div class="tech-feature">
+                        <div class="tech-feature-icon">🎯</div>
+                        <div>
+                            <h4>Precisão</h4>
+                            <p>95-99% de acerto em condições normais de iluminação e limpeza da placa</p>
+                        </div>
+                    </div>
+                    <div class="tech-feature">
+                        <div class="tech-feature-icon">💰</div>
+                        <div>
+                            <h4>Custo</h4>
+                            <p>Sem custo para o cliente — não precisa de dispositivo no veículo</p>
+                        </div>
+                    </div>
+                    <div class="tech-feature">
+                        <div class="tech-feature-icon">⚠️</div>
+                        <div>
+                            <h4>Limitações</h4>
+                            <p>Pode falhar com placas sujas, danificadas ou em condições de baixa luz</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RFID Card -->
+            <div class="tech-card rfid">
+                <div class="tech-header">
+                    <div class="tech-icon">📡</div>
+                    <h3>RFID</h3>
+                    <p class="tech-full-name">Radio-Frequency Identification</p>
+                </div>
+                <div class="tech-content">
+                    <div class="tech-feature">
+                        <div class="tech-feature-icon">🔍</div>
+                        <div>
+                            <h4>Como Funciona</h4>
+                            <p>Tag eletrônica no veículo é detectada por antenas de rádio frequência na entrada/saída</p>
+                        </div>
+                    </div>
+                    <div class="tech-feature">
+                        <div class="tech-feature-icon">⚡</div>
+                        <div>
+                            <h4>Velocidade</h4>
+                            <p>Detecção instantânea — menos de 100ms para identificação</p>
+                        </div>
+                    </div>
+                    <div class="tech-feature">
+                        <div class="tech-feature-icon">🎯</div>
+                        <div>
+                            <h4>Precisão</h4>
+                            <p>99.9% de acerto — identificação por código único da tag</p>
+                        </div>
+                    </div>
+                    <div class="tech-feature">
+                        <div class="tech-feature-icon">💰</div>
+                        <div>
+                            <h4>Custo</h4>
+                            <p>Requer tag no veículo (R$ 15-50) e antenas no estacionamento</p>
+                        </div>
+                    </div>
+                    <div class="tech-feature">
+                        <div class="tech-feature-icon">✅</div>
+                        <div>
+                            <h4>Vantagens</h4>
+                            <p>Funciona em qualquer condição climática, sem interferência de sujeira</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diagrama Visual OCR vs RFID -->
+        <div class="flow-section">
+            <div class="flow-title">
+                <h3>🔄 Processo de Identificação</h3>
+                <p>Comparação visual do fluxo de cada tecnologia</p>
+            </div>
+            
+            <div class="identification-diagram">
+            <svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 900px; margin: 0 auto; display: block;">
+                
+                <!-- ===== FLUXO OCR (topo) ===== -->
+                <text x="450" y="25" text-anchor="middle" font-size="14" font-weight="700" fill="#ec4899">📷 FLUXO OCR (com Dionisio)</text>
+                
+                <g transform="translate(30, 40)">
+                    <!-- Veículo -->
+                    <rect x="0" y="15" width="95" height="50" rx="10" fill="#374151"/>
+                    <text x="47" y="40" text-anchor="middle" fill="white" font-size="11" font-weight="600">🚗 Veículo</text>
+                    <text x="47" y="55" text-anchor="middle" fill="white" font-size="9" opacity="0.8">ABC-1234</text>
+                    
+                    <!-- Seta -->
+                    <line x1="95" y1="40" x2="130" y2="40" stroke="#ec4899" stroke-width="2"/>
+                    <polygon points="125,36 135,40 125,44" fill="#ec4899"/>
+                    
+                    <!-- Câmera OCR -->
+                    <rect x="135" y="15" width="95" height="50" rx="10" fill="#ec4899"/>
+                    <text x="182" y="38" text-anchor="middle" fill="white" font-size="10" font-weight="600">📷 Câmera OCR</text>
+                    <text x="182" y="52" text-anchor="middle" fill="white" font-size="8" opacity="0.9">Lê a placa</text>
+                    
+                    <!-- Seta -->
+                    <line x1="230" y1="40" x2="265" y2="40" stroke="#ec4899" stroke-width="2"/>
+                    <polygon points="260,36 270,40 260,44" fill="#ec4899"/>
+                    
+                    <!-- Integradora -->
+                    <rect x="270" y="15" width="110" height="50" rx="10" fill="#8b5cf6"/>
+                    <text x="325" y="35" text-anchor="middle" fill="white" font-size="10" font-weight="600">🏢 Integradora</text>
+                    <text x="325" y="50" text-anchor="middle" fill="white" font-size="8" opacity="0.9">Verifica credenciamento</text>
+                    
+                    <!-- Seta -->
+                    <line x1="380" y1="40" x2="415" y2="40" stroke="#8b5cf6" stroke-width="2"/>
+                    <polygon points="410,36 420,40 410,44" fill="#8b5cf6"/>
+                    
+                    <!-- Dionisio -->
+                    <rect x="420" y="15" width="120" height="50" rx="10" fill="#2563eb"/>
+                    <text x="480" y="33" text-anchor="middle" fill="white" font-size="10" font-weight="600">🖥️ Dionisio</text>
+                    <text x="480" y="47" text-anchor="middle" fill="white" font-size="8" opacity="0.9">TAG ativa e</text>
+                    <text x="480" y="58" text-anchor="middle" fill="white" font-size="8" opacity="0.9">desbloqueada?</text>
+                    
+                    <!-- Seta -->
+                    <line x1="540" y1="40" x2="575" y2="40" stroke="#2563eb" stroke-width="2"/>
+                    <polygon points="570,36 580,40 570,44" fill="#2563eb"/>
+                    
+                    <!-- Cancela -->
+                    <rect x="580" y="15" width="90" height="50" rx="10" fill="#10b981"/>
+                    <text x="625" y="38" text-anchor="middle" fill="white" font-size="11" font-weight="600">🚧 Cancela</text>
+                    <text x="625" y="52" text-anchor="middle" fill="white" font-size="9" opacity="0.9">ABRE ✓</text>
+                </g>
+                
+                <!-- Separador -->
+                <line x1="50" y1="130" x2="850" y2="130" stroke="#e5e7eb" stroke-width="2" stroke-dasharray="8,4"/>
+                
+                <!-- ===== FLUXO RFID (baixo) - WPS com EasyAccess ===== -->
+                <text x="450" y="160" text-anchor="middle" font-size="14" font-weight="700" fill="#06b6d4">📡 FLUXO RFID — WPS + EasyAccess</text>
+                
+                <g transform="translate(20, 175)">
+                    <!-- Veículo -->
+                    <rect x="0" y="15" width="75" height="50" rx="8" fill="#374151"/>
+                    <text x="37" y="36" text-anchor="middle" fill="white" font-size="10" font-weight="600">🚗 Veículo</text>
+                    <text x="37" y="50" text-anchor="middle" fill="#06b6d4" font-size="8" font-weight="600">📡 TAG MoveMais</text>
+                    
+                    <!-- Ondas de rádio -->
+                    <path d="M 78 40 Q 88 30 98 40" stroke="#06b6d4" stroke-width="2" fill="none" opacity="0.6"/>
+                    <path d="M 82 40 Q 92 26 102 40" stroke="#06b6d4" stroke-width="2" fill="none" opacity="0.4"/>
+                    
+                    <!-- Antena RFID -->
+                    <rect x="105" y="15" width="80" height="50" rx="8" fill="#06b6d4"/>
+                    <text x="145" y="36" text-anchor="middle" fill="white" font-size="9" font-weight="600">📡 Antena</text>
+                    <text x="145" y="50" text-anchor="middle" fill="white" font-size="8" opacity="0.9">RFID</text>
+                    
+                    <!-- Seta -->
+                    <line x1="185" y1="40" x2="215" y2="40" stroke="#06b6d4" stroke-width="2"/>
+                    <polygon points="210,36 220,40 210,44" fill="#06b6d4"/>
+                    
+                    <!-- EasyAccess -->
+                    <rect x="220" y="15" width="90" height="50" rx="8" fill="#f59e0b"/>
+                    <text x="265" y="33" text-anchor="middle" fill="white" font-size="9" font-weight="700">🔌 EZAccess</text>
+                    <text x="265" y="47" text-anchor="middle" fill="white" font-size="7" opacity="0.9">Lê TAG e</text>
+                    <text x="265" y="57" text-anchor="middle" fill="white" font-size="7" opacity="0.9">consulta MoveMais</text>
+                    
+                    <!-- Seta bidirecional para MoveMais -->
+                    <line x1="310" y1="35" x2="355" y2="35" stroke="#10b981" stroke-width="2"/>
+                    <polygon points="350,31 360,35 350,39" fill="#10b981"/>
+                    <line x1="355" y1="45" x2="310" y2="45" stroke="#2563eb" stroke-width="2"/>
+                    <polygon points="315,41 305,45 315,49" fill="#2563eb"/>
+                    
+                    <!-- MoveMais API -->
+                    <rect x="360" y="15" width="95" height="50" rx="8" fill="#2563eb"/>
+                    <text x="407" y="33" text-anchor="middle" fill="white" font-size="9" font-weight="700">🖥️ MoveMais</text>
+                    <text x="407" y="47" text-anchor="middle" fill="white" font-size="7" opacity="0.9">Veículo apto?</text>
+                    <text x="407" y="57" text-anchor="middle" fill="white" font-size="7" opacity="0.9">(API/Banco)</text>
+                    
+                    <!-- Seta EZAccess → WPS -->
+                    <line x1="265" y1="65" x2="265" y2="85" stroke="#f59e0b" stroke-width="2"/>
+                    <polygon points="261,80 265,90 269,80" fill="#f59e0b"/>
+                    
+                    <!-- WPS -->
+                    <rect x="220" y="90" width="90" height="40" rx="8" fill="#8b5cf6"/>
+                    <text x="265" y="110" text-anchor="middle" fill="white" font-size="9" font-weight="700">🏢 WPS</text>
+                    <text x="265" y="122" text-anchor="middle" fill="white" font-size="7" opacity="0.9">Libera cancela</text>
+                    
+                    <!-- Seta WPS → Cancela -->
+                    <line x1="310" y1="110" x2="355" y2="110" stroke="#8b5cf6" stroke-width="2"/>
+                    <polygon points="350,106 360,110 350,114" fill="#8b5cf6"/>
+                    
+                    <!-- Cancela -->
+                    <rect x="360" y="90" width="75" height="40" rx="8" fill="#10b981"/>
+                    <text x="397" y="108" text-anchor="middle" fill="white" font-size="10" font-weight="600">🚧 Cancela</text>
+                    <text x="397" y="120" text-anchor="middle" fill="white" font-size="8" opacity="0.9">ABRE ✓</text>
+                    
+                    <!-- Seta WPS → Multipark -->
+                    <line x1="265" y1="130" x2="265" y2="145" stroke="#ec4899" stroke-width="2"/>
+                    <polygon points="261,140 265,150 269,140" fill="#ec4899"/>
+                    
+                    <!-- Multipark -->
+                    <rect x="210" y="150" width="110" height="35" rx="8" fill="#ec4899"/>
+                    <text x="265" y="172" text-anchor="middle" fill="white" font-size="9" font-weight="700">🏪 Multipark</text>
+                </g>
+                
+                <!-- Legenda -->
+                <g transform="translate(520, 190)">
+                    <rect x="0" y="0" width="10" height="10" rx="2" fill="#06b6d4"/>
+                    <text x="15" y="9" fill="#374151" font-size="8">Antena RFID</text>
+                    
+                    <rect x="0" y="18" width="10" height="10" rx="2" fill="#f59e0b"/>
+                    <text x="15" y="27" fill="#374151" font-size="8">EZAccess (lê TAG)</text>
+                    
+                    <rect x="0" y="36" width="10" height="10" rx="2" fill="#2563eb"/>
+                    <text x="15" y="45" fill="#374151" font-size="8">MoveMais (valida)</text>
+                    
+                    <rect x="0" y="54" width="10" height="10" rx="2" fill="#8b5cf6"/>
+                    <text x="15" y="63" fill="#374151" font-size="8">WPS (libera)</text>
+                    
+                    <rect x="0" y="72" width="10" height="10" rx="2" fill="#ec4899"/>
+                    <text x="15" y="81" fill="#374151" font-size="8">Multipark (registra)</text>
+                </g>
+            </svg>
+            </div>
+        </div>
+
+        <div class="highlight-box highlight-success">
+            <span class="highlight-icon">✅</span>
+            <div class="highlight-content">
+                <h4>Melhor dos Dois Mundos</h4>
+                <p>O sistema MoveMais suporta <strong>ambas as tecnologias simultaneamente</strong>. No OCR, o <strong>Dionisio</strong> recebe a leitura da integradora e valida. No RFID (WPS), a <strong>EasyAccess</strong> lê a TAG MoveMais e consulta nossa API para verificar se o veículo está apto, depois passa a resposta para o WPS liberar a cancela e encaminha para a Multipark.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Integradoras -->
+    <section class="section" id="integradoras">
+        <div class="section-title">
+            <div class="section-number">4</div>
+            <h2>As Quatro Integradoras</h2>
+            <p>Sistemas que fazem a ponte entre MoveMais e Multipark</p>
+        </div>
+
+        <div class="integrator-section">
+            <!-- LINK -->
+            <div class="integrator-card link">
+                <div class="integrator-header">
+                    <div class="integrator-logo"><img src="img/logo-link.png" alt="LINK"></div>
+                    <h3>LINK</h3>
+                    <p>Bilheteria Completa</p>
+                    <span style="display: inline-block; margin-top: 8px; padding: 4px 12px; background: linear-gradient(135deg, #ec4899, #db2777); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">📷 OCR</span>
+                </div>
+                <div class="integrator-body">
+                    <ul class="integrator-features">
+                        <li><span class="check">✓</span> Comunicação Socket TCP/IP</li>
+                        <li><span class="check">✓</span> API REST completa</li>
+                        <li><span class="check">✓</span> Leitura OCR de placa</li>
+                        <li><span class="check">✓</span> Check-in e Check-out</li>
+                        <li><span class="check">✓</span> Cancelamento de entrada</li>
+                        <li><span class="check">✓</span> Sincronização forçada</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- WPS -->
+            <div class="integrator-card wps">
+                <div class="integrator-header">
+                    <div class="integrator-logo"><img src="img/logo-wps.png" alt="WPS"></div>
+                    <h3>WPS</h3>
+                    <p>Controle de Acesso</p>
+                    <span style="display: inline-block; margin-top: 8px; padding: 4px 12px; background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">📡 RFID</span>
+                </div>
+                <div class="integrator-body">
+                    <ul class="integrator-features">
+                        <li><span class="check">✓</span> API REST</li>
+                        <li><span class="check">✓</span> TAG RFID obrigatória</li>
+                        <li><span class="check">✓</span> Check-in e Check-out</li>
+                        <li><span class="check">✓</span> Cancelamento de entrada</li>
+                        <li><span class="check">✓</span> Sincronização forçada</li>
+                        <li style="opacity: 0.4;"><span class="check" style="background: #fee2e2; color: #dc2626;">✗</span> Sem suporte a OCR</li>
+                    </ul>
+                    <button onclick="openIntegradoraModal('modal-wps')" style="display: block; width: 100%; margin-top: 15px; padding: 10px 16px; background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; text-align: center; font-size: 0.9rem; transition: transform 0.2s, box-shadow 0.2s; border: none; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(6,182,212,0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">🔍 Como funciona?</button>
+                </div>
+            </div>
+
+            <!-- PARCO -->
+            <div class="integrator-card parco">
+                <div class="integrator-header">
+                    <div class="integrator-logo"><img src="img/logo-parco.png" alt="PARCO"></div>
+                    <h3>PARCO</h3>
+                    <p>Sistema Multipark</p>
+                    <span style="display: inline-block; margin-top: 8px; padding: 4px 12px; background: linear-gradient(135deg, #ec4899, #db2777); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">📷 OCR</span>
+                </div>
+                <div class="integrator-body">
+                    <ul class="integrator-features">
+                        <li><span class="check">✓</span> API REST</li>
+                        <li><span class="check">✓</span> Leitura OCR de placa</li>
+                        <li><span class="check">✓</span> Check-in e Check-out</li>
+                        <li><span class="check">✓</span> Cancelamento de entrada</li>
+                        <li><span class="check">✓</span> Sincronização forçada</li>
+                        <li><span class="check">✓</span> Integração Multipark</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- WISETOOLS -->
+            <div class="integrator-card wisetools">
+                <div class="integrator-header">
+                    <div class="integrator-logo"><img src="img/logo-wisetools.png" alt="WiseTools"></div>
+                    <h3>WiseTools</h3>
+                    <p>Informatizados</p>
+                    <span style="display: inline-block; margin-top: 8px; padding: 4px 12px; background: linear-gradient(135deg, #374151, #1f2937); color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">⌨️ Manual</span>
+                </div>
+                <div class="integrator-body">
+                    <ul class="integrator-features">
+                        <li><span class="check">✓</span> API HTTPS (apiKey)</li>
+                        <li><span class="check">✓</span> Placa digitada manualmente</li>
+                        <li><span class="check">✓</span> VerificaStatus (cliente?)</li>
+                        <li><span class="check">✓</span> SolicitarPagamento</li>
+                        <li style="opacity: 0.4;"><span class="check" style="background: #fee2e2; color: #dc2626;">✗</span> Sem OCR/RFID</li>
+                    </ul>
+                    <button onclick="openIntegradoraModal('modal-wisetools')" style="display: block; width: 100%; margin-top: 15px; padding: 10px 16px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; text-align: center; font-size: 0.9rem; transition: transform 0.2s, box-shadow 0.2s; border: none; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(139,92,246,0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">🔍 Como funciona?</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight-box highlight-warning">
+            <span class="highlight-icon">🔐</span>
+            <div class="highlight-content">
+                <h4>Autenticação Segura</h4>
+                <p>Todas as integradoras utilizam <strong>JWT (JSON Web Token)</strong> para autenticação. O terminal solicita um token, que é válido por 1 hora, e usa em todas as requisições subsequentes.</p>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- 4. Fluxo de Entrada -->
+    <section class="section" id="fluxos">
+        <div class="section-title">
+            <div class="section-number">5</div>
+            <h2>Fluxo de Veículos</h2>
+            <p>Processo unificado para entrada e saída — funciona com OCR, RFID ou Manual</p>
+        </div>
+
+        <!-- Fluxo Unificado -->
+        <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 40px;">
+            
+            <!-- Seletor de Tipo de Identificação -->
+            <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;">
+                <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 10px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">📷 OCR (Câmera)</div>
+                <div style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; padding: 10px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">📡 RFID (TAG)</div>
+                <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; padding: 10px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">⌨️ Manual (Digitação)</div>
+            </div>
+
+            <!-- Fluxo Visual Unificado -->
+            <div id="fluxo-timeline" style="position: relative; padding: 20px 0;">
+                
+                <!-- Barra de progresso de fundo (cinza) -->
+                <div style="position: absolute; left: 50%; top: 20px; bottom: 20px; width: 8px; background: linear-gradient(180deg, #e5e7eb 0%, #d1d5db 100%); transform: translateX(-50%); border-radius: 8px; z-index: 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);"></div>
+                
+                <!-- Barra de progresso que preenche (gradiente) -->
+                <div id="progress-bar-fill" style="position: absolute; left: 50%; top: 20px; height: 0%; width: 8px; background: linear-gradient(180deg, #10b981 0%, #3b82f6 25%, #8b5cf6 50%, #f59e0b 75%, #10b981 100%); transform: translateX(-50%); border-radius: 8px; z-index: 1; transition: height 0.25s cubic-bezier(0.22, 1, 0.36, 1); box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);"></div>
+
+                <!-- Etapa 1 - Veículo Chega -->
+                <div class="timeline-step" style="display: flex; align-items: center; margin-bottom: 40px; position: relative; z-index: 2;">
+                    <div style="flex: 1; text-align: right; padding-right: 35px;">
+                        <div class="step-content" style="display: inline-block; background: linear-gradient(135deg, #374151, #1f2937); color: white; padding: 24px 28px; border-radius: 16px; max-width: 380px; text-align: left; opacity: 0.35; transform: translateX(-30px); transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                <span style="font-size: 1.6rem;">🚗</span>
+                                <strong style="font-size: 1.15rem;">Veículo Chega</strong>
+                            </div>
+                            <p style="margin: 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.5;">Carro se aproxima da cancela (entrada ou saída)</p>
+                        </div>
+                    </div>
+                    <div class="step-marker" style="width: 56px; height: 56px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 1.6rem; box-shadow: 0 4px 15px rgba(0,0,0,0.08); z-index: 2; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); border: 4px solid white;" data-active-bg="linear-gradient(135deg, #10b981, #059669)" data-active-shadow="0 8px 25px rgba(16, 185, 129, 0.5)">🚗</div>
+                    <div style="flex: 1; padding-left: 35px;"></div>
+                </div>
+
+                <!-- Etapa 2 - Identificação -->
+                <div class="timeline-step" style="display: flex; align-items: center; margin-bottom: 40px; position: relative; z-index: 2;">
+                    <div style="flex: 1; padding-right: 35px;"></div>
+                    <div class="step-marker" style="width: 56px; height: 56px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 1.6rem; box-shadow: 0 4px 15px rgba(0,0,0,0.08); z-index: 2; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); border: 4px solid white;" data-active-bg="linear-gradient(135deg, #3b82f6, #2563eb)" data-active-shadow="0 8px 25px rgba(59, 130, 246, 0.5)">🔍</div>
+                    <div style="flex: 1; text-align: left; padding-left: 35px;">
+                        <div class="step-content" style="display: inline-block; background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 24px 28px; border-radius: 16px; max-width: 380px; text-align: left; border-left: 4px solid #3b82f6; opacity: 0.35; transform: translateX(30px); transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                <span style="font-size: 1.6rem;">🔍</span>
+                                <strong style="font-size: 1.15rem; color: #1e40af;">Identificação</strong>
+                            </div>
+                            <p style="margin: 0; font-size: 0.9rem; color: #1e3a8a; line-height: 1.5;">Placa identificada via:</p>
+                            <ul style="margin: 10px 0 0 0; padding-left: 18px; font-size: 0.85rem; color: #1e40af; line-height: 1.6;">
+                                <li><strong>OCR:</strong> Câmera lê placa</li>
+                                <li><strong>RFID:</strong> Antena detecta TAG</li>
+                                <li><strong>Manual:</strong> Operador digita</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Etapa 3 - Integradora -->
+                <div class="timeline-step" style="display: flex; align-items: center; margin-bottom: 40px; position: relative; z-index: 2;">
+                    <div style="flex: 1; text-align: right; padding-right: 35px;">
+                        <div class="step-content" style="display: inline-block; background: linear-gradient(135deg, #fffbeb, #fef3c7); padding: 24px 28px; border-radius: 16px; max-width: 380px; text-align: left; border-right: 4px solid #f59e0b; opacity: 0.35; transform: translateX(-30px); transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                <span style="font-size: 1.6rem;">🔌</span>
+                                <strong style="font-size: 1.15rem; color: #92400e;">Integradora</strong>
+                            </div>
+                            <p style="margin: 0; font-size: 0.9rem; color: #78350f; line-height: 1.5;">Sistema da integradora processa a identificação</p>
+                            <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+                                <span style="background: #3b82f6; color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">LINK</span>
+                                <span style="background: #06b6d4; color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">WPS</span>
+                                <span style="background: #10b981; color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">PARCO</span>
+                                <span style="background: #8b5cf6; color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem;">WiseTools</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-marker" style="width: 50px; height: 50px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 2; transition: all 0.4s ease-out;" data-active-bg="linear-gradient(135deg, #f59e0b, #d97706)" data-active-shadow="0 4px 15px rgba(245, 158, 11, 0.5)">🔌</div>
+                    <div style="flex: 1; padding-left: 30px;"></div>
+                </div>
+
+                <!-- Etapa 4 - Dionisio -->
+                <div class="timeline-step" style="display: flex; align-items: center; margin-bottom: 40px; position: relative; z-index: 2;">
+                    <div style="flex: 1; padding-right: 35px;"></div>
+                    <div class="step-marker" style="width: 56px; height: 56px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 1.6rem; box-shadow: 0 4px 15px rgba(0,0,0,0.08); z-index: 2; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); border: 4px solid white;" data-active-bg="linear-gradient(135deg, #8b5cf6, #7c3aed)" data-active-shadow="0 8px 25px rgba(139, 92, 246, 0.5)">🖥️</div>
+                    <div style="flex: 1; text-align: left; padding-left: 35px;">
+                        <div class="step-content" style="display: inline-block; background: linear-gradient(135deg, #f5f3ff, #ede9fe); padding: 24px 28px; border-radius: 16px; max-width: 380px; text-align: left; border-left: 4px solid #8b5cf6; opacity: 0.35; transform: translateX(30px); transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                <span style="font-size: 1.6rem;">🖥️</span>
+                                <strong style="font-size: 1.15rem; color: #5b21b6;">Dionisio (API)</strong>
+                            </div>
+                            <p style="margin: 0; font-size: 0.9rem; color: #6d28d9; line-height: 1.5;">Recebe requisição e verifica:</p>
+                            <ul style="margin: 10px 0 0 0; padding-left: 18px; font-size: 0.85rem; color: #7c3aed; line-height: 1.6;">
+                                <li>Placa cadastrada?</li>
+                                <li>Cliente ativo?</li>
+                                <li>TAG desbloqueada?</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Etapa 5 - Hermes + MoveMais -->
+                <div class="timeline-step" style="display: flex; align-items: center; margin-bottom: 40px; position: relative; z-index: 2;">
+                    <div style="flex: 1; text-align: right; padding-right: 35px;">
+                        <div class="step-content" style="display: inline-block; background: linear-gradient(135deg, #ecfdf5, #d1fae5); padding: 24px 28px; border-radius: 16px; max-width: 380px; text-align: left; border-right: 4px solid #10b981; opacity: 0.35; transform: translateX(-30px); transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                <span style="font-size: 1.6rem;">📡</span>
+                                <strong style="font-size: 1.15rem; color: #047857;">Hermes → MoveMais</strong>
+                            </div>
+                            <p style="margin: 0; font-size: 0.9rem; color: #065f46; line-height: 1.5;">Consulta API MoveMais para validar credenciamento:</p>
+                            <div style="display: flex; gap: 12px; margin-top: 14px;">
+                                <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 8px 14px; border-radius: 10px; font-size: 0.8rem; text-align: center; box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);">
+                                    <div style="font-weight: 600;">🚗 Entrada</div>
+                                    <div style="font-size: 0.7rem; opacity: 0.9;">check-in</div>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 8px 14px; border-radius: 10px; font-size: 0.8rem; text-align: center; box-shadow: 0 3px 10px rgba(245, 158, 11, 0.3);">
+                                    <div style="font-weight: 600;">🚙 Saída</div>
+                                    <div style="font-size: 0.7rem; opacity: 0.9;">check-out + débito</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-marker" style="width: 56px; height: 56px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 1.6rem; box-shadow: 0 4px 15px rgba(0,0,0,0.08); z-index: 2; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); border: 4px solid white;" data-active-bg="linear-gradient(135deg, #10b981, #059669)" data-active-shadow="0 8px 25px rgba(16, 185, 129, 0.5)">📡</div>
+                    <div style="flex: 1; padding-left: 35px;"></div>
+                </div>
+
+                <!-- Etapa 6 - Resposta -->
+                <div class="timeline-step" style="display: flex; align-items: center; margin-bottom: 40px; position: relative; z-index: 2;">
+                    <div style="flex: 1; padding-right: 35px;"></div>
+                    <div class="step-marker" style="width: 56px; height: 56px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 1.6rem; box-shadow: 0 4px 15px rgba(0,0,0,0.08); z-index: 2; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); border: 4px solid white;" data-active-bg="linear-gradient(135deg, #06b6d4, #0891b2)" data-active-shadow="0 8px 25px rgba(6, 182, 212, 0.5)">📨</div>
+                    <div style="flex: 1; text-align: left; padding-left: 35px;">
+                        <div class="step-content" style="display: inline-block; background: linear-gradient(135deg, #ecfeff, #cffafe); padding: 24px 28px; border-radius: 16px; max-width: 380px; text-align: left; border-left: 4px solid #06b6d4; opacity: 0.35; transform: translateX(30px); transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                <span style="font-size: 1.6rem;">📨</span>
+                                <strong style="font-size: 1.15rem; color: #0e7490;">Resposta</strong>
+                            </div>
+                            <p style="margin: 0; font-size: 0.9rem; color: #155e75; line-height: 1.5;">Dionisio retorna resultado para a integradora:</p>
+                            <div style="display: flex; gap: 12px; margin-top: 14px;">
+                                <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);">✅ GRANTED</span>
+                                <span style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3);">❌ DENIED</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Etapa 7 - Cancela -->
+                <div class="timeline-step" style="display: flex; align-items: center; position: relative; z-index: 2;">
+                    <div style="flex: 1; text-align: right; padding-right: 35px;">
+                        <div class="step-content" style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 24px 28px; border-radius: 16px; max-width: 380px; text-align: left; opacity: 0.35; transform: translateX(-30px); transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                <span style="font-size: 1.6rem;">🚧</span>
+                                <strong style="font-size: 1.15rem;">Cancela Abre</strong>
+                            </div>
+                            <p style="margin: 0; font-size: 0.9rem; opacity: 0.95; line-height: 1.5;">Integradora recebe autorização e libera passagem do veículo</p>
+                            <div style="margin-top: 14px; padding: 10px 16px; background: rgba(255,255,255,0.2); border-radius: 10px; font-size: 0.85rem; backdrop-filter: blur(4px);">
+                                ⏱️ Tempo médio: <strong>< 2 segundos</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-marker" style="width: 56px; height: 56px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 1.6rem; box-shadow: 0 4px 15px rgba(0,0,0,0.08); z-index: 2; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); border: 4px solid white;" data-active-bg="linear-gradient(135deg, #10b981, #059669)" data-active-shadow="0 8px 25px rgba(16, 185, 129, 0.5)">✅</div>
+                    <div style="flex: 1; padding-left: 30px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumo Tipos de Cliente -->
+        <div style="background: white; border-radius: 16px; padding: 30px; margin-top: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+            <h3 style="text-align: center; margin-bottom: 25px; color: var(--primary);">👤 Tipos de Cliente na Saída</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); padding: 20px; border-radius: 12px; border-left: 4px solid #10b981;">
+                    <h4 style="margin: 0 0 10px 0; color: #059669;">🟢 Cliente MoveMais</h4>
+                    <p style="margin: 0; color: #047857; font-size: 0.9rem;">Liberação <strong>instantânea</strong> (< 2 seg). Débito automático na conta.</p>
+                </div>
+                <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 20px; border-radius: 12px; border-left: 4px solid #f59e0b;">
+                    <h4 style="margin: 0 0 10px 0; color: #d97706;">🟡 Reserva Online</h4>
+                    <p style="margin: 0; color: #92400e; font-size: 0.9rem;">Liberação <strong>instantânea</strong>. Pré-pago pelo app.</p>
+                </div>
+                <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); padding: 20px; border-radius: 12px; border-left: 4px solid #ef4444;">
+                    <h4 style="margin: 0 0 10px 0; color: #dc2626;">🔴 Avulso</h4>
+                    <p style="margin: 0; color: #b91c1c; font-size: 0.9rem;">Aguarda <strong>pagamento local</strong> (dinheiro/cartão).</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. Comparativo -->
+    <section class="section" id="comparativo">
+        <div class="section-title">
+            <div class="section-number">6</div>
+            <h2>Comparativo das Integradoras</h2>
+            <p>Resumo das funcionalidades de cada integradora</p>
+        </div>
+
+        <div class="comparison-table-wrapper">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Funcionalidade</th>
+                        <th style="text-align: center;">🔵 LINK</th>
+                        <th style="text-align: center;">🟣 WPS</th>
+                        <th style="text-align: center;">🟢 PARCO</th>
+                        <th style="text-align: center;">🟠 WiseTools</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="feature-name">Autenticação JWT</td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-no" title="Usa apiKey">apiKey</span></td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Comunicação Socket TCP/IP</td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-no">✗ Não</span></td>
+                        <td style="text-align: center;"><span class="badge-no">✗ Não</span></td>
+                        <td style="text-align: center;"><span class="badge-no">✗ Não</span></td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">API REST</td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Lista de Estacionados</td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-no">✗ Não</span></td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Check-in Manual</td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-no">✗ Não</span></td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Check-out Manual</td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-no">✗ Não</span></td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Leitura Manual de Placa</td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-no">✗ Não</span></td>
+                        <td style="text-align: center;"><span class="badge-no">✗ Não</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Cancelar Entrada</td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-no">✗ Não</span></td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Sincronização Forçada</td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-yes">✓ Sim</span></td>
+                        <td style="text-align: center;"><span class="badge-no">✗ Não</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- OCR vs RFID Table -->
+        <h3 style="text-align: center; margin: 50px 0 30px; font-size: 1.5rem;">📷 OCR vs 📡 RFID</h3>
+        <div class="comparison-table-wrapper">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Característica</th>
+                        <th style="text-align: center;">📷 OCR</th>
+                        <th style="text-align: center;">📡 RFID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="feature-name">Precisão</td>
+                        <td style="text-align: center;">95-99%</td>
+                        <td style="text-align: center;">99.9%</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Velocidade</td>
+                        <td style="text-align: center;">~1 segundo</td>
+                        <td style="text-align: center;">~100ms</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Infraestrutura</td>
+                        <td style="text-align: center;">Câmera OCR (Integradora)</td>
+                        <td style="text-align: center;">Antenas + Leitores</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- 7. Benefícios -->
+    <section class="section" id="beneficios">
+        <div class="section-title">
+            <div class="section-number">7</div>
+            <h2>Benefícios da Integração</h2>
+            <p>Por que MoveMais + Multipark é a combinação perfeita</p>
+        </div>
+
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="icon">⚡</div>
+                <div class="value">&lt; 2s</div>
+                <div class="label">Tempo de liberação</div>
+            </div>
+            <div class="summary-card">
+                <div class="icon">📡</div>
+                <div class="value">24/7</div>
+                <div class="label">Operação contínua</div>
+            </div>
+            <div class="summary-card">
+                <div class="icon">🔄</div>
+                <div class="value">60s</div>
+                <div class="label">Sincronização</div>
+            </div>
+            <div class="summary-card">
+                <div class="icon">📶</div>
+                <div class="value">Offline</div>
+                <div class="label">Modo local</div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 40px;">
+            <div class="highlight-box highlight-success">
+                <span class="highlight-icon">🚀</span>
+                <div class="highlight-content">
+                    <h4>Experiência Rápida</h4>
+                    <p>Clientes credenciados entram e saem em menos de 2 segundos, sem parar para pegar ticket ou pagar.</p>
+                </div>
+            </div>
+            <div class="highlight-box highlight-info">
+                <span class="highlight-icon">💾</span>
+                <div class="highlight-content">
+                    <h4>Operação Offline</h4>
+                    <p>Se a internet cair, o sistema continua funcionando com dados locais. Sincroniza quando a conexão volta.</p>
+                </div>
+            </div>
+            <div class="highlight-box highlight-warning">
+                <span class="highlight-icon">🔐</span>
+                <div class="highlight-content">
+                    <h4>Segurança</h4>
+                    <p>Autenticação JWT em todas as APIs, criptografia de dados e auditoria completa de acessos.</p>
+                </div>
+            </div>
+            <div class="highlight-box highlight-success">
+                <span class="highlight-icon">🔧</span>
+                <div class="highlight-content">
+                    <h4>Flexibilidade</h4>
+                    <p>Suporta OCR, RFID e múltiplas integradoras. Adapta-se a qualquer estacionamento da rede.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. FAQ - Problemas e Tratativas -->
+    <section class="section" id="faq">
+        <div class="section-title">
+            <div class="section-number">8</div>
+            <h2>Troubleshooting — Diagnóstico por Sintoma</h2>
+            <p>Clique no sintoma para ver as possíveis causas</p>
+        </div>
+
+        <!-- Troubleshooting por Sintoma - FAQ Aninhado -->
+        <div>
+            <div class="faq-container" style="display: flex; flex-direction: column; gap: 16px;">
+                
+                <!-- 🚫 Veículo não conseguiu ENTRAR -->
+                <div class="faq-item faq-nested" style="background: white; border-radius: 12px; border: 2px solid #fecaca; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                    <div class="faq-question" style="padding: 20px 24px; background: linear-gradient(135deg, #fef2f2, #fee2e2); cursor: pointer; display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 1.5rem;">🚫</span>
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0; color: #dc2626; font-size: 1.1rem;">Veículo não conseguiu ENTRAR</h4>
+                            <p style="margin: 5px 0 0 0; color: #b91c1c; font-size: 0.85rem;">Clique para ver as possíveis causas</p>
+                        </div>
+                        <span class="faq-toggle" style="color: #dc2626; font-size: 1.2rem; transition: transform 0.3s;">▼</span>
+                    </div>
+                    <div class="faq-answer" style="padding: 0; border-top: 1px solid #fecaca;">
+                        
+                        <!-- Sub-item: Veículo já está no pátio -->
+                        <div class="faq-item faq-subitem" style="border-bottom: 1px solid #fee2e2;">
+                            <div class="faq-question" style="padding: 16px 24px; background: #fff5f5; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #ef4444;">●</span>
+                                <span style="flex: 1; color: #991b1b; font-weight: 600;">Veículo já está no pátio (dessincronização)</span>
+                                <span class="faq-toggle" style="color: #dc2626; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 24px; background: white;">
+                                <p style="margin: 0 0 15px 0;"><strong style="color: #991b1b;">Causa:</strong> Veículo saiu fisicamente mas a notificação de saída não foi recebida pelo MoveMais. Cada sistema mantém seu próprio controle de pátio.</p>
+                                
+                                <!-- Diagrama de Pátios Inline -->
+                                <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 15px 0; border: 1px solid #e2e8f0;">
+                                    <h5 style="margin: 0 0 15px 0; color: #475569; font-size: 0.95rem; text-align: center;">🏢 Dois Pátios, Uma Realidade</h5>
+                                    <svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 700px; margin: 0 auto; display: block;">
+                                        <defs>
+                                            <linearGradient id="gradMM" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#059669"/>
+                                                <stop offset="100%" style="stop-color:#047857"/>
+                                            </linearGradient>
+                                            <linearGradient id="gradInt" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#6366f1"/>
+                                                <stop offset="100%" style="stop-color:#4f46e5"/>
+                                            </linearGradient>
+                                        </defs>
+
+                                        <!-- Pátio MoveMais -->
+                                        <rect x="30" y="30" width="250" height="180" rx="12" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+                                        <rect x="30" y="30" width="250" height="35" rx="12" fill="url(#gradMM)"/>
+                                        <rect x="30" y="53" width="250" height="12" fill="url(#gradMM)"/>
+                                        <text x="155" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="800">🏢 PÁTIO MOVEMAIS</text>
+                                        
+                                        <rect x="50" y="85" width="85" height="30" rx="6" fill="#d1fae5"/>
+                                        <text x="92" y="105" text-anchor="middle" fill="#047857" font-size="9" font-weight="600">🚗 ABC-1234</text>
+                                        
+                                        <rect x="145" y="85" width="85" height="30" rx="6" fill="#d1fae5"/>
+                                        <text x="187" y="105" text-anchor="middle" fill="#047857" font-size="9" font-weight="600">🚗 XYZ-5678</text>
+                                        
+                                        <rect x="50" y="125" width="85" height="30" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
+                                        <text x="92" y="145" text-anchor="middle" fill="#d97706" font-size="9" font-weight="600">⚠️ GHI-3456</text>
+                                        
+                                        <text x="155" y="175" text-anchor="middle" fill="#059669" font-size="16" font-weight="700">3 veículos</text>
+                                        <text x="155" y="195" text-anchor="middle" fill="#6b7280" font-size="8">(Dionisio/Hermes)</text>
+
+                                        <!-- Setas de sincronização -->
+                                        <line x1="290" y1="100" x2="400" y2="100" stroke="#6366f1" stroke-width="2" stroke-dasharray="6,3"/>
+                                        <polygon points="395,96 408,100 395,104" fill="#6366f1"/>
+                                        <line x1="400" y1="130" x2="290" y2="130" stroke="#10b981" stroke-width="2" stroke-dasharray="6,3"/>
+                                        <polygon points="295,126 282,130 295,134" fill="#10b981"/>
+                                        <rect x="320" y="105" width="50" height="20" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+                                        <text x="345" y="119" text-anchor="middle" fill="#d97706" font-size="8" font-weight="700">🔄 API</text>
+
+                                        <!-- Pátio Integradora -->
+                                        <rect x="420" y="30" width="250" height="180" rx="12" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+                                        <rect x="420" y="30" width="250" height="35" rx="12" fill="url(#gradInt)"/>
+                                        <rect x="420" y="53" width="250" height="12" fill="url(#gradInt)"/>
+                                        <text x="545" y="55" text-anchor="middle" fill="white" font-size="11" font-weight="800">🏢 PÁTIO INTEGRADORA</text>
+                                        
+                                        <rect x="440" y="85" width="85" height="30" rx="6" fill="#dbeafe"/>
+                                        <text x="482" y="105" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="600">🚗 ABC-1234</text>
+                                        
+                                        <rect x="535" y="85" width="85" height="30" rx="6" fill="#dbeafe"/>
+                                        <text x="577" y="105" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="600">🚗 XYZ-5678</text>
+                                        
+                                        <rect x="440" y="125" width="85" height="30" rx="6" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1" stroke-dasharray="4,2"/>
+                                        <text x="482" y="143" text-anchor="middle" fill="#9ca3af" font-size="8">vazio</text>
+                                        
+                                        <text x="545" y="175" text-anchor="middle" fill="#4f46e5" font-size="16" font-weight="700">2 veículos</text>
+                                        <text x="545" y="195" text-anchor="middle" fill="#6b7280" font-size="8">(Link/Parco/WPS)</text>
+
+                                        <!-- Problema destacado -->
+                                        <rect x="100" y="230" width="500" height="45" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+                                        <text x="350" y="252" text-anchor="middle" fill="#dc2626" font-size="10" font-weight="700">⚠️ PROBLEMA: GHI-3456 está no MoveMais mas NÃO na Integradora</text>
+                                        <text x="350" y="267" text-anchor="middle" fill="#991b1b" font-size="9">Na próxima entrada → Sistema bloqueia: "veículo já está dentro"</text>
+                                    </svg>
+                                </div>
+                                
+                                <div style="margin: 15px 0; padding: 12px 16px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                    <p style="margin: 0; font-weight: 700; color: #92400e;">🏢 RESPONSÁVEL: <span style="background: #6366f1; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">INTEGRADORA</span> + <span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">MOVEMAIS</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #78350f;">Falha na comunicação da saída entre Integradora → MoveMais</p>
+                                </div>
+                                
+                                <p style="margin: 15px 0 10px 0;"><strong style="color: #92400e;">Cenários comuns:</strong></p>
+                                <ul style="margin: 0 0 15px 20px; padding: 0; color: #6b7280; font-size: 0.9rem;">
+                                    <li style="margin: 5px 0;">Saída sem notificação (API falhou)</li>
+                                    <li style="margin: 5px 0;">Queda de internet durante saída</li>
+                                    <li style="margin: 5px 0;">Liberação manual pela cabine</li>
+                                </ul>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Comparar veículos no pátio MoveMais vs Integradora. Verificar logs de saída.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Executar <strong>saída forçada</strong> via painel admin ou endpoint <code>/api/vehicle/force-exit/{plate}</code></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sub-item: Vagas reservadas esgotadas -->
+                        <div class="faq-item faq-subitem" style="border-bottom: 1px solid #fee2e2;">
+                            <div class="faq-question" style="padding: 16px 24px; background: #fff5f5; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #ef4444;">●</span>
+                                <span style="flex: 1; color: #991b1b; font-weight: 600;">Vagas reservadas da empresa esgotadas</span>
+                                <span class="faq-toggle" style="color: #dc2626; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> Empresa X contratou N vagas mas tem mais veículos cadastrados. Todas as vagas estão ocupadas.</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                    <p style="margin: 0; font-weight: 700; color: #92400e;">🏢 RESPONSÁVEL: <span style="background: #6366f1; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">INTEGRADORA</span> + <span style="background: #ec4899; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">MULTIPARK</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #78350f;">⚠️ MoveMais NÃO recebe nenhuma informação sobre vagas. Controle é 100% local.</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Verificar quantos veículos da empresa estão no pátio vs quantidade contratada (sistema da Integradora).</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Motorista deve apertar botão para retirar ticket e entrar como avulso. Ou aguardar liberação de vaga.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sub-item: Placa lida incorretamente -->
+                        <div class="faq-item faq-subitem" style="border-bottom: 1px solid #fee2e2;">
+                            <div class="faq-question" style="padding: 16px 24px; background: #fff5f5; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #ef4444;">●</span>
+                                <span style="flex: 1; color: #991b1b; font-weight: 600;">Placa lida incorretamente pelo OCR</span>
+                                <span class="faq-toggle" style="color: #dc2626; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> Placa suja, iluminação ruim, reflexo ou caracteres ambíguos (O/0, I/1, B/8).</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #eef2ff, #dbeafe); border-radius: 8px; border-left: 4px solid #6366f1;">
+                                    <p style="margin: 0; font-weight: 700; color: #3730a3;">🏢 RESPONSÁVEL: <span style="background: #6366f1; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">INTEGRADORA</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #4338ca;">Câmera OCR é equipamento da integradora. Dionisio apenas recebe a leitura.</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Verificar confidence score no log. Abaixo de 85% indica problema.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Sistema tenta variações comuns (O↔0, I↔1). Se confidence < 70%, solicita releitura ou usa TAG RFID.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sub-item: Contrato não sincronizado -->
+                        <div class="faq-item faq-subitem" style="border-bottom: 1px solid #fee2e2;">
+                            <div class="faq-question" style="padding: 16px 24px; background: #fff5f5; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #ef4444;">●</span>
+                                <span style="flex: 1; color: #991b1b; font-weight: 600;">Contrato ainda não sincronizado</span>
+                                <span class="faq-toggle" style="color: #dc2626; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> Novo cadastro ainda não propagou para o Dionisio local.</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 8px; border-left: 4px solid #10b981;">
+                                    <p style="margin: 0; font-weight: 700; color: #065f46;">🏢 RESPONSÁVEL: <span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">MOVEMAIS</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #047857;">Latência de sincronização Hermes → Dionisio (até 60s)</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Verificar data de criação do contrato, logs de webhook, status no Hermes.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Forçar refresh da base via endpoint <code>/api/sync/contracts</code>. Tempo de propagação: ~60s.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sub-item: TAG RFID não detectada -->
+                        <div class="faq-item faq-subitem">
+                            <div class="faq-question" style="padding: 16px 24px; background: #fff5f5; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #ef4444;">●</span>
+                                <span style="flex: 1; color: #991b1b; font-weight: 600;">TAG RFID não detectada (WPS)</span>
+                                <span class="faq-toggle" style="color: #dc2626; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> TAG danificada, mal posicionada no veículo, ou antena com problema.</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #eef2ff, #dbeafe); border-radius: 8px; border-left: 4px solid #6366f1;">
+                                    <p style="margin: 0; font-weight: 700; color: #3730a3;">🏢 RESPONSÁVEL: <span style="background: #6366f1; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">INTEGRADORA (WPS)</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #4338ca;">Equipamento RFID é da integradora WPS. MoveMais não tem acesso.</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Verificar se antena está operacional, testar com outra TAG conhecida.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> WPS não suporta OCR. Cliente deve verificar TAG ou usar entrada manual pela cabine.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 🚧 Veículo não conseguiu SAIR -->
+                <div class="faq-item faq-nested" style="background: white; border-radius: 12px; border: 2px solid #fde68a; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                    <div class="faq-question" style="padding: 20px 24px; background: linear-gradient(135deg, #fef3c7, #fde68a); cursor: pointer; display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 1.5rem;">🚧</span>
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0; color: #92400e; font-size: 1.1rem;">Veículo não conseguiu SAIR</h4>
+                            <p style="margin: 5px 0 0 0; color: #a16207; font-size: 0.85rem;">Clique para ver as possíveis causas</p>
+                        </div>
+                        <span class="faq-toggle" style="color: #d97706; font-size: 1.2rem; transition: transform 0.3s;">▼</span>
+                    </div>
+                    <div class="faq-answer" style="padding: 0; border-top: 1px solid #fde68a;">
+                        
+                        <!-- Sub-item: Sem entrada registrada -->
+                        <div class="faq-item faq-subitem" style="border-bottom: 1px solid #fef3c7;">
+                            <div class="faq-question" style="padding: 16px 24px; background: #fffbeb; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #f59e0b;">●</span>
+                                <span style="flex: 1; color: #92400e; font-weight: 600;">Veículo não registrou entrada no sistema</span>
+                                <span class="faq-toggle" style="color: #d97706; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> Veículo entrou por liberação manual ou falha no registro de entrada.</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                    <p style="margin: 0; font-weight: 700; color: #92400e;">🏢 RESPONSÁVEL: <span style="background: #6366f1; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">INTEGRADORA</span> + <span style="background: #ec4899; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">MULTIPARK</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #78350f;">Operador da cabine liberou manualmente ou câmera/antena falhou</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Buscar placa nos logs de entrada. Se não existe, foi liberação manual.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Operador deve registrar entrada retroativa ou liberar saída manualmente.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sub-item: Pagamento não confirmado -->
+                        <div class="faq-item faq-subitem" style="border-bottom: 1px solid #fef3c7;">
+                            <div class="faq-question" style="padding: 16px 24px; background: #fffbeb; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #f59e0b;">●</span>
+                                <span style="flex: 1; color: #92400e; font-weight: 600;">Pagamento não confirmado (avulso)</span>
+                                <span class="faq-toggle" style="color: #d97706; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> Cliente avulso não pagou ou pagamento não foi confirmado pelo sistema.</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                    <p style="margin: 0; font-weight: 700; color: #92400e;">🏢 RESPONSÁVEL: <span style="background: #6366f1; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">INTEGRADORA</span> + <span style="background: #ec4899; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">MULTIPARK</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #78350f;">Totem de autoatendimento / sistema de pagamento local</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Verificar status do ticket na bilheteria. Confirmar se pagamento foi processado.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Cliente deve efetuar pagamento. Se já pagou, operador confirma manualmente.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sub-item: Timeout na comunicação -->
+                        <div class="faq-item faq-subitem" style="border-bottom: 1px solid #fef3c7;">
+                            <div class="faq-question" style="padding: 16px 24px; background: #fffbeb; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #f59e0b;">●</span>
+                                <span style="flex: 1; color: #92400e; font-weight: 600;">Timeout na comunicação com integradora</span>
+                                <span class="faq-toggle" style="color: #d97706; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> Latência de rede ou servidor da integradora lento/indisponível.</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #eef2ff, #dbeafe); border-radius: 8px; border-left: 4px solid #6366f1;">
+                                    <p style="margin: 0; font-weight: 700; color: #3730a3;">🏢 RESPONSÁVEL: <span style="background: #6366f1; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">INTEGRADORA</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #4338ca;">Rede local ou infraestrutura da integradora</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Verificar tempo de resposta da API, ping para servidores, logs de timeout.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Cache local de credenciados. Se API demorar >2s, libera pelo cache.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sub-item: Placa diferente -->
+                        <div class="faq-item faq-subitem">
+                            <div class="faq-question" style="padding: 16px 24px; background: #fffbeb; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #f59e0b;">●</span>
+                                <span style="flex: 1; color: #92400e; font-weight: 600;">Placa lida diferente da entrada</span>
+                                <span class="faq-toggle" style="color: #d97706; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> OCR leu placa diferente na saída vs entrada (ex: ABC-1234 vs A8C-1234).</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #eef2ff, #dbeafe); border-radius: 8px; border-left: 4px solid #6366f1;">
+                                    <p style="margin: 0; font-weight: 700; color: #3730a3;">🏢 RESPONSÁVEL: <span style="background: #6366f1; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">INTEGRADORA</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #4338ca;">Software de OCR / condições de iluminação</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Comparar imagens capturadas na entrada e saída.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Sistema tenta variações. Se não encontrar, operador corrige manualmente.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 💀 Sistema não responde -->
+                <div class="faq-item faq-nested" style="background: white; border-radius: 12px; border: 2px solid #c4b5fd; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                    <div class="faq-question" style="padding: 20px 24px; background: linear-gradient(135deg, #ede9fe, #ddd6fe); cursor: pointer; display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 1.5rem;">💀</span>
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0; color: #6d28d9; font-size: 1.1rem;">Sistema não responde</h4>
+                            <p style="margin: 5px 0 0 0; color: #7c3aed; font-size: 0.85rem;">Clique para ver as possíveis causas</p>
+                        </div>
+                        <span class="faq-toggle" style="color: #7c3aed; font-size: 1.2rem; transition: transform 0.3s;">▼</span>
+                    </div>
+                    <div class="faq-answer" style="padding: 0; border-top: 1px solid #c4b5fd;">
+                        
+                        <!-- Sub-item: Queda de energia alterou IPs -->
+                        <div class="faq-item faq-subitem" style="border-bottom: 1px solid #ede9fe;">
+                            <div class="faq-question" style="padding: 16px 24px; background: #f5f3ff; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #8b5cf6;">●</span>
+                                <span style="flex: 1; color: #6d28d9; font-weight: 600;">Queda de energia alterou IPs</span>
+                                <span class="faq-toggle" style="color: #7c3aed; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> Equipamentos receberam novo IP via DHCP após reinício.</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #fdf2f8, #fce7f3); border-radius: 8px; border-left: 4px solid #ec4899;">
+                                    <p style="margin: 0; font-weight: 700; color: #9d174d;">🏢 RESPONSÁVEL: <span style="background: #ec4899; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">MULTIPARK</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #be185d;">Configuração de rede / DHCP do roteador local</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Dionisio não consegue se conectar. Logs mostram timeout de conexão.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Configurar IP fixo/estático em equipamentos críticos ou reservar IP por MAC no DHCP.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sub-item: Dionisio parou -->
+                        <div class="faq-item faq-subitem" style="border-bottom: 1px solid #ede9fe;">
+                            <div class="faq-question" style="padding: 16px 24px; background: #f5f3ff; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #8b5cf6;">●</span>
+                                <span style="flex: 1; color: #6d28d9; font-weight: 600;">Dionisio parou de executar</span>
+                                <span class="faq-toggle" style="color: #7c3aed; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> Serviço Java parou por erro, falta de memória ou reinício do servidor.</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 8px; border-left: 4px solid #10b981;">
+                                    <p style="margin: 0; font-weight: 700; color: #065f46;">🏢 RESPONSÁVEL: <span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">MOVEMAIS</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #047857;">Infraestrutura local (Raspberry Pi / servidor) - software MoveMais</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Verificar status do serviço, logs de erro, uso de memória/CPU.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Reiniciar serviço Dionisio. Configurar restart automático via systemd.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sub-item: Câmera OCR desconectada -->
+                        <div class="faq-item faq-subitem">
+                            <div class="faq-question" style="padding: 16px 24px; background: #f5f3ff; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #8b5cf6;">●</span>
+                                <span style="flex: 1; color: #6d28d9; font-weight: 600;">Câmera OCR / Antena RFID desconectada</span>
+                                <span class="faq-toggle" style="color: #7c3aed; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> Cabo de rede desconectado, equipamento desligado ou com defeito.</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #eef2ff, #dbeafe); border-radius: 8px; border-left: 4px solid #6366f1;">
+                                    <p style="margin: 0; font-weight: 700; color: #3730a3;">🏢 RESPONSÁVEL: <span style="background: #6366f1; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">INTEGRADORA</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #4338ca;">Equipamento físico / instalação da integradora</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Ping para IP do equipamento. Verificar LEDs e cabos.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Reconectar cabo, reiniciar equipamento. Se persistir, acionar suporte técnico.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 🔄 Dados inconsistentes -->
+                <div class="faq-item faq-nested" style="background: white; border-radius: 12px; border: 2px solid #93c5fd; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                    <div class="faq-question" style="padding: 20px 24px; background: linear-gradient(135deg, #eff6ff, #dbeafe); cursor: pointer; display: flex; align-items: center; gap: 15px;">
+                        <span style="font-size: 1.5rem;">🔄</span>
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0; color: #1e40af; font-size: 1.1rem;">Dados inconsistentes</h4>
+                            <p style="margin: 5px 0 0 0; color: #2563eb; font-size: 0.85rem;">Clique para ver as possíveis causas</p>
+                        </div>
+                        <span class="faq-toggle" style="color: #2563eb; font-size: 1.2rem; transition: transform 0.3s;">▼</span>
+                    </div>
+                    <div class="faq-answer" style="padding: 0; border-top: 1px solid #93c5fd;">
+                        
+                        <!-- Sub-item: Pátios dessincronizados -->
+                        <div class="faq-item faq-subitem" style="border-bottom: 1px solid #dbeafe;">
+                            <div class="faq-question" style="padding: 16px 24px; background: #f0f9ff; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #3b82f6;">●</span>
+                                <span style="flex: 1; color: #1e40af; font-weight: 600;">Pátios dessincronizados (MoveMais vs Integradora)</span>
+                                <span class="faq-toggle" style="color: #2563eb; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> Veículo consta em um pátio mas não no outro. Geralmente por falha de comunicação.</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                    <p style="margin: 0; font-weight: 700; color: #92400e;">🏢 RESPONSÁVEL: <span style="background: #6366f1; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">INTEGRADORA</span> + <span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">MOVEMAIS</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #78350f;">Comunicação API entre sistemas falhou</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Comparar lista de veículos no pátio em ambos os sistemas.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Hermes monitora e força reconciliação. Endpoint de reconciliação compara ambos os pátios.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sub-item: Cobrança duplicada -->
+                        <div class="faq-item faq-subitem" style="border-bottom: 1px solid #dbeafe;">
+                            <div class="faq-question" style="padding: 16px 24px; background: #f0f9ff; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #3b82f6;">●</span>
+                                <span style="flex: 1; color: #1e40af; font-weight: 600;">Cobrança duplicada no cliente</span>
+                                <span class="faq-toggle" style="color: #2563eb; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> Retry da API criou transação duplicada ou leitura dupla do OCR.</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                    <p style="margin: 0; font-weight: 700; color: #92400e;">🏢 RESPONSÁVEL: <span style="background: #6366f1; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">INTEGRADORA</span> ou <span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">MOVEMAIS</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #78350f;">Depende: OCR leu duas vezes (Integradora) ou retry de API (MoveMais)</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Verificar logs de transação, comparar timestamps. Identificar se houve retry.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Controle de idempotência. Entradas com <5min de intervalo são ignoradas. Estorno automático.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sub-item: Liberação manual -->
+                        <div class="faq-item faq-subitem">
+                            <div class="faq-question" style="padding: 16px 24px; background: #f0f9ff; cursor: pointer; display: flex; align-items: center; gap: 12px;">
+                                <span style="color: #3b82f6;">●</span>
+                                <span style="flex: 1; color: #1e40af; font-weight: 600;">Liberação manual pela cabine sem registro</span>
+                                <span class="faq-toggle" style="color: #2563eb; font-size: 1rem; transition: transform 0.3s;">▼</span>
+                            </div>
+                            <div class="faq-answer" style="padding: 16px 24px 20px 48px; background: white;">
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #991b1b;">Causa:</strong> Operador liberou cancela manualmente sem registrar no sistema.</p>
+                                
+                                <div style="margin: 12px 0; padding: 12px 16px; background: linear-gradient(135deg, #fdf2f8, #fce7f3); border-radius: 8px; border-left: 4px solid #ec4899;">
+                                    <p style="margin: 0; font-weight: 700; color: #9d174d;">🏢 RESPONSÁVEL: <span style="background: #ec4899; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">MULTIPARK</span></p>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #be185d;">Operador da cabine / procedimento operacional</p>
+                                </div>
+                                
+                                <p style="margin: 0 0 10px 0;"><strong style="color: #1e40af;">Diagnóstico:</strong> Veículo está fisicamente fora mas sistema mostra dentro.</p>
+                                <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-top: 8px;">
+                                    <p style="margin: 0; color: #047857;"><strong>✅ Tratativa:</strong> Treinar operadores para sempre registrar. Usar saída forçada quando necessário.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumo de Melhorias -->
+        <div style="margin-top: 40px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 30px; border-radius: 16px; border: 2px solid #86efac;">
+            <h3 style="color: #166534; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.5rem;">🛡️</span> Melhorias Implementadas
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px; background: white; padding: 12px 16px; border-radius: 8px;">
+                    <span style="color: #22c55e; font-size: 1.2rem;">✅</span>
+                    <span style="color: #374151;">Cache local de credenciados</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; background: white; padding: 12px 16px; border-radius: 8px;">
+                    <span style="color: #22c55e; font-size: 1.2rem;">✅</span>
+                    <span style="color: #374151;">Modo offline automático</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; background: white; padding: 12px 16px; border-radius: 8px;">
+                    <span style="color: #22c55e; font-size: 1.2rem;">✅</span>
+                    <span style="color: #374151;">Controle de idempotência</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; background: white; padding: 12px 16px; border-radius: 8px;">
+                    <span style="color: #22c55e; font-size: 1.2rem;">✅</span>
+                    <span style="color: #374151;">Reconciliação de pátios</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; background: white; padding: 12px 16px; border-radius: 8px;">
+                    <span style="color: #22c55e; font-size: 1.2rem;">✅</span>
+                    <span style="color: #374151;">Variações de OCR (O↔0, I↔1)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; background: white; padding: 12px 16px; border-radius: 8px;">
+                    <span style="color: #22c55e; font-size: 1.2rem;">✅</span>
+                    <span style="color: #374151;">Logs de auditoria completos</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; background: white; padding: 12px 16px; border-radius: 8px;">
+                    <span style="color: #22c55e; font-size: 1.2rem;">✅</span>
+                    <span style="color: #374151;">Controle de vagas por empresa</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; background: white; padding: 12px 16px; border-radius: 8px;">
+                    <span style="color: #f59e0b; font-size: 1.2rem;">⚠️</span>
+                    <span style="color: #374151;">Alerta: IPs fixos recomendados</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. Detalhes Técnicos -->
+    <section class="section" id="tecnico">
+        <div class="section-title">
+            <div class="section-number">9</div>
+            <h2>Detalhes Técnicos</h2>
+            <p>Diagramas de sequência e arquitetura para equipe técnica</p>
+        </div>
+
+        <!-- Diagrama de Sequência - ENTRADA -->
+        <div style="background: white; border-radius: 16px; padding: 30px; margin-bottom: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+            <h3 style="color: var(--primary); margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem;">📥</span>
+                Diagrama de Sequência — Entrada
+            </h3>
+            <div class="diagram-wrapper" style="overflow-x: auto;">
+                <svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg" style="min-width: 800px; width: 100%;">
+                    <defs>
+                        <linearGradient id="gradCamera" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#8b5cf6"/>
+                            <stop offset="100%" style="stop-color:#7c3aed"/>
+                        </linearGradient>
+                        <linearGradient id="gradDionisio" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#3b82f6"/>
+                            <stop offset="100%" style="stop-color:#2563eb"/>
+                        </linearGradient>
+                        <linearGradient id="gradHermes" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#10b981"/>
+                            <stop offset="100%" style="stop-color:#059669"/>
+                        </linearGradient>
+                        <linearGradient id="gradBilheteria" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#f59e0b"/>
+                            <stop offset="100%" style="stop-color:#d97706"/>
+                        </linearGradient>
+                    </defs>
+                    
+                    <!-- Título -->
+                    <text x="450" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#1e293b">Fluxo de Entrada — Veículo Credenciado</text>
+                    
+                    <!-- Actors -->
+                    <rect x="60" y="50" width="100" height="40" rx="8" fill="url(#gradCamera)"/>
+                    <text x="110" y="75" text-anchor="middle" fill="white" font-size="11" font-weight="600">📷 Câmera/RFID</text>
+                    <line x1="110" y1="90" x2="110" y2="400" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5,5"/>
+                    
+                    <rect x="230" y="50" width="100" height="40" rx="8" fill="url(#gradBilheteria)"/>
+                    <text x="280" y="75" text-anchor="middle" fill="white" font-size="11" font-weight="600">🎫 Bilheteria</text>
+                    <line x1="280" y1="90" x2="280" y2="400" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,5"/>
+                    
+                    <rect x="400" y="50" width="100" height="40" rx="8" fill="url(#gradDionisio)"/>
+                    <text x="450" y="75" text-anchor="middle" fill="white" font-size="11" font-weight="600">🖥️ Dionisio</text>
+                    <line x1="450" y1="90" x2="450" y2="400" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5,5"/>
+                    
+                    <rect x="570" y="50" width="100" height="40" rx="8" fill="url(#gradHermes)"/>
+                    <text x="620" y="75" text-anchor="middle" fill="white" font-size="11" font-weight="600">📡 Hermes</text>
+                    <line x1="620" y1="90" x2="620" y2="400" stroke="#10b981" stroke-width="2" stroke-dasharray="5,5"/>
+                    
+                    <rect x="740" y="50" width="100" height="40" rx="8" fill="#64748b"/>
+                    <text x="790" y="75" text-anchor="middle" fill="white" font-size="11" font-weight="600">🏢 MoveMais</text>
+                    <line x1="790" y1="90" x2="790" y2="400" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5"/>
+                    
+                    <!-- Step 1: Câmera -> Bilheteria -->
+                    <line x1="110" y1="130" x2="270" y2="130" stroke="#8b5cf6" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <polygon points="265,126 280,130 265,134" fill="#8b5cf6"/>
+                    <rect x="140" y="115" width="90" height="22" rx="4" fill="#f3e8ff"/>
+                    <text x="185" y="130" text-anchor="middle" font-size="9" fill="#7c3aed" font-weight="600">Placa: ABC1D23</text>
+                    <circle cx="90" cy="130" r="12" fill="#10b981"/>
+                    <text x="90" y="134" text-anchor="middle" font-size="10" fill="white" font-weight="700">1</text>
+                    
+                    <!-- Step 2: Bilheteria -> Dionisio -->
+                    <line x1="280" y1="170" x2="440" y2="170" stroke="#f59e0b" stroke-width="2"/>
+                    <polygon points="435,166 450,170 435,174" fill="#f59e0b"/>
+                    <rect x="310" y="155" width="100" height="22" rx="4" fill="#fef3c7"/>
+                    <text x="360" y="170" text-anchor="middle" font-size="9" fill="#d97706" font-weight="600">POST /entrada</text>
+                    <circle cx="90" cy="170" r="12" fill="#10b981"/>
+                    <text x="90" y="174" text-anchor="middle" font-size="10" fill="white" font-weight="700">2</text>
+                    
+                    <!-- Step 3: Dionisio -> Hermes -->
+                    <line x1="450" y1="210" x2="610" y2="210" stroke="#3b82f6" stroke-width="2"/>
+                    <polygon points="605,206 620,210 605,214" fill="#3b82f6"/>
+                    <rect x="480" y="195" width="100" height="22" rx="4" fill="#dbeafe"/>
+                    <text x="530" y="210" text-anchor="middle" font-size="9" fill="#2563eb" font-weight="600">Consulta cliente</text>
+                    <circle cx="90" cy="210" r="12" fill="#10b981"/>
+                    <text x="90" y="214" text-anchor="middle" font-size="10" fill="white" font-weight="700">3</text>
+                    
+                    <!-- Step 4: Hermes -> MoveMais -->
+                    <line x1="620" y1="250" x2="780" y2="250" stroke="#10b981" stroke-width="2"/>
+                    <polygon points="775,246 790,250 775,254" fill="#10b981"/>
+                    <rect x="650" y="235" width="100" height="22" rx="4" fill="#d1fae5"/>
+                    <text x="700" y="250" text-anchor="middle" font-size="9" fill="#059669" font-weight="600">Valida placa</text>
+                    <circle cx="90" cy="250" r="12" fill="#10b981"/>
+                    <text x="90" y="254" text-anchor="middle" font-size="10" fill="white" font-weight="700">4</text>
+                    
+                    <!-- Step 5: MoveMais -> Hermes (response) -->
+                    <line x1="790" y1="290" x2="630" y2="290" stroke="#64748b" stroke-width="2" stroke-dasharray="6,3"/>
+                    <polygon points="635,286 620,290 635,294" fill="#64748b"/>
+                    <rect x="660" y="275" width="100" height="22" rx="4" fill="#f1f5f9"/>
+                    <text x="710" y="290" text-anchor="middle" font-size="9" fill="#475569" font-weight="600">✅ Credenciado</text>
+                    <circle cx="90" cy="290" r="12" fill="#10b981"/>
+                    <text x="90" y="294" text-anchor="middle" font-size="10" fill="white" font-weight="700">5</text>
+                    
+                    <!-- Step 6: Hermes -> Dionisio (response) -->
+                    <line x1="620" y1="330" x2="460" y2="330" stroke="#10b981" stroke-width="2" stroke-dasharray="6,3"/>
+                    <polygon points="465,326 450,330 465,334" fill="#10b981"/>
+                    <rect x="480" y="315" width="110" height="22" rx="4" fill="#d1fae5"/>
+                    <text x="535" y="330" text-anchor="middle" font-size="9" fill="#059669" font-weight="600">access: GRANTED</text>
+                    <circle cx="90" cy="330" r="12" fill="#10b981"/>
+                    <text x="90" y="334" text-anchor="middle" font-size="10" fill="white" font-weight="700">6</text>
+                    
+                    <!-- Step 7: Dionisio -> Bilheteria (response) -->
+                    <line x1="450" y1="370" x2="290" y2="370" stroke="#3b82f6" stroke-width="2" stroke-dasharray="6,3"/>
+                    <polygon points="295,366 280,370 295,374" fill="#3b82f6"/>
+                    <rect x="310" y="355" width="110" height="22" rx="4" fill="#dbeafe"/>
+                    <text x="365" y="370" text-anchor="middle" font-size="9" fill="#2563eb" font-weight="600">🚧 Abrir cancela</text>
+                    <circle cx="90" cy="370" r="12" fill="#10b981"/>
+                    <text x="90" y="374" text-anchor="middle" font-size="10" fill="white" font-weight="700">7</text>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Diagrama de Sequência - SAÍDA -->
+        <div style="background: white; border-radius: 16px; padding: 30px; margin-bottom: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+            <h3 style="color: var(--primary); margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                <span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem;">📤</span>
+                Diagrama de Sequência — Saída
+            </h3>
+            <div class="diagram-wrapper" style="overflow-x: auto;">
+                <svg viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" style="min-width: 800px; width: 100%;">
+                    <!-- Título -->
+                    <text x="450" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#1e293b">Fluxo de Saída — Validação e Cobrança</text>
+                    
+                    <!-- Actors -->
+                    <rect x="60" y="50" width="100" height="40" rx="8" fill="url(#gradCamera)"/>
+                    <text x="110" y="75" text-anchor="middle" fill="white" font-size="11" font-weight="600">📷 Câmera/RFID</text>
+                    <line x1="110" y1="90" x2="110" y2="440" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5,5"/>
+                    
+                    <rect x="230" y="50" width="100" height="40" rx="8" fill="url(#gradBilheteria)"/>
+                    <text x="280" y="75" text-anchor="middle" fill="white" font-size="11" font-weight="600">🎫 Bilheteria</text>
+                    <line x1="280" y1="90" x2="280" y2="440" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,5"/>
+                    
+                    <rect x="400" y="50" width="100" height="40" rx="8" fill="url(#gradDionisio)"/>
+                    <text x="450" y="75" text-anchor="middle" fill="white" font-size="11" font-weight="600">🖥️ Dionisio</text>
+                    <line x1="450" y1="90" x2="450" y2="440" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5,5"/>
+                    
+                    <rect x="570" y="50" width="100" height="40" rx="8" fill="url(#gradHermes)"/>
+                    <text x="620" y="75" text-anchor="middle" fill="white" font-size="11" font-weight="600">📡 Hermes</text>
+                    <line x1="620" y1="90" x2="620" y2="440" stroke="#10b981" stroke-width="2" stroke-dasharray="5,5"/>
+                    
+                    <rect x="740" y="50" width="100" height="40" rx="8" fill="#64748b"/>
+                    <text x="790" y="75" text-anchor="middle" fill="white" font-size="11" font-weight="600">🏢 MoveMais</text>
+                    <line x1="790" y1="90" x2="790" y2="440" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5"/>
+                    
+                    <!-- Step 1: Câmera -> Bilheteria -->
+                    <line x1="110" y1="130" x2="270" y2="130" stroke="#8b5cf6" stroke-width="2"/>
+                    <polygon points="265,126 280,130 265,134" fill="#8b5cf6"/>
+                    <rect x="140" y="115" width="90" height="22" rx="4" fill="#f3e8ff"/>
+                    <text x="185" y="130" text-anchor="middle" font-size="9" fill="#7c3aed" font-weight="600">Placa: ABC1D23</text>
+                    <circle cx="90" cy="130" r="12" fill="#f59e0b"/>
+                    <text x="90" y="134" text-anchor="middle" font-size="10" fill="white" font-weight="700">1</text>
+                    
+                    <!-- Step 2: Bilheteria calcula -->
+                    <rect x="250" y="160" width="60" height="30" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+                    <text x="280" y="178" text-anchor="middle" font-size="8" fill="#d97706" font-weight="600">⏱️ Calc</text>
+                    <text x="280" y="188" text-anchor="middle" font-size="7" fill="#92400e">R$ 15,00</text>
+                    <circle cx="90" cy="175" r="12" fill="#f59e0b"/>
+                    <text x="90" y="179" text-anchor="middle" font-size="10" fill="white" font-weight="700">2</text>
+                    
+                    <!-- Step 3: Bilheteria -> Dionisio -->
+                    <line x1="280" y1="210" x2="440" y2="210" stroke="#f59e0b" stroke-width="2"/>
+                    <polygon points="435,206 450,210 435,214" fill="#f59e0b"/>
+                    <rect x="310" y="195" width="100" height="22" rx="4" fill="#fef3c7"/>
+                    <text x="360" y="210" text-anchor="middle" font-size="9" fill="#d97706" font-weight="600">POST /saida</text>
+                    <circle cx="90" cy="210" r="12" fill="#f59e0b"/>
+                    <text x="90" y="214" text-anchor="middle" font-size="10" fill="white" font-weight="700">3</text>
+                    
+                    <!-- Step 4: Dionisio -> Hermes -->
+                    <line x1="450" y1="250" x2="610" y2="250" stroke="#3b82f6" stroke-width="2"/>
+                    <polygon points="605,246 620,250 605,254" fill="#3b82f6"/>
+                    <rect x="475" y="235" width="110" height="22" rx="4" fill="#dbeafe"/>
+                    <text x="530" y="250" text-anchor="middle" font-size="9" fill="#2563eb" font-weight="600">Valida pagamento</text>
+                    <circle cx="90" cy="250" r="12" fill="#f59e0b"/>
+                    <text x="90" y="254" text-anchor="middle" font-size="10" fill="white" font-weight="700">4</text>
+                    
+                    <!-- Step 5: Hermes -> MoveMais -->
+                    <line x1="620" y1="290" x2="780" y2="290" stroke="#10b981" stroke-width="2"/>
+                    <polygon points="775,286 790,290 775,294" fill="#10b981"/>
+                    <rect x="650" y="275" width="100" height="22" rx="4" fill="#d1fae5"/>
+                    <text x="700" y="290" text-anchor="middle" font-size="9" fill="#059669" font-weight="600">Débito R$15</text>
+                    <circle cx="90" cy="290" r="12" fill="#f59e0b"/>
+                    <text x="90" y="294" text-anchor="middle" font-size="10" fill="white" font-weight="700">5</text>
+                    
+                    <!-- Step 6: MoveMais -> Hermes (response) -->
+                    <line x1="790" y1="330" x2="630" y2="330" stroke="#64748b" stroke-width="2" stroke-dasharray="6,3"/>
+                    <polygon points="635,326 620,330 635,334" fill="#64748b"/>
+                    <rect x="660" y="315" width="100" height="22" rx="4" fill="#f1f5f9"/>
+                    <text x="710" y="330" text-anchor="middle" font-size="9" fill="#475569" font-weight="600">✅ Pago</text>
+                    <circle cx="90" cy="330" r="12" fill="#f59e0b"/>
+                    <text x="90" y="334" text-anchor="middle" font-size="10" fill="white" font-weight="700">6</text>
+                    
+                    <!-- Step 7: Hermes -> Dionisio (response) -->
+                    <line x1="620" y1="370" x2="460" y2="370" stroke="#10b981" stroke-width="2" stroke-dasharray="6,3"/>
+                    <polygon points="465,366 450,370 465,374" fill="#10b981"/>
+                    <rect x="480" y="355" width="110" height="22" rx="4" fill="#d1fae5"/>
+                    <text x="535" y="370" text-anchor="middle" font-size="9" fill="#059669" font-weight="600">access: GRANTED</text>
+                    <circle cx="90" cy="370" r="12" fill="#f59e0b"/>
+                    <text x="90" y="374" text-anchor="middle" font-size="10" fill="white" font-weight="700">7</text>
+                    
+                    <!-- Step 8: Dionisio -> Bilheteria (response) -->
+                    <line x1="450" y1="410" x2="290" y2="410" stroke="#3b82f6" stroke-width="2" stroke-dasharray="6,3"/>
+                    <polygon points="295,406 280,410 295,414" fill="#3b82f6"/>
+                    <rect x="310" y="395" width="110" height="22" rx="4" fill="#dbeafe"/>
+                    <text x="365" y="410" text-anchor="middle" font-size="9" fill="#2563eb" font-weight="600">🚧 Abrir cancela</text>
+                    <circle cx="90" cy="410" r="12" fill="#f59e0b"/>
+                    <text x="90" y="414" text-anchor="middle" font-size="10" fill="white" font-weight="700">8</text>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Arquitetura de Componentes -->
+        <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+            <h3 style="color: var(--primary); margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                <span style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem;">🏗️</span>
+                Arquitetura de Componentes
+            </h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <!-- Dionisio -->
+                <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px; padding: 20px; border-left: 4px solid #3b82f6;">
+                    <h4 style="margin: 0 0 12px 0; color: #1e40af; display: flex; align-items: center; gap: 8px;">
+                        <span>🖥️</span> Dionisio
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px; color: #1e3a8a; font-size: 0.9rem;">
+                        <li>API REST Spring Boot</li>
+                        <li>Gerencia OCR/RFID</li>
+                        <li>Controle de idempotência</li>
+                        <li>Registro de acessos</li>
+                        <li>Modo offline com fila</li>
+                    </ul>
+                    <div style="margin-top: 12px; padding: 8px; background: rgba(255,255,255,0.5); border-radius: 6px; font-size: 0.8rem; color: #1e40af;">
+                        <strong>Porta:</strong> 5000 | <strong>DB:</strong> PostgreSQL
+                    </div>
+                </div>
+                
+                <!-- Hermes -->
+                <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; padding: 20px; border-left: 4px solid #10b981;">
+                    <h4 style="margin: 0 0 12px 0; color: #047857; display: flex; align-items: center; gap: 8px;">
+                        <span>📡</span> Hermes
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px; color: #065f46; font-size: 0.9rem;">
+                        <li>API REST Spring Boot</li>
+                        <li>Integração MoveMais</li>
+                        <li>Validação de clientes</li>
+                        <li>Processamento de pagamentos</li>
+                        <li>Cache de credenciados</li>
+                    </ul>
+                    <div style="margin-top: 12px; padding: 8px; background: rgba(255,255,255,0.5); border-radius: 6px; font-size: 0.8rem; color: #047857;">
+                        <strong>Porta:</strong> 8081 | <strong>DB:</strong> Oracle PL/SQL
+                    </div>
+                </div>
+                
+                <!-- Bilheteria -->
+                <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 12px; padding: 20px; border-left: 4px solid #f59e0b;">
+                    <h4 style="margin: 0 0 12px 0; color: #b45309; display: flex; align-items: center; gap: 8px;">
+                        <span>🎫</span> Bilheteria (Integradora)
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px; color: #92400e; font-size: 0.9rem;">
+                        <li>Sistema da integradora</li>
+                        <li>Controle de tickets</li>
+                        <li>Cálculo de tarifas</li>
+                        <li>Controle de cancelas</li>
+                        <li>Pagamentos locais</li>
+                    </ul>
+                    <div style="margin-top: 12px; padding: 8px; background: rgba(255,255,255,0.5); border-radius: 6px; font-size: 0.8rem; color: #b45309;">
+                        <strong>Comunicação:</strong> REST API via Dionisio
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Legenda de Tecnologias -->
+            <div style="margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 12px;">
+                <h4 style="margin: 0 0 15px 0; color: #475569;">⚙️ Stack Tecnológico</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <span style="background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">☕ Java 17</span>
+                    <span style="background: #d1fae5; color: #065f46; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">🌱 Spring Boot 3.x</span>
+                    <span style="background: #dbeafe; color: #1e40af; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">🐘 PostgreSQL</span>
+                    <span style="background: #fce7f3; color: #9d174d; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">🔶 Oracle PL/SQL</span>
+                    <span style="background: #f3e8ff; color: #6b21a8; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">🔄 REST API</span>
+                    <span style="background: #cffafe; color: #0e7490; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">📊 Flyway</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fullscreen Diagram Modal -->
+    <div id="fullscreenModal" class="fullscreen-modal">
+        <div class="fullscreen-modal-header">
+            <span class="fullscreen-modal-title" id="modalTitle">Diagrama</span>
+            <button class="fullscreen-modal-close" id="closeModal" aria-label="Fechar">×</button>
+        </div>
+        <div class="fullscreen-modal-content" id="modalContent">
+            <!-- SVG será clonado aqui -->
+        </div>
+        <div class="fullscreen-modal-hint">Arraste para mover • Use os botões ou pinça para zoom</div>
+        <div class="fullscreen-modal-controls">
+            <button class="zoom-btn" id="zoomOut" aria-label="Diminuir zoom">−</button>
+            <span class="zoom-level" id="zoomLevel">100%</span>
+            <button class="zoom-btn" id="zoomIn" aria-label="Aumentar zoom">+</button>
+            <button class="zoom-btn" id="zoomReset" aria-label="Resetar zoom">↺</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-logos">
+            <div class="footer-logo"><img src="img/logo-movemais.png" alt="MoveMais"></div>
+            <div class="footer-logo"><img src="img/logo-multipark.png" alt="Multipark"></div>
+        </div>
+        <p>Apresentação Técnica — Janeiro 2026</p>
+        <p>São Paulo — Sede Multipark</p>
+        <p style="margin-top: 20px; opacity: 0.6;">© MoveMais — Todos os direitos reservados</p>
+    </footer><!-- Modal WPS -->
+    <div id="modal-wps" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #ecfeff, #cffafe);">
+                <h3 style="color: #0891b2;">
+                    <span style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">📡</span>
+                    WPS — Como Funciona o RFID
+                </h3>
+                <button class="modal-close" onclick="closeIntegradoraModal('modal-wps')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: #0e7490; margin-bottom: 25px; font-size: 1rem; line-height: 1.6;">
+                    O fluxo RFID utiliza a infraestrutura da <strong>EasyAccess</strong> para identificação e controle de acesso via TAG RFID.
+                </p>
+
+                <!-- Parceiros -->
+                <div style="margin-bottom: 30px;">
+                    <!-- EasyAccess -->
+                    <div style="background: #fffbeb; border-radius: 12px; padding: 20px; border-left: 4px solid #f59e0b; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <h4 style="margin: 0 0 12px 0; color: #d97706; display: flex; align-items: center; gap: 8px;">
+                            <img src="img/logo-ezaccess.png" alt="EasyAccess" style="height: 28px; width: auto;"> EasyAccess
+                        </h4>
+                        <p style="margin: 0; color: #78350f; font-size: 0.9rem; line-height: 1.5;">
+                            Provê sistemas e infraestrutura baseados em <strong>tecnologia sem fio</strong>, por identificação de rádio frequência (RFID) e imagens, para gestão centralizada e assertiva dos pátios.
+                        </p>
+                        <ul style="margin: 12px 0 0 0; padding-left: 20px; color: #92400e; font-size: 0.85rem;">
+                            <li>Sistema de controle multi-plataforma</li>
+                            <li>Fluxo de entrada/saída de veículos</li>
+                            <li>Controle de mensalidades e convênios</li>
+                            <li>Integração on-line com ERP</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Fluxo detalhado -->
+                <div class="flow-diagram-clickable" data-title="🔄 Fluxo Detalhado RFID" style="background: #f8fafc; border-radius: 12px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s;" onclick="openFlowFullscreen(this)">
+                    <h4 style="margin: 0 0 20px 0; color: #0891b2; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">🔄 Fluxo Detalhado RFID <span style="font-size: 0.7rem; background: #06b6d4; color: white; padding: 2px 8px; border-radius: 10px;">🔍 Clique para ampliar</span></h4>
+                    
+                    <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px;">
+                        <div style="background: #374151; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🚗</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">Veículo</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">TAG MoveMais</div>
+                        </div>
+                        <div style="color: #06b6d4; font-weight: bold;">→</div>
+                        
+                        <div style="background: #06b6d4; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">📡</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">Antena RFID</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Detecta TAG</div>
+                        </div>
+                        <div style="color: #f59e0b; font-weight: bold;">→</div>
+                        
+                        <div style="background: #f59e0b; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🔌</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">EasyAccess</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Lê TAG</div>
+                        </div>
+                        <div style="color: #2563eb; font-weight: bold;">↔</div>
+                        
+                        <div style="background: #2563eb; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🖥️</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">MoveMais API</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Veículo apto?</div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 15px 0; color: #f59e0b; font-size: 1.5rem;">↓</div>
+                    
+                    <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px;">
+                        <div style="background: #8b5cf6; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🏢</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">WPS</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Libera cancela</div>
+                        </div>
+                        <div style="color: #10b981; font-weight: bold;">→</div>
+                        
+                        <div style="background: #10b981; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🚧</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">Cancela</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">ABRE ✓</div>
+                        </div>
+                        <div style="color: #ec4899; font-weight: bold;">→</div>
+                        
+                        <div style="background: #ec4899; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🏪</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">Multipark</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Registra</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumo -->
+                <div style="margin-top: 25px; padding: 20px; background: linear-gradient(135deg, #f0fdfa, #ccfbf1); border-radius: 12px; border: 1px solid #99f6e4;">
+                    <h5 style="margin: 0 0 12px 0; color: #0f766e;">📋 Resumo do Processo</h5>
+                    <ol style="margin: 0; padding-left: 20px; color: #115e59; font-size: 0.9rem; line-height: 1.8;">
+                        <li><strong>Antena RFID</strong> detecta a TAG MoveMais do veículo</li>
+                        <li><strong>EasyAccess</strong> lê os dados da TAG e consulta a <strong>API MoveMais</strong></li>
+                        <li><strong>MoveMais</strong> verifica em nosso banco se o veículo está apto para passar</li>
+                        <li>Resposta é devolvida para <strong>EasyAccess</strong></li>
+                        <li><strong>EasyAccess</strong> repassa para <strong>WPS</strong> fazer a liberação da cancela</li>
+                        <li>Após liberação, <strong>WPS</strong> encaminha registro para <strong>Multipark</strong></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal WiseTools -->
+    <div id="modal-wisetools" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f5f3ff, #ede9fe);">
+                <h3 style="color: #7c3aed;">
+                    <span style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">⌨️</span>
+                    WiseTools — Fluxo Simplificado
+                </h3>
+                <button class="modal-close" onclick="closeIntegradoraModal('modal-wisetools')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: #6d28d9; margin-bottom: 25px; font-size: 1rem; line-height: 1.6;">
+                    A integração <strong>WiseTools (Informatizados)</strong> possui apenas <strong>2 endpoints</strong>: verificação de cliente e solicitação de pagamento.
+                </p>
+
+                <!-- Características -->
+                <div style="background: #faf5ff; border-radius: 12px; padding: 20px; border-left: 4px solid #8b5cf6; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 25px;">
+                    <h4 style="margin: 0 0 12px 0; color: #7c3aed; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 1.3rem;">🛠️</span> Endpoints Disponíveis
+                    </h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <div style="background: #ede9fe; padding: 15px; border-radius: 10px;">
+                            <code style="background: #7c3aed; color: white; padding: 3px 8px; border-radius: 5px; font-size: 0.8rem;">GET</code>
+                            <strong style="color: #5b21b6; margin-left: 8px;">VerificaStatus</strong>
+                            <p style="margin: 8px 0 0 0; font-size: 0.8rem; color: #6d28d9;">/api/v2/parking/verificarVeiculo</p>
+                            <p style="margin: 5px 0 0 0; font-size: 0.75rem; color: #8b5cf6;">Verifica se a placa é cliente MoveMais</p>
+                        </div>
+                        <div style="background: #ede9fe; padding: 15px; border-radius: 10px;">
+                            <code style="background: #10b981; color: white; padding: 3px 8px; border-radius: 5px; font-size: 0.8rem;">POST</code>
+                            <strong style="color: #5b21b6; margin-left: 8px;">SolicitarPagamento</strong>
+                            <p style="margin: 8px 0 0 0; font-size: 0.8rem; color: #6d28d9;">/api/v2/parking/solicitarPagamento</p>
+                            <p style="margin: 5px 0 0 0; font-size: 0.75rem; color: #8b5cf6;">Solicita pagamento na saída (com token opcional)</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 8px; border-left: 3px solid #f59e0b;">
+                        <p style="margin: 0; color: #92400e; font-size: 0.85rem;">
+                            <strong>⚠️ Autenticação:</strong> Usa <code style="background: #fef3c7; color: #92400e;">apiKey</code> no header (não JWT)
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fluxo de ENTRADA -->
+                <div class="flow-diagram-clickable" data-title="🚗 Fluxo de Entrada — VerificaStatus" style="background: #f8fafc; border-radius: 12px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s; margin-bottom: 20px;" onclick="openFlowFullscreen(this)">
+                    <h4 style="margin: 0 0 20px 0; color: #7c3aed; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">🚗 Fluxo de Entrada — VerificaStatus <span style="font-size: 0.7rem; background: #8b5cf6; color: white; padding: 2px 8px; border-radius: 10px;">🔍 Clique para ampliar</span></h4>
+                    
+                    <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px;">
+                        <div style="background: #374151; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🚗</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">Veículo</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Chega na entrada</div>
+                        </div>
+                        <div style="color: #8b5cf6; font-weight: bold;">→</div>
+                        
+                        <div style="background: #f59e0b; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">👤</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">Operador</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Digita a placa</div>
+                        </div>
+                        <div style="color: #8b5cf6; font-weight: bold;">→</div>
+                        
+                        <div style="background: #8b5cf6; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🛠️</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">WiseTools</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">verificarVeiculo</div>
+                        </div>
+                        <div style="color: #2563eb; font-weight: bold;">↔</div>
+                        
+                        <div style="background: #2563eb; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🖥️</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">MoveMais API</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">É cliente?</div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 15px 0; color: #8b5cf6; font-size: 1.5rem;">↓</div>
+                    
+                    <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 20px;">
+                        <div style="background: #10b981; color: white; padding: 12px 20px; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 1rem;">✅ Cliente MoveMais</div>
+                            <div style="font-size: 0.7rem; opacity: 0.9;">Libera entrada automática</div>
+                        </div>
+                        <div style="background: #6b7280; color: white; padding: 12px 20px; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 1rem;">📝 Não é cliente</div>
+                            <div style="font-size: 0.7rem; opacity: 0.9;">Segue fluxo normal</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fluxo de SAÍDA -->
+                <div class="flow-diagram-clickable" data-title="🚗 Fluxo de Saída — SolicitarPagamento" style="background: #f0fdf4; border-radius: 12px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s;" onclick="openFlowFullscreen(this)">
+                    <h4 style="margin: 0 0 20px 0; color: #059669; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">🚗 Fluxo de Saída — SolicitarPagamento <span style="font-size: 0.7rem; background: #10b981; color: white; padding: 2px 8px; border-radius: 10px;">🔍 Clique para ampliar</span></h4>
+                    
+                    <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px;">
+                        <div style="background: #374151; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🚗</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">Veículo</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Chega na saída</div>
+                        </div>
+                        <div style="color: #10b981; font-weight: bold;">→</div>
+                        
+                        <div style="background: #f59e0b; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">👤</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">Operador</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Digita a placa</div>
+                        </div>
+                        <div style="color: #10b981; font-weight: bold;">→</div>
+                        
+                        <div style="background: #8b5cf6; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🛠️</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">WiseTools</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">solicitarPagamento</div>
+                        </div>
+                        <div style="color: #2563eb; font-weight: bold;">↔</div>
+                        
+                        <div style="background: #2563eb; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🖥️</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">MoveMais API</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Processa pgto</div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 15px 0; color: #10b981; font-size: 1.5rem;">↓</div>
+                    
+                    <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px;">
+                        <div style="background: #10b981; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">💳</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">Pagamento</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Processado ✓</div>
+                        </div>
+                        <div style="color: #10b981; font-weight: bold;">→</div>
+                        
+                        <div style="background: #10b981; color: white; padding: 12px 16px; border-radius: 10px; text-align: center; min-width: 100px;">
+                            <div style="font-size: 1.2rem;">🚧</div>
+                            <div style="font-size: 0.75rem; font-weight: 600;">Cancela</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">ABRE ✓</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- O que NÃO tem -->
+                <div style="margin-top: 25px; padding: 20px; background: linear-gradient(135deg, #fef2f2, #fee2e2); border-radius: 12px; border: 1px solid #fca5a5;">
+                    <h5 style="margin: 0 0 12px 0; color: #dc2626;">❌ Funcionalidades Não Disponíveis</h5>
+                    <ul style="margin: 0; padding-left: 20px; color: #b91c1c; font-size: 0.9rem; line-height: 1.8;">
+                        <li>Sem endpoint de <strong>Check-in</strong> (entrada é automática se for cliente)</li>
+                        <li>Sem endpoint de <strong>Check-out</strong> (usa SolicitarPagamento)</li>
+                        <li>Sem <strong>Cancelamento de entrada</strong></li>
+                        <li>Sem <strong>Sincronização forçada</strong></li>
+                        <li>Sem <strong>Lista de estacionados</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts externos -->
+    <script src="js/scripts.js"></script>
+</body>
+</html>

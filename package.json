@@ -1,0 +1,33 @@
+{
+  "name": "documentor",
+  "version": "1.0.0",
+  "description": "Sistema de geração e armazenamento de documentação técnica integrado com Gitea e Claude AI",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n frontend,backend -c cyan,green \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "npm run dev -w @documentor/frontend",
+    "dev:backend": "npm run dev -w @documentor/backend",
+    "dev:mcp": "npm run dev -w @documentor/mcp-server",
+    "build": "npm run build -w @documentor/frontend && npm run build -w @documentor/backend && npm run build -w @documentor/mcp-server",
+    "build:frontend": "npm run build -w @documentor/frontend",
+    "build:backend": "npm run build -w @documentor/backend",
+    "build:mcp": "npm run build -w @documentor/mcp-server",
+    "start": "npm run start -w @documentor/backend",
+    "mcp:start": "npm run start -w @documentor/mcp-server",
+    "db:generate": "cd packages/backend && npx prisma generate",
+    "db:push": "cd packages/backend && npx prisma db push",
+    "db:studio": "cd packages/backend && npx prisma studio",
+    "postinstall": "npm run db:generate"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "MoveMais",
+  "license": "MIT"
+}

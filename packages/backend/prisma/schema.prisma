@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  repositoryUrl String
+  status        String   @default("draft") // draft, generating, complete
+  sections      String?  // JSON array of sections
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sectionsList  Section[] @relation(name: "ProjectSections")
+  metadata      ProjectMetadata?
+}
+
+model ProjectMetadata {
+  id           String   @id @default(cuid())
+  projectId    String   @unique
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  languages    String   // JSON array
+  frameworks   String   // JSON array
+  structure    String   // JSON array of file structure
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Section {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade, name: "ProjectSections")
+  
+  type      String   // hero, overview, architecture, flow, faq, etc.
+  title     String
+  content   String   // JSON content
+  order     Int
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  content     String   // JSON template content
+  isDefault   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AIPrompt {
+  id          String   @id @default(cuid())
+  sectionType String   @unique // hero, overview, architecture, etc.
+  systemPrompt String
+  userPromptTemplate String
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

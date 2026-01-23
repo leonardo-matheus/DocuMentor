@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none" role="img" aria-label="Documentor Logo">
+  <defs>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1E3A8A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="subtleGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.5 0" result="fadedBlur"/>
+      <feMerge>
+        <feMergeNode in="fadedBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g id="icon-container" transform="translate(256, 170)">
+    <g stroke="#F59E0B" stroke-width="4" stroke-linecap="round" opacity="0.9">
+      <path d="M0,80 C-10,60 10,40 0,20" />
+      <path d="M-20,70 C-30,50 -10,30 -20,10" opacity="0.7"/>
+      <path d="M20,70 C10,50 30,30 20,10" opacity="0.7"/>
+    </g>
+
+    <g stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-15,90 Q-110,80 -160,-30" stroke="#10B981" fill="none"/>
+      <path d="M-160,-30 L-110,-70 L-60,-30" stroke="#1E3A8A" fill="none" /> <path d="M-70,10 C-90,10 -85,-10 -105,-10 C-85,-10 -90,-30 -70,-30" stroke="#1E3A8A" fill="none" stroke-width="6"/> <g transform="scale(-1, 1)">
+        <path d="M-15,90 Q-110,80 -160,-30" stroke="#10B981" fill="none"/>
+        <path d="M-160,-30 L-110,-70 L-60,-30" stroke="#1E3A8A" fill="none" /> <path d="M-70,10 C-90,10 -85,-10 -105,-10 C-85,-10 -90,-30 -70,-30" stroke="#1E3A8A" fill="none" stroke-width="6"/> </g>
+    </g>
+    
+    <path d="M0,90 L0,100" stroke="#10B981" stroke-width="8" stroke-linecap="round"/>
+  </g>
+
+  <g id="text-container" transform="translate(256, 400)">
+    <text x="0" y="0" 
+          font-family="'Inter', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif" 
+          font-weight="800" 
+          font-size="68" 
+          letter-spacing="1.5" 
+          fill="url(#textGrad)" 
+          stroke="url(#textGrad)" stroke-width="1"
+          text-anchor="middle" 
+          dominant-baseline="middle"
+          filter="url(#subtleGlow)">DOCUMENTOR</text>
+  </g>
+</svg>
