@@ -189,7 +189,11 @@ export default function EditorPage() {
       const loadedSections = typeof project.sections === 'string' 
         ? JSON.parse(project.sections) 
         : project.sections
-      setSections(loadedSections)
+      // Sort by order field to maintain correct ordering
+      const sortedSections = [...loadedSections].sort((a: DocumentSection, b: DocumentSection) => 
+        (a.order ?? 0) - (b.order ?? 0)
+      )
+      setSections(sortedSections)
       setHasUnsavedChanges(false)
     }
   }, [project])

@@ -242,12 +242,12 @@ export default function PreviewPage() {
     const clone = content.cloneNode(true) as HTMLElement
     clone.querySelectorAll('.no-print').forEach(el => el.remove())
     
-    // Build navbar HTML for export
+    // Build navbar HTML for export (using section.id for correct navigation)
     const navbarItems = sections
       .filter((s: ProjectSection) => s.type !== 'hero')
       .map((section: ProjectSection) => {
         const sectionConfig = SECTION_ICONS[section.type] ? { icon: SECTION_ICONS[section.type], label: section.title } : { icon: '📄', label: section.title }
-        return `<li><a href="#${section.type}" class="nav-item">${sectionConfig.icon} ${sectionConfig.label}</a></li>`
+        return `<li><a href="#${section.id}" class="nav-item">${sectionConfig.icon} ${sectionConfig.label}</a></li>`
       }).join('')
     
     const navbarHTML = `
@@ -1054,16 +1054,17 @@ export default function PreviewPage() {
     )
   }
   
-  // Parse sections from project
-  const sections: ProjectSection[] = project?.sections 
+  // Parse sections from project and sort by order
+  const sections: ProjectSection[] = (project?.sections 
     ? (typeof project.sections === 'string' ? JSON.parse(project.sections) : project.sections)
     : []
+  ).sort((a: ProjectSection, b: ProjectSection) => (a.order ?? 0) - (b.order ?? 0))
   
-  // Build nav items from actual sections (exclude hero)
+  // Build nav items from actual sections (exclude hero), preserving order
   const navItems = sections
     .filter(s => s.type !== 'hero')
     .map(s => ({
-      id: s.type,
+      id: s.id, // Use unique section ID instead of type
       label: s.title,
       icon: SECTION_ICONS[s.type] || '📄'
     }))
@@ -1083,7 +1084,7 @@ export default function PreviewPage() {
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle={content.description || 'Visão geral do sistema'}
@@ -1116,7 +1117,7 @@ export default function PreviewPage() {
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle={content.description || 'Arquitetura do sistema'}
@@ -1153,7 +1154,7 @@ export default function PreviewPage() {
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle="Tecnologias utilizadas no projeto"
@@ -1218,7 +1219,7 @@ export default function PreviewPage() {
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle={content.description || 'Fluxo do sistema'}
@@ -1241,7 +1242,7 @@ export default function PreviewPage() {
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle="Como instalar e configurar o projeto"
@@ -1286,7 +1287,7 @@ export default function PreviewPage() {
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle="Perguntas frequentes"
@@ -1304,7 +1305,7 @@ export default function PreviewPage() {
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle={content.title || 'Comparativo'}
@@ -1323,7 +1324,7 @@ export default function PreviewPage() {
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle=""
