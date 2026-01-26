@@ -22,7 +22,7 @@ interface SequenceDiagramProps {
 }
 
 // Modern color palette for actors
-const actorColors: Record<string, { bg: string; text: string; line: string }> = {
+const _actorColors: Record<string, { bg: string; text: string; line: string }> = {
   '#6366f1': { bg: 'from-indigo-500 to-purple-600', text: 'text-white', line: '#6366f1' },
   '#10b981': { bg: 'from-emerald-500 to-teal-600', text: 'text-white', line: '#10b981' },
   '#f59e0b': { bg: 'from-amber-500 to-orange-600', text: 'text-white', line: '#f59e0b' },

@@ -254,3 +254,16 @@ export interface AIStatus {
   model: string;
   endpoint: string;
 }
+
+// ===== Additional Repository Types =====
+
+export interface AdditionalRepository {
+  id: string;
+  projectId: string;
+  name: string;
+  repositoryUrl: string;
+  description?: string;
+  languages?: string; // JSON array
+  createdAt: string;
+  updatedAt: string;
+}

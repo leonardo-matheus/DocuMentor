@@ -71,7 +71,7 @@ export default function NavBar({ items, sticky = true, className }: NavBarProps)
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/[0.02] via-purple-500/[0.02] to-pink-500/[0.02] pointer-events-none" />
       )}
       
-      <div className="relative max-w-7xl mx-auto px-4">
+      <div className="relative w-[90%] mx-auto px-4">
         <ul className="flex items-center justify-center gap-2 py-3 overflow-x-auto scrollbar-hide">
           {items.map((item, idx) => {
             const isActive = activeSection === item.id

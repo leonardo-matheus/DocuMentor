@@ -1,5 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
-import type { Project, Repository, Section, Template, RepositoryAnalysis, GenerateResult, AIStatus } from '../types'
+import type { Project, Repository, Section, Template, RepositoryAnalysis, GenerateResult, AIStatus, AdditionalRepository } from '../types'
 
 // Use relative URL for proxy or explicit IP for direct access
 const API_URL = import.meta.env.VITE_API_URL || ''
@@ -71,6 +71,70 @@ export const projectsApi = {
     api.post(`/projects/${projectId}/versions/${versionId}/rollback`),
   deleteVersion: (projectId: string, versionId: string) =>
     api.delete(`/projects/${projectId}/versions/${versionId}`),
+  
+  // Additional Repositories
+  getAdditionalRepos: (projectId: string) =>
+    api.get<AdditionalRepository[]>(`/projects/${projectId}/repositories`),
+  addAdditionalRepo: (projectId: string, data: { name: string; repositoryUrl: string; description?: string }) =>
+    api.post<AdditionalRepository>(`/projects/${projectId}/repositories`, data),
+  updateAdditionalRepo: (projectId: string, repoId: string, data: { name?: string; repositoryUrl?: string; description?: string }) =>
+    api.put<AdditionalRepository>(`/projects/${projectId}/repositories/${repoId}`, data),
+  deleteAdditionalRepo: (projectId: string, repoId: string) =>
+    api.delete(`/projects/${projectId}/repositories/${repoId}`),
+    
+  // Git Sync
+  getSyncStatus: (projectId: string) =>
+    api.get<GitSyncStatus>(`/projects/${projectId}/sync`),
+  sync: (projectId: string, generateReleaseNotes?: boolean) =>
+    api.post<GitSyncResult>(`/projects/${projectId}/sync`, { generateReleaseNotes }),
+  getCommits: (projectId: string, limit?: number) =>
+    api.get<GitCommit[]>(`/projects/${projectId}/sync/commits`, { params: { limit } }),
+}
+
+// Git Sync types
+export interface GitCommit {
+  sha: string
+  message: string
+  author: string
+  authorEmail: string
+  date: string
+  url: string
+}
+
+export interface GitSyncRecord {
+  id: string
+  projectId: string
+  commitSha: string
+  commitMessage: string
+  commitAuthor: string
+  commitDate: string
+  branch: string
+  releaseNotes?: string
+  version?: string
+  createdAt: string
+}
+
+export interface GitSyncStatus {
+  lastSync: {
+    commitSha: string
+    commitMessage: string
+    commitAuthor: string
+    commitDate: string
+    version?: string
+    releaseNotes?: string
+    syncedAt: string
+  } | null
+  latestCommit: GitCommit | null
+  pendingCommits: GitCommit[]
+  hasPendingChanges: boolean
+  syncHistory: GitSyncRecord[]
+}
+
+export interface GitSyncResult {
+  message: string
+  sync?: GitSyncRecord
+  commitsIncluded?: number
+  upToDate: boolean
 }
 
 // Project Version type

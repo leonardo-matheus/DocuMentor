@@ -13,12 +13,12 @@ interface HeroProps {
     location?: string
     type?: string
   }
-  badges?: Array<{ text: string; icon?: string }>
+  badges?: Array<{ text: string; color?: string; icon?: string }>
   highlights?: Array<{ label: string; value: string; icon?: string }>
   children?: ReactNode
 }
 
-export default function Hero({ title, subtitle, projectName, logos, meta, badges, highlights, children }: HeroProps) {
+export default function Hero({ title, subtitle, projectName, logos, meta, badges: _badges, highlights, children }: HeroProps) {
   return (
     <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden text-white">
       {/* Modern Gradient Background */}
@@ -107,25 +107,10 @@ export default function Hero({ title, subtitle, projectName, logos, meta, badges
           {subtitle}
         </p>
         
-        {/* Badges */}
-        {badges && badges.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-10 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-            {badges.map((badge, i) => (
-              <span 
-                key={i} 
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm rounded-xl text-sm font-medium border border-white/10 hover:border-white/20 hover:bg-white/15 transition-all duration-300"
-              >
-                {badge.icon && <span className="text-lg">{badge.icon}</span>}
-                {badge.text}
-              </span>
-            ))}
-          </div>
-        )}
-        
-        {/* Highlights */}
-        {highlights && highlights.length > 0 && (
+        {/* Highlights - só mostra se tiver highlights com conteúdo */}
+        {highlights && highlights.filter(h => h.value || h.label).length > 0 && (
           <div className="flex flex-wrap items-center justify-center gap-8 mb-10 animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
-            {highlights.map((h, i) => (
+            {highlights.filter(h => h.value || h.label).map((h, i) => (
               <div key={i} className="text-center px-6 py-4 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10">
                 <div className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
                   {h.icon && <span className="mr-2">{h.icon}</span>}
@@ -138,7 +123,7 @@ export default function Hero({ title, subtitle, projectName, logos, meta, badges
         )}
         
         {/* Meta Info */}
-        {meta && (
+        {meta && (meta.date || meta.location || meta.type) && (
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-white/60 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
             {meta.date && (
               <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-lg border border-white/10">

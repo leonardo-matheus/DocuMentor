@@ -8,13 +8,16 @@ interface Column {
 }
 
 interface ComparisonTableProps {
-  columns: Column[]
+  columns?: Column[]
+  headers?: Column[]  // Alias for columns
   rows: Record<string, React.ReactNode>[]
   className?: string
   variant?: 'default' | 'striped' | 'bordered'
 }
 
-export default function ComparisonTable({ columns, rows, className, variant = 'striped' }: ComparisonTableProps) {
+export default function ComparisonTable({ columns, headers, rows, className, variant = 'striped' }: ComparisonTableProps) {
+  // Support both columns and headers props
+  const tableColumns = columns || headers || []
   return (
     <div className={clsx('relative overflow-hidden rounded-2xl', className)}>
       {/* Background Glow */}
@@ -25,7 +28,7 @@ export default function ComparisonTable({ columns, rows, className, variant = 's
           <table className="w-full">
             <thead>
               <tr className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 text-white">
-                {columns.map((col, idx) => (
+                {tableColumns.map((col, idx) => (
                   <th
                     key={col.key}
                     className={clsx(
@@ -33,7 +36,7 @@ export default function ComparisonTable({ columns, rows, className, variant = 's
                       col.align === 'center' && 'text-center',
                       col.align === 'right' && 'text-right',
                       idx === 0 && 'rounded-tl-xl',
-                      idx === columns.length - 1 && 'rounded-tr-xl'
+                      idx === tableColumns.length - 1 && 'rounded-tr-xl'
                     )}
                   >
                     <div className="flex items-center gap-2">
@@ -53,7 +56,7 @@ export default function ComparisonTable({ columns, rows, className, variant = 's
                     variant === 'striped' && idx % 2 === 1 && 'bg-gray-50/50'
                   )}
                 >
-                  {columns.map((col) => (
+                  {tableColumns.map((col) => (
                     <td
                       key={col.key}
                       className={clsx(

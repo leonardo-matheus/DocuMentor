@@ -195,6 +195,114 @@ export const giteaService = {
   },
 
   /**
+   * Get commits from repository
+   */
+  async getCommits(
+    owner: string, 
+    repo: string, 
+    options?: { 
+      branch?: string; 
+      since?: string; // ISO date string
+      limit?: number;
+    }
+  ): Promise<Array<{
+    sha: string;
+    message: string;
+    author: string;
+    authorEmail: string;
+    date: string;
+    url: string;
+  }>> {
+    try {
+      const params: Record<string, any> = {
+        sha: options?.branch || 'master',
+        limit: options?.limit || 50
+      };
+      
+      if (options?.since) {
+        params.since = options.since;
+      }
+      
+      const response = await giteaClient.get(
+        `/api/v1/repos/${owner}/${repo}/commits`,
+        { params }
+      );
+      
+      return response.data.map((commit: any) => ({
+        sha: commit.sha,
+        message: commit.commit?.message || '',
+        author: commit.commit?.author?.name || commit.author?.login || 'Unknown',
+        authorEmail: commit.commit?.author?.email || '',
+        date: commit.commit?.author?.date || commit.created,
+        url: commit.html_url
+      }));
+    } catch (error: any) {
+      console.error('Error getting commits:', error.message);
+      throw new Error(`Failed to get commits: ${error.message}`);
+    }
+  },
+
+  /**
+   * Get commits since a specific commit SHA
+   */
+  async getCommitsSince(
+    owner: string, 
+    repo: string, 
+    sinceCommitSha: string,
+    branch: string = 'master'
+  ): Promise<Array<{
+    sha: string;
+    message: string;
+    author: string;
+    authorEmail: string;
+    date: string;
+    url: string;
+  }>> {
+    try {
+      // Get all recent commits
+      const allCommits = await this.getCommits(owner, repo, { branch, limit: 100 });
+      
+      // Find the index of the since commit
+      const sinceIndex = allCommits.findIndex(c => c.sha === sinceCommitSha);
+      
+      if (sinceIndex === -1) {
+        // Commit not found in recent history, return all commits
+        return allCommits;
+      }
+      
+      // Return commits that came after the since commit
+      return allCommits.slice(0, sinceIndex);
+    } catch (error: any) {
+      console.error('Error getting commits since:', error.message);
+      throw new Error(`Failed to get commits since ${sinceCommitSha}: ${error.message}`);
+    }
+  },
+
+  /**
+   * Get latest commit from branch
+   */
+  async getLatestCommit(
+    owner: string, 
+    repo: string, 
+    branch: string = 'master'
+  ): Promise<{
+    sha: string;
+    message: string;
+    author: string;
+    authorEmail: string;
+    date: string;
+    url: string;
+  } | null> {
+    try {
+      const commits = await this.getCommits(owner, repo, { branch, limit: 1 });
+      return commits[0] || null;
+    } catch (error: any) {
+      console.error('Error getting latest commit:', error.message);
+      return null;
+    }
+  },
+
+  /**
    * Analyze repository structure - ENHANCED VERSION
    */
   async analyzeRepository(repositoryUrl: string): Promise<AnalysisResult> {

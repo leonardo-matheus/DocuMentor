@@ -1217,6 +1217,70 @@ export default function PreviewPage() {
         )
         
       case 'flow':
+        // Helper functions for step processing
+        const isError = (title: string, type?: string) => {
+          const titleLower = (title || '').toLowerCase()
+          if (titleLower.includes('erro') || 
+              titleLower.includes('error') || 
+              titleLower.includes('falha') ||
+              titleLower.includes('fail') ||
+              /\b4\d{2}\b/.test(title) ||
+              /\b5\d{2}\b/.test(title)) {
+            return true
+          }
+          return type === 'error'
+        }
+        
+        const isSuccess = (title: string, type?: string) => {
+          const titleLower = (title || '').toLowerCase()
+          if (titleLower.includes('sucesso') ||
+              titleLower.includes('success') ||
+              titleLower.includes('200') ||
+              titleLower.includes('201') ||
+              titleLower.includes('resposta ok') ||
+              titleLower.includes('aprovado') ||
+              (titleLower.includes('autorizado') && !titleLower.includes('não'))) {
+            return true
+          }
+          return type === 'success' || type === 'end'
+        }
+        
+        const getIcon = (title: string, type: string, icon?: string) => {
+          if (icon) return icon
+          if (isError(title, type)) return '❌'
+          if (isSuccess(title, type)) return '✅'
+          const iconMap: Record<string, string> = {
+            start: '▶️', decision: '🔀', database: '🗄️', process: '⚙️',
+            camera: '📷', vehicle: '🚗', system: '💻', end: '🏁'
+          }
+          return iconMap[type] || '⚙️'
+        }
+        
+        const getVariant = (title: string, type: string, variant?: string) => {
+          if (isError(title, type)) return 'error'
+          if (isSuccess(title, type)) return 'success'
+          if (variant) return variant
+          const variantMap: Record<string, string> = {
+            start: 'start', decision: 'decision', database: 'database', 
+            process: 'process', camera: 'camera', vehicle: 'vehicle', system: 'system', end: 'end'
+          }
+          return variantMap[type] || 'default'
+        }
+        
+        const processStep = (step: any) => {
+          const stepType = step.type || step.variant || ''
+          return {
+            id: step.id,
+            icon: getIcon(step.title, stepType, step.icon),
+            title: step.title,
+            description: step.description,
+            variant: getVariant(step.title, stepType, step.variant)
+          }
+        }
+        
+        // Check if we have multiple flows (new format) or single flow (old format)
+        const hasMultipleFlows = Array.isArray(content.flows) && content.flows.length > 0
+        
         return (
           <Section
             key={section.id}
@@ -1225,16 +1289,23 @@ export default function PreviewPage() {
             title={section.title}
             subtitle={content.description || 'Fluxo do sistema'}
           >
-            {content.steps && (
+            {hasMultipleFlows ? (
               <FlowDiagram
-                title={content.title || 'Fluxo Principal'}
-                steps={content.steps.map((step: any) => ({
-                  id: step.id,
-                  icon: step.type === 'start' ? '▶️' : step.type === 'end' ? '✅' : '⚙️',
-                  title: step.title,
-                  variant: step.type === 'start' ? 'vehicle' : step.type === 'end' ? 'success' : 'system'
+                flows={content.flows.map((flow: any) => ({
+                  id: flow.id,
+                  title: flow.title,
+                  description: flow.description,
+                  icon: flow.icon || '🔄',
+                  steps: (flow.steps || []).map(processStep)
                 }))}
               />
+            ) : content.steps ? (
+              <FlowDiagram
+                title={content.title || 'Fluxo Principal'}
+                steps={content.steps.map(processStep)}
+              />
+            ) : (
+              <p className="text-gray-500 text-center py-8">Nenhum fluxo definido</p>
             )}
           </Section>
         )
@@ -1343,6 +1414,188 @@ export default function PreviewPage() {
                 rows={content.rows}
               />
             )}
+          </Section>
+        )
+      
+      case 'changelog':
+        return (
+          <Section
+            key={section.id}
+            id={section.id}
+            number={index}
+            title={section.title}
+            subtitle={content.description || 'Histórico de versões e releases'}
+          >
+            {/* Current Version Badge */}
+            {content.currentVersion && (
+              <div className="flex justify-center mb-8">
+                <span className="px-6 py-2 bg-emerald-600 text-white rounded-full font-semibold text-lg shadow-lg">
+                  Versão Atual: {content.currentVersion}
+                </span>
+              </div>
+            )}
+            
+            {/* Roadmap Timeline */}
+            <div className="relative max-w-4xl mx-auto">
+              {/* Timeline Line - mais fina e sutil */}
+              <div className="absolute left-[7px] top-4 bottom-[15rem] w-px bg-slate-600" />
+              
+              {/* Releases */}
+              <div className="space-y-6">
+                {(content.releases || []).map((release: any, releaseIndex: number) => (
+                  <div key={releaseIndex} className="relative flex gap-4 pl-6">
+                    {/* Timeline Node */}
+                    <div className="absolute left-0 top-2">
+                      <div className={`w-4 h-4 rounded-full ${
+                        releaseIndex === 0 
+                          ? 'bg-emerald-500 ring-4 ring-emerald-500/20' 
+                          : 'bg-slate-500'
+                      }`} />
+                    </div>
+                    
+                    {/* Release Card */}
+                    <div className={`flex-1 rounded-xl p-5 ${
+                      releaseIndex === 0 
+                        ? 'bg-slate-800 border-2 border-emerald-500/50' 
+                        : 'bg-slate-800/60 border border-slate-700'
+                    }`}>
+                      {/* Header */}
+                      <div className="flex flex-wrap items-center gap-3 mb-3">
+                        <span className={`px-3 py-1 rounded font-mono text-sm font-bold ${
+                          releaseIndex === 0 
+                            ? 'bg-emerald-600 text-white' 
+                            : 'bg-slate-700 text-slate-200'
+                        }`}>
+                          v{release.version}
+                        </span>
+                        <span className="text-sm text-slate-400">
+                          {release.date ? new Date(release.date).toLocaleDateString('pt-BR', { 
+                            day: '2-digit',
+                            month: 'short', 
+                            year: 'numeric' 
+                          }) : ''}
+                        </span>
+                        {release.title && (
+                          <span className="text-slate-200 font-medium">{release.title}</span>
+                        )}
+                      </div>
+                      
+                      {release.description && (
+                        <p className="text-slate-400 text-sm mb-4">{release.description}</p>
+                      )}
+                      
+                      {/* Categories - layout mais compacto */}
+                      <div className="space-y-3">
+                        {/* Features */}
+                        {release.categories?.features?.length > 0 && (
+                          <div>
+                            <h5 className="text-sm font-semibold text-emerald-400 mb-1.5 flex items-center gap-2">
+                              ✨ Novidades
+                            </h5>
+                            <ul className="space-y-1 pl-1">
+                              {release.categories.features.map((feature: string, i: number) => (
+                                <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
+                                  <span className="text-emerald-500 mt-0.5">›</span>
+                                  {feature}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {/* Fixes */}
+                        {release.categories?.fixes?.length > 0 && (
+                          <div>
+                            <h5 className="text-sm font-semibold text-amber-400 mb-1.5 flex items-center gap-2">
+                              🐛 Correções
+                            </h5>
+                            <ul className="space-y-1 pl-1">
+                              {release.categories.fixes.map((fix: string, i: number) => (
+                                <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
+                                  <span className="text-amber-500 mt-0.5">›</span>
+                                  {fix}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {/* Improvements */}
+                        {release.categories?.improvements?.length > 0 && (
+                          <div>
+                            <h5 className="text-sm font-semibold text-sky-400 mb-1.5 flex items-center gap-2">
+                              🔧 Melhorias
+                            </h5>
+                            <ul className="space-y-1 pl-1">
+                              {release.categories.improvements.map((improvement: string, i: number) => (
+                                <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
+                                  <span className="text-sky-500 mt-0.5">›</span>
+                                  {improvement}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {/* Breaking Changes */}
+                        {release.categories?.breaking?.length > 0 && (
+                          <div className="bg-red-950/30 p-3 rounded-lg border border-red-500/30">
+                            <h5 className="text-sm font-semibold text-red-400 mb-1.5 flex items-center gap-2">
+                              ⚠️ Breaking Changes
+                            </h5>
+                            <ul className="space-y-1 pl-1">
+                              {release.categories.breaking.map((breaking: string, i: number) => (
+                                <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
+                                  <span className="text-red-500 mt-0.5">›</span>
+                                  {breaking}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Upcoming/Roadmap */}
+              {content.upcoming && (content.upcoming.planned?.length > 0 || content.upcoming.inProgress?.length > 0) && (
+                <div className="mt-8 pt-6 border-t border-slate-600">
+                  <h4 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    🚀 Próximas Atualizações
+                  </h4>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {content.upcoming.inProgress?.length > 0 && (
+                      <div className="bg-amber-100 border-2 border-amber-400 rounded-lg p-4">
+                        <h5 className="font-semibold text-amber-700 mb-3 text-sm">🔨 Em Desenvolvimento</h5>
+                        <ul className="space-y-2">
+                          {content.upcoming.inProgress.map((item: string, i: number) => (
+                            <li key={i} className="text-sm text-slate-700 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-amber-500 rounded-full flex-shrink-0" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {content.upcoming.planned?.length > 0 && (
+                      <div className="bg-indigo-100 border-2 border-indigo-400 rounded-lg p-4">
+                        <h5 className="font-semibold text-indigo-700 mb-3 text-sm">📋 Planejado</h5>
+                        <ul className="space-y-2">
+                          {content.upcoming.planned.map((item: string, i: number) => (
+                            <li key={i} className="text-sm text-slate-700 flex items-center gap-2">
+                              <span className="text-indigo-500">○</span>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </Section>
         )
         

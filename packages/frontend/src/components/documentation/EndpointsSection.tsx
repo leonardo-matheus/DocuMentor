@@ -249,7 +249,7 @@ export default function EndpointsSection({ baseUrl, endpoints, className }: Endp
     : endpoints.filter(e => e.method === filter)
   
   // Group by tags if available
-  const groupedEndpoints = endpoints.reduce((acc, endpoint) => {
+  const _groupedEndpoints = endpoints.reduce((acc, endpoint) => {
     const tag = endpoint.tags?.[0] || 'Outros'
     if (!acc[tag]) acc[tag] = []
     acc[tag].push(endpoint)

@@ -230,27 +230,68 @@ Frameworks: {{frameworkVersions}}
   },
 
   flow: {
-    system: `Você é um analista de sistemas. Documente o fluxo principal do sistema com base no código REAL.
+    system: `Você é um analista de sistemas especialista em documentação de fluxos. Sua tarefa é identificar e documentar MÚLTIPLOS FLUXOS SEPARADOS do sistema.
 
-IMPORTANTE:
-- Analise o README para entender o fluxo principal
-- Use as rotas de API para entender os endpoints
-- Identifique o fluxo de dados baseado no código fonte
-- Crie passos que reflitam a arquitetura REAL
+IMPORTANTE - MÚLTIPLOS FLUXOS:
+- Analise o sistema e identifique os DIFERENTES FLUXOS/PROCESSOS principais
+- Cada fluxo deve ser um diagrama INDEPENDENTE e FOCADO
+- Exemplos de fluxos separados:
+  * Fluxo de Entrada (veículos, usuários, dados)
+  * Fluxo de Saída
+  * Fluxo de Cancelamento
+  * Fluxo de Pagamento
+  * Fluxo de Autenticação
+  * Fluxo de Erro/Recuperação
+  * Fluxo de Sincronização
+  * Fluxo de Notificação
+
+REGRA PRINCIPAL: 
+- NÃO coloque tudo em um único fluxo gigante
+- Crie entre 2 e 5 fluxos separados, cada um focado em um processo específico
+- Cada fluxo deve ter no MÁXIMO 8-10 passos para ser legível
+
+VARIANTES DE PASSOS DISPONÍVEIS:
+- "start": Início do fluxo (verde esmeralda)
+- "process": Processamento normal (azul)
+- "decision": Decisão/Verificação (amarelo/laranja)
+- "database": Operação de banco de dados (roxo)
+- "success": Sucesso/Conclusão positiva (verde)
+- "error": Erro/Falha (VERMELHO - use para erros 4xx, 5xx, exceptions)
+- "end": Fim do fluxo (rosa)
+- "camera": Captura de imagem/OCR (rosa)
+- "vehicle": Relacionado a veículos (verde)
+- "system": Sistema externo (azul)
 
 Responda APENAS em formato JSON válido:
 {
-  "title": "string",
-  "description": "string",
-  "steps": [{
-    "id": "step-1",
-    "title": "string",
-    "description": "string (descrição detalhada)",
-    "type": "start|process|decision|end"
-  }],
-  "connections": [{ "from": "step-1", "to": "step-2", "label": "string (opcional)" }]
+  "flows": [
+    {
+      "id": "flow-entrada",
+      "title": "Fluxo de Entrada",
+      "description": "Descrição do que este fluxo representa",
+      "icon": "🚗",
+      "steps": [{
+        "id": "step-1",
+        "title": "string",
+        "description": "string (descrição detalhada)",
+        "icon": "emoji representativo",
+        "variant": "start|process|decision|database|success|error|end"
+      }],
+      "connections": [{ "from": "step-1", "to": "step-2", "label": "string (opcional)" }]
+    },
+    {
+      "id": "flow-saida",
+      "title": "Fluxo de Saída",
+      "description": "...",
+      "icon": "🚙",
+      "steps": [...],
+      "connections": [...]
+    }
+  ]
 }`,
-    userTemplate: `Crie o fluxo do sistema baseado nestas informações REAIS:
+    userTemplate: `Analise o sistema e crie MÚLTIPLOS FLUXOS SEPARADOS, cada um focado em um processo específico.
+
+NÃO crie um único fluxo gigante! Separe em fluxos menores e focados.
 
 📖 README:
 {{readme}}
@@ -265,7 +306,9 @@ Responda APENAS em formato JSON válido:
 {{structure}}
 
 💻 Código Fonte:
-{{sourceCode}}`
+{{sourceCode}}
+
+LEMBRE-SE: Crie entre 2 e 5 fluxos separados, cada um com no máximo 8-10 passos.`
   },
 
   faq: {
@@ -498,6 +541,74 @@ Responda APENAS em formato JSON válido:
 {{sourceCode}}`
   },
 
+  changelog: {
+    system: `Você é um especialista em Release Notes. Crie um changelog CLARO, OBJETIVO e PROFISSIONAL.
+
+REGRAS IMPORTANTES:
+1. Seja CONCISO - cada item deve ter no máximo 10-15 palavras
+2. Use verbos no passado: "Adicionado", "Corrigido", "Melhorado", "Removido"
+3. Foque no VALOR para o usuário, não em detalhes técnicos
+4. Crie 3-5 releases mostrando evolução lógica do projeto
+5. Datas devem ser realistas (últimos 6-12 meses)
+6. Use versionamento semântico (major.minor.patch)
+
+CATEGORIAS:
+- features: Novas funcionalidades (começar com "Adicionado")
+- fixes: Bugs corrigidos (começar com "Corrigido")
+- improvements: Melhorias (começar com "Melhorado", "Otimizado")
+- breaking: Mudanças incompatíveis (começar com "Removido", "Alterado")
+
+EXEMPLOS DE BONS ITENS:
+✅ "Adicionado suporte a autenticação OAuth 2.0"
+✅ "Corrigido erro de validação em formulários"
+✅ "Melhorado tempo de resposta da API em 40%"
+
+EXEMPLOS RUINS (EVITAR):
+❌ "Implementação do módulo de autenticação que permite aos usuários..." (muito longo)
+❌ "Bug fix" (muito vago)
+❌ "Refatoração" (não comunica valor)
+
+Responda APENAS em formato JSON válido:
+{
+  "title": "Histórico de Versões",
+  "description": "string (1 frase sobre o ciclo de releases)",
+  "currentVersion": "string (ex: 1.2.0)",
+  "releases": [{
+    "version": "string (ex: 1.2.0)",
+    "date": "string (formato: 2025-01-15)",
+    "title": "string (nome curto da release, max 5 palavras)",
+    "description": "string (1 frase resumindo a release)",
+    "categories": {
+      "features": ["string (max 15 palavras cada)"],
+      "fixes": ["string (max 15 palavras cada)"],
+      "improvements": ["string (max 15 palavras cada)"],
+      "breaking": ["string (max 15 palavras cada, apenas se houver)"]
+    }
+  }],
+  "upcoming": {
+    "planned": ["string (funcionalidades futuras, max 10 palavras)"],
+    "inProgress": ["string (em desenvolvimento, max 10 palavras)"]
+  }
+}`,
+    userTemplate: `Crie o changelog/release notes para:
+
+📦 Projeto: {{projectName}}
+📝 Descrição: {{description}}
+🏗️ Tipo: {{projectType}}
+🚀 Frameworks: {{frameworks}}
+
+📖 README:
+{{readme}}
+
+📁 Estrutura:
+{{structure}}
+
+📦 Dependências:
+{{dependencies}}
+
+Crie um changelog profissional com 3-5 releases mostrando a evolução do projeto. Seja CONCISO e OBJETIVO.`
+  },
+
   custom: {
     system: `Você é um especialista em documentação técnica. Crie conteúdo relevante e bem estruturado.
 
@@ -550,6 +661,33 @@ export const claudeService = {
     // Build user message from template
     let userMessage = prompt.userTemplate;
     const data = { ...repositoryData, ...context };
+    
+    // Add additional repositories context if available
+    if (repositoryData.isIntegratedDocumentation && repositoryData.additionalRepositories) {
+      const additionalReposContext = repositoryData.additionalRepositories.map((repo: any) => {
+        return `
+📦 Sistema: ${repo.name}
+${repo.customDescription ? `📝 Descrição: ${repo.customDescription}` : ''}
+🏗️ Tipo: ${repo.projectType || 'N/A'}
+🚀 Frameworks: ${repo.frameworks?.join(', ') || 'N/A'}
+💻 Linguagens: ${repo.languages ? JSON.stringify(repo.languages) : 'N/A'}
+📖 README: ${repo.readme || 'N/A'}
+📁 Estrutura: ${repo.structure?.slice(0, 30)?.join(', ') || 'N/A'}
+`;
+      }).join('\n---\n');
+      
+      userMessage += `
+
+🔗 REPOSITÓRIOS ADICIONAIS (Esta é uma documentação INTEGRADA de múltiplos sistemas):
+${additionalReposContext}
+
+IMPORTANTE: Esta documentação deve explicar como os ${repositoryData.totalSystems} sistemas interagem entre si.
+- Identifique pontos de integração
+- Descreva o fluxo de dados entre os sistemas
+- Mencione APIs compartilhadas
+- Explique como os sistemas se complementam
+`;
+    }
     
     for (const [key, value] of Object.entries(data)) {
       const placeholder = `{{${key}}}`;
@@ -687,6 +825,22 @@ Responda em formato JSON.`;
         model: MODEL,
         endpoint: process.env.AZURE_AI_ENDPOINT || 'default'
       };
+    }
+  },
+
+  /**
+   * Generate raw response from a prompt (no JSON parsing)
+   */
+  async generateRaw(prompt: string, maxTokens?: number): Promise<string> {
+    const systemPrompt = 'Você é um assistente de IA especializado em análise de software e geração de documentação. Responda em formato JSON quando solicitado.';
+    try {
+      const response = await callClaude(systemPrompt, prompt, maxTokens || MAX_TOKENS);
+      // Try to extract JSON from markdown code block if present
+      const jsonMatch = response.match(/```json\n?([\s\S]*?)\n?```/);
+      return jsonMatch ? jsonMatch[1] : response;
+    } catch (error: any) {
+      console.error('Error in generateRaw:', error.message);
+      throw error;
     }
   },
 

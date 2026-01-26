@@ -1,16 +1,26 @@
 
 import clsx from 'clsx'
+import { useState } from 'react'
 
 interface FlowStep {
   id: string
   icon: string
   title: string
   description?: string
-  variant?: 'vehicle' | 'camera' | 'system' | 'database' | 'success' | 'default' | 'start' | 'process' | 'decision' | 'end'
+  variant?: 'vehicle' | 'camera' | 'system' | 'database' | 'success' | 'error' | 'default' | 'start' | 'process' | 'decision' | 'end'
+}
+
+interface SingleFlow {
+  id: string
+  title: string
+  description?: string
+  icon?: string
+  steps: FlowStep[]
 }
 
 interface FlowDiagramProps {
-  steps: FlowStep[]
+  steps?: FlowStep[]
+  flows?: SingleFlow[]
   title?: string
   subtitle?: string
   className?: string
@@ -96,6 +106,14 @@ const stepVariants: Record<string, {
     ring: 'ring-green-500/30',
     textColor: 'text-white',
   },
+  error: {
+    gradient: 'bg-gradient-to-br from-red-500 via-red-600 to-rose-700',
+    border: 'border-red-300',
+    shadow: 'shadow-red-500/40',
+    iconBg: 'bg-white/25',
+    ring: 'ring-red-500/40',
+    textColor: 'text-white',
+  },
   default: {
     gradient: 'bg-gradient-to-br from-slate-400 via-slate-500 to-slate-600',
     border: 'border-slate-200',
@@ -106,7 +124,30 @@ const stepVariants: Record<string, {
   },
 }
 
-export default function FlowDiagram({ steps, title, subtitle, className }: FlowDiagramProps) {
+export default function FlowDiagram({ steps, flows, title, subtitle, className }: FlowDiagramProps) {
+  const [activeFlowIndex, setActiveFlowIndex] = useState(0)
+  
+  // Determine if we're using the new multi-flow format or old single-flow format
+  const hasMultipleFlows = Array.isArray(flows) && flows.length > 0
+  
+  // Convert old format to new format if needed
+  const allFlows: SingleFlow[] = hasMultipleFlows 
+    ? flows 
+    : steps && steps.length > 0 
+      ? [{ id: 'flow-1', title: title || 'Fluxo Principal', description: subtitle, steps }]
+      : []
+  
+  if (allFlows.length === 0) {
+    return (
+      <div className={clsx('relative bg-gray-50 rounded-3xl p-8 text-center', className)}>
+        <p className="text-gray-500">Nenhum fluxo definido</p>
+      </div>
+    )
+  }
+
+  const activeFlow = allFlows[activeFlowIndex]
+  const flowSteps = activeFlow?.steps || []
+  
   return (
     <div className={clsx(
       'relative bg-gradient-to-br from-slate-50 via-white to-slate-50 rounded-3xl p-8 overflow-hidden',
@@ -130,22 +171,41 @@ export default function FlowDiagram({ steps, title, subtitle, className }: FlowD
         />
       </div>
       
-      {(title || subtitle) && (
-        <div className="relative text-center mb-10">
-          {title && (
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 bg-clip-text text-transparent">
-              {title}
-            </h3>
-          )}
-          {subtitle && (
-            <p className="text-slate-500 mt-2 max-w-2xl mx-auto">{subtitle}</p>
-          )}
+      {/* Flow Tabs (if multiple flows) */}
+      {allFlows.length > 1 && (
+        <div className="relative flex items-center justify-center gap-2 flex-wrap mb-8">
+          {allFlows.map((flow, index) => (
+            <button
+              key={flow.id}
+              onClick={() => setActiveFlowIndex(index)}
+              className={clsx(
+                'px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
+                index === activeFlowIndex
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
+                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+              )}
+            >
+              <span>{flow.icon || '🔄'}</span>
+              <span>{flow.title}</span>
+            </button>
+          ))}
         </div>
       )}
       
+      {/* Active Flow Header */}
+      <div className="relative text-center mb-10">
+        <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 bg-clip-text text-transparent flex items-center justify-center gap-3">
+          {activeFlow.icon && <span className="text-3xl">{activeFlow.icon}</span>}
+          {activeFlow.title}
+        </h3>
+        {activeFlow.description && (
+          <p className="text-slate-500 mt-2 max-w-2xl mx-auto">{activeFlow.description}</p>
+        )}
+      </div>
+      
       {/* Flow Steps */}
       <div className="relative flex items-stretch justify-center gap-3 flex-wrap">
-        {steps.map((step, idx) => {
+        {flowSteps.map((step, idx) => {
           const variant = stepVariants[step.variant || 'default'] || stepVariants.default
           
           return (
@@ -206,7 +266,7 @@ export default function FlowDiagram({ steps, title, subtitle, className }: FlowD
               </div>
               
               {/* Animated Arrow Connector (except for last item) */}
-              {idx < steps.length - 1 && (
+              {idx < flowSteps.length - 1 && (
                 <div className="flex items-center mx-3 min-w-[50px]">
                   {/* Arrow line with animation */}
                   <div className="relative flex-1 h-0.5 w-8">

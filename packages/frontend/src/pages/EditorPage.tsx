@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   Eye, Sparkles, Plus, Trash, 
   Loader2, FileText, Settings, CheckCircle2, Clock, Zap, AlertTriangle,
-  GripVertical, GitCommit, RotateCcw, History, Check, X
+  GripVertical, GitCommit, RotateCcw, History, Check, X, ChevronUp, ChevronDown,
+  RefreshCw
 } from 'lucide-react'
 import { projectsApi, aiApi } from '@/services/api'
 import toast from 'react-hot-toast'
@@ -54,6 +55,7 @@ const SECTION_TYPES = [
   { type: 'technologies', label: 'Tecnologias', icon: '⚙️' },
   { type: 'flow', label: 'Fluxo / Diagrama', icon: '🔄' },
   { type: 'comparison', label: 'Comparativo', icon: '📊' },
+  { type: 'changelog', label: 'Release Notes', icon: '📝' },
   { type: 'faq', label: 'FAQ / Troubleshooting', icon: '❓' },
   { type: 'api', label: 'API / Endpoints', icon: '🔌' },
   { type: 'installation', label: 'Instalação', icon: '📦' },
@@ -185,6 +187,30 @@ export default function EditorPage() {
     enabled: !!id,
   })
   
+  // Fetch additional repositories
+  // Fetch Git sync status
+  const { data: syncStatus, refetch: refetchSync } = useQuery({
+    queryKey: ['gitSync', id],
+    queryFn: () => projectsApi.getSyncStatus(id!).then(res => res.data),
+    enabled: !!id,
+    refetchInterval: 60000, // Refetch every minute
+  })
+  
+  // State for syncing
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [showReleaseNotes, setShowReleaseNotes] = useState(false)
+  
+  // State for collapsible panels
+  const [collapsedPanels, setCollapsedPanels] = useState<Record<string, boolean>>({
+    sections: false,
+    versions: true,
+    sync: false
+  })
+  
+  const togglePanel = (panel: string) => {
+    setCollapsedPanels(prev => ({ ...prev, [panel]: !prev[panel] }))
+  }
+  
   // Load sections from project when it loads
   useEffect(() => {
     if (project?.sections) {
@@ -273,7 +299,8 @@ export default function EditorPage() {
   }, [generationProgress.isGenerating])
   
   const startStreamGeneration = useCallback(() => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+    // For EventSource, we need the full URL. Use window.location.origin for relative URLs
+    const apiUrl = import.meta.env.VITE_API_URL || window.location.origin
     const eventSource = new EventSource(`${apiUrl}/api/ai/generate-stream/${id}`)
     
     setGenerationProgress({
@@ -372,17 +399,19 @@ export default function EditorPage() {
   }, [id, navigate, queryClient])
   
   const generateMutation = useMutation({
-    mutationFn: (sectionType: string) => aiApi.generateSection(id!, sectionType, { project }),
-    onSuccess: (response, sectionType) => {
-      const newSection: DocumentSection = {
-        id: `section-${Date.now()}`,
-        type: sectionType,
-        title: response.data.title,
-        content: response.data.content,
-        order: sections.length,
-      }
-      setSections([...sections, newSection])
-      toast.success('Seção gerada com IA!')
+    mutationFn: ({ sectionType }: { sectionId: string; sectionType: string }) => 
+      aiApi.generateSection(id!, sectionType, { project }),
+    onSuccess: (response, { sectionId }) => {
+      // Update existing section instead of creating a new one
+      const updatedSections = sections.map(s => 
+        s.id === sectionId 
+          ? { ...s, title: response.data.title, content: response.data.content }
+          : s
+      )
+      setSections(updatedSections)
+      // Force immediate save after AI generation
+      autoSave(updatedSections)
+      toast.success('Seção preenchida com IA e salva!')
     },
     onError: () => toast.error('Erro ao gerar seção'),
   })
@@ -490,6 +519,32 @@ export default function EditorPage() {
     }
   }
   
+  // Sync with Gitea
+  const handleSync = async () => {
+    if (!id) return
+    
+    setIsSyncing(true)
+    try {
+      const result = await projectsApi.sync(id, true)
+      
+      if (result.data.upToDate) {
+        toast.success('Já está sincronizado com a versão mais recente!')
+      } else {
+        toast.success(`Sincronizado! ${result.data.commitsIncluded || 0} commit(s) incluído(s)`)
+        if (result.data.sync?.releaseNotes) {
+          setShowReleaseNotes(true)
+        }
+      }
+      
+      refetchSync()
+      refetchVersions()
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao sincronizar')
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -557,18 +612,41 @@ export default function EditorPage() {
       
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-12 gap-8">
-          {/* Sidebar - Sections List */}
+          {/* Sidebar - Collapsible Panels */}
           <div className="col-span-4">
-            <div className="doc-card p-4 sticky top-40">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900">Seções</h3>
+            <div className="sticky top-40 space-y-3">
+              
+              {/* Sections Panel */}
+              <div className="doc-card overflow-hidden">
                 <button
-                  onClick={() => setShowAddSection(!showAddSection)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  onClick={() => togglePanel('sections')}
+                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
                 >
-                  <Plus className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Seções
+                    <span className="text-xs text-gray-400 font-normal">({sections.length})</span>
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => { e.stopPropagation(); setShowAddSection(!showAddSection) }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); setShowAddSection(!showAddSection) } }}
+                      className="p-1.5 hover:bg-gray-200 rounded transition-colors cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4 text-gray-600" />
+                    </div>
+                    {collapsedPanels.sections ? (
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <ChevronUp className="w-4 h-4 text-gray-400" />
+                    )}
+                  </div>
                 </button>
-              </div>
+                
+                {!collapsedPanels.sections && (
+                  <div className="p-3 pt-0 border-t border-gray-100">
               
               {/* NavBar Preview */}
               {sections.filter(s => s.type !== 'hero').length > 0 && (
@@ -721,42 +799,46 @@ export default function EditorPage() {
               </DndContext>
                 
                 {sections.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Nenhuma seção ainda</p>
-                    <p className="text-xs">Clique em + para adicionar</p>
+                  <div className="text-center py-4 text-gray-500">
+                    <FileText className="w-6 h-6 mx-auto mb-1 opacity-50" />
+                    <p className="text-xs">Nenhuma seção ainda</p>
                   </div>
                 )}
-            </div>
+                  </div>
+                )}
+              </div>
             
-            {/* Versions Panel */}
-            {showVersions && (
-              <div className="doc-card p-4 mt-4">
-                <div className="flex items-center justify-between mb-4">
+              {/* Versions Panel */}
+              <div className="doc-card overflow-hidden">
+                <button
+                  onClick={() => togglePanel('versions')}
+                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                >
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                     <History className="w-4 h-4" />
-                    Histórico de Versões
+                    Histórico
+                    <span className="text-xs text-gray-400 font-normal">({versions.length})</span>
                   </h3>
-                  <button
-                    onClick={() => setShowVersions(false)}
-                    className="p-1 hover:bg-gray-100 rounded"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+                  {collapsedPanels.versions ? (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
                 
+                {!collapsedPanels.versions && (
+                  <div className="p-3 pt-0 border-t border-gray-100 max-h-[200px] overflow-y-auto">
                 {versions.length === 0 ? (
-                  <div className="text-center py-6 text-gray-500">
-                    <GitCommit className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Nenhuma versão ainda</p>
-                    <p className="text-xs">Clique em "Commit" para criar</p>
+                  <div className="text-center py-4 text-gray-500">
+                    <GitCommit className="w-6 h-6 mx-auto mb-1 opacity-50" />
+                    <p className="text-xs">Nenhuma versão ainda</p>
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                    {versions.map((version) => (
+                  <div className="space-y-2">
+                    {versions.slice(0, 5).map((version) => (
                       <div
                         key={version.id}
-                        className="p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-primary/30 transition-all group"
+                        className="p-2 bg-gray-50 rounded-lg border border-gray-100 hover:border-primary/30 transition-all group"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
@@ -798,8 +880,156 @@ export default function EditorPage() {
                     ))}
                   </div>
                 )}
+                  </div>
+                )}
               </div>
-            )}
+            
+              {/* Git Sync Panel */}
+              <div className="doc-card overflow-hidden">
+                <button
+                  onClick={() => togglePanel('sync')}
+                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                >
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4" />
+                    Sincronização Git
+                    {syncStatus?.hasPendingChanges && (
+                      <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                    )}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => { e.stopPropagation(); if (!isSyncing && syncStatus?.hasPendingChanges) handleSync() }}
+                      onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isSyncing && syncStatus?.hasPendingChanges) { e.stopPropagation(); handleSync() } }}
+                      className={`px-2 py-1 rounded text-xs font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+                        syncStatus?.hasPendingChanges 
+                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                      title={syncStatus?.hasPendingChanges ? 'Sincronizar' : 'Atualizado'}
+                    >
+                      {isSyncing ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-3 h-3" />
+                      )}
+                    </div>
+                    {collapsedPanels.sync ? (
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <ChevronUp className="w-4 h-4 text-gray-400" />
+                    )}
+                  </div>
+                </button>
+                
+                {!collapsedPanels.sync && (
+                  <div className="p-3 pt-0 border-t border-gray-100">
+              
+              {/* Sync Status */}
+              {syncStatus?.hasPendingChanges && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-center gap-2 text-amber-700">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      {syncStatus.pendingCommits.length} commit(s) pendente(s)
+                    </span>
+                  </div>
+                  <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+                    {syncStatus.pendingCommits.slice(0, 5).map((commit) => (
+                      <div key={commit.sha} className="text-xs text-amber-600 truncate flex items-center gap-1">
+                        <GitCommit className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{commit.message.split('\n')[0]}</span>
+                      </div>
+                    ))}
+                    {syncStatus.pendingCommits.length > 5 && (
+                      <p className="text-xs text-amber-500">
+                        +{syncStatus.pendingCommits.length - 5} mais commits...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {!syncStatus?.hasPendingChanges && syncStatus?.lastSync && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-center gap-2 text-emerald-700">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span className="text-sm font-medium">Sincronizado</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Last Sync Info */}
+              {syncStatus?.lastSync ? (
+                <div className="space-y-3">
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">
+                            {syncStatus.lastSync.version || 'v?'}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {new Date(syncStatus.lastSync.syncedAt).toLocaleDateString('pt-BR', {
+                              day: '2-digit',
+                              month: 'short',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 truncate">
+                          {syncStatus.lastSync.commitMessage.split('\n')[0]}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          por {syncStatus.lastSync.commitAuthor}
+                        </p>
+                      </div>
+                      {syncStatus.lastSync.releaseNotes && (
+                        <button
+                          onClick={() => setShowReleaseNotes(true)}
+                          className="p-1.5 hover:bg-gray-200 rounded text-gray-500"
+                          title="Ver Release Notes"
+                        >
+                          <FileText className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Sync History */}
+                  {syncStatus.syncHistory.length > 1 && (
+                    <details className="text-xs">
+                      <summary className="cursor-pointer text-gray-500 hover:text-gray-700">
+                        Histórico de sincronizações ({syncStatus.syncHistory.length})
+                      </summary>
+                      <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                        {syncStatus.syncHistory.slice(1, 6).map((sync) => (
+                          <div key={sync.id} className="flex items-center gap-2 text-gray-500 py-1">
+                            <GitCommit className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate flex-1">{sync.commitMessage.split('\n')[0]}</span>
+                            <span className="text-gray-400 flex-shrink-0">
+                              {new Date(sync.createdAt).toLocaleDateString('pt-BR')}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  <RefreshCw className="w-6 h-6 mx-auto mb-1 opacity-50" />
+                  <p className="text-xs">Nenhuma sincronização ainda</p>
+                </div>
+              )}
+                  </div>
+                )}
+              </div>
+
+            </div>
           </div>
           
           {/* Main Editor Area */}
@@ -813,7 +1043,7 @@ export default function EditorPage() {
                 onGenerateWithAI={() => {
                   const section = sections.find(s => s.id === selectedSection)
                   if (section) {
-                    generateMutation.mutate(section.type)
+                    generateMutation.mutate({ sectionId: section.id, sectionType: section.type })
                   }
                 }}
                 isGenerating={generateMutation.isPending}
@@ -972,6 +1202,57 @@ export default function EditorPage() {
                 className="btn btn-secondary"
               >
                 Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Release Notes Modal */}
+      {showReleaseNotes && syncStatus?.lastSync?.releaseNotes && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowReleaseNotes(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden max-h-[80vh] flex flex-col">
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Release Notes</h3>
+                  <p className="text-white/80 text-sm">
+                    Versão {syncStatus.lastSync.version || 'N/A'} - {new Date(syncStatus.lastSync.syncedAt).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="prose prose-sm max-w-none">
+                <div dangerouslySetInnerHTML={{ 
+                  __html: syncStatus.lastSync.releaseNotes
+                    .replace(/\n/g, '<br/>')
+                    .replace(/^## (.+)$/gm, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
+                    .replace(/^### (.+)$/gm, '<h4 class="font-medium mt-3 mb-1">$1</h4>')
+                    .replace(/^- (.+)$/gm, '<li class="ml-4">$1</li>')
+                    .replace(/✨/g, '<span class="text-yellow-500">✨</span>')
+                    .replace(/🐛/g, '<span class="text-red-500">🐛</span>')
+                    .replace(/🔧/g, '<span class="text-blue-500">🔧</span>')
+                    .replace(/⚠️/g, '<span class="text-orange-500">⚠️</span>')
+                }} />
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 bg-gray-50 flex justify-between items-center">
+              <div className="text-xs text-gray-500">
+                <GitCommit className="w-3 h-3 inline mr-1" />
+                {syncStatus.lastSync.commitSha.slice(0, 7)} por {syncStatus.lastSync.commitAuthor}
+              </div>
+              <button
+                onClick={() => setShowReleaseNotes(false)}
+                className="btn btn-primary"
+              >
+                Fechar
               </button>
             </div>
           </div>
@@ -1207,6 +1488,1417 @@ function OverviewEditor({
 }
 
 // =====================================================
+// HERO EDITOR
+// =====================================================
+interface HeroContent {
+  title?: string
+  subtitle?: string
+  projectName?: string
+}
+
+function HeroEditor({ 
+  content, 
+  onChange 
+}: { 
+  content: HeroContent
+  onChange: (content: HeroContent) => void 
+}) {
+  const [localContent, setLocalContent] = useState<HeroContent>({
+    title: content?.title || '',
+    subtitle: content?.subtitle || '',
+    projectName: content?.projectName || ''
+  })
+
+  useEffect(() => {
+    setLocalContent({
+      title: content?.title || '',
+      subtitle: content?.subtitle || '',
+      projectName: content?.projectName || ''
+    })
+  }, [content])
+
+  const updateField = <K extends keyof HeroContent>(field: K, value: HeroContent[K]) => {
+    const updated = { ...localContent, [field]: value }
+    setLocalContent(updated)
+    onChange(updated)
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Project Name */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          🏷️ Nome do Projeto
+        </label>
+        <input
+          type="text"
+          value={localContent.projectName || ''}
+          onChange={(e) => updateField('projectName', e.target.value)}
+          placeholder="Ex: DocuMentor, Zeus, MoveMais..."
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+        />
+      </div>
+
+      {/* Title */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          🎯 Título Principal
+        </label>
+        <input
+          type="text"
+          value={localContent.title || ''}
+          onChange={(e) => updateField('title', e.target.value)}
+          placeholder="Título chamativo para o hero..."
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-lg font-semibold"
+        />
+        <p className="text-xs text-gray-400 mt-1">
+          Um título impactante que resume o propósito do projeto.
+        </p>
+      </div>
+
+      {/* Subtitle */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          📝 Subtítulo / Descrição Curta
+        </label>
+        <textarea
+          value={localContent.subtitle || ''}
+          onChange={(e) => updateField('subtitle', e.target.value)}
+          placeholder="Uma breve descrição do que o projeto faz..."
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+          rows={3}
+        />
+        <p className="text-xs text-gray-400 mt-1">
+          Complemento do título que explica o projeto em 1-2 frases.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// =====================================================
+// ARCHITECTURE EDITOR
+// =====================================================
+interface ArchitectureContent {
+  description?: string
+  pattern?: string
+  layers?: Array<{ name: string; description: string; components?: string[] }>
+}
+
+function ArchitectureEditor({ 
+  content, 
+  onChange 
+}: { 
+  content: ArchitectureContent
+  onChange: (content: ArchitectureContent) => void 
+}) {
+  const [localContent, setLocalContent] = useState<ArchitectureContent>({
+    description: content?.description || '',
+    pattern: content?.pattern || '',
+    layers: content?.layers || [{ name: '', description: '', components: [''] }]
+  })
+
+  useEffect(() => {
+    setLocalContent({
+      description: content?.description || '',
+      pattern: content?.pattern || '',
+      layers: content?.layers || [{ name: '', description: '', components: [''] }]
+    })
+  }, [content])
+
+  const updateField = <K extends keyof ArchitectureContent>(field: K, value: ArchitectureContent[K]) => {
+    const updated = { ...localContent, [field]: value }
+    setLocalContent(updated)
+    onChange(updated)
+  }
+
+  const addLayer = () => {
+    const layers = [...(localContent.layers || []), { name: '', description: '', components: [''] }]
+    updateField('layers', layers)
+  }
+
+  const updateLayer = (index: number, field: 'name' | 'description', value: string) => {
+    const layers = [...(localContent.layers || [])]
+    layers[index] = { ...layers[index], [field]: value }
+    updateField('layers', layers)
+  }
+
+  const updateLayerComponent = (layerIndex: number, compIndex: number, value: string) => {
+    const layers = [...(localContent.layers || [])]
+    const components = [...(layers[layerIndex].components || [])]
+    components[compIndex] = value
+    layers[layerIndex] = { ...layers[layerIndex], components }
+    updateField('layers', layers)
+  }
+
+  const addLayerComponent = (layerIndex: number) => {
+    const layers = [...(localContent.layers || [])]
+    layers[layerIndex] = { 
+      ...layers[layerIndex], 
+      components: [...(layers[layerIndex].components || []), ''] 
+    }
+    updateField('layers', layers)
+  }
+
+  const removeLayerComponent = (layerIndex: number, compIndex: number) => {
+    const layers = [...(localContent.layers || [])]
+    const components = (layers[layerIndex].components || []).filter((_, i) => i !== compIndex)
+    layers[layerIndex] = { ...layers[layerIndex], components: components.length > 0 ? components : [''] }
+    updateField('layers', layers)
+  }
+
+  const removeLayer = (index: number) => {
+    const layers = (localContent.layers || []).filter((_, i) => i !== index)
+    updateField('layers', layers.length > 0 ? layers : [{ name: '', description: '', components: [''] }])
+  }
+
+  const PATTERN_OPTIONS = ['MVC', 'MVVM', 'Clean Architecture', 'Hexagonal', 'Microservices', 'Monolith', 'Event-Driven', 'Layered']
+
+  return (
+    <div className="space-y-6">
+      {/* Pattern */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          🏛️ Padrão Arquitetural
+        </label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {PATTERN_OPTIONS.map(pattern => (
+            <button
+              key={pattern}
+              type="button"
+              onClick={() => updateField('pattern', pattern)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                localContent.pattern === pattern
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {pattern}
+            </button>
+          ))}
+        </div>
+        <input
+          type="text"
+          value={localContent.pattern || ''}
+          onChange={(e) => updateField('pattern', e.target.value)}
+          placeholder="Ou digite um padrão personalizado..."
+          className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
+        />
+      </div>
+
+      {/* Description */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          📝 Descrição da Arquitetura
+        </label>
+        <textarea
+          value={localContent.description || ''}
+          onChange={(e) => updateField('description', e.target.value)}
+          placeholder="Descreva a arquitetura do sistema..."
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+          rows={3}
+        />
+      </div>
+
+      {/* Layers */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            📦 Camadas / Módulos
+          </label>
+          <button
+            type="button"
+            onClick={addLayer}
+            className="text-sm text-primary hover:text-primary-dark flex items-center gap-1 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar Camada
+          </button>
+        </div>
+        <div className="space-y-4">
+          {(localContent.layers || []).map((layer, layerIndex) => (
+            <div key={layerIndex} className="p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/30 transition-all">
+              <div className="flex items-start gap-3">
+                <div className="flex-1 space-y-3">
+                  <input
+                    type="text"
+                    value={layer.name}
+                    onChange={(e) => updateLayer(layerIndex, 'name', e.target.value)}
+                    placeholder="Nome da camada (ex: Presentation Layer)"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
+                  />
+                  <textarea
+                    value={layer.description}
+                    onChange={(e) => updateLayer(layerIndex, 'description', e.target.value)}
+                    placeholder="Descrição e responsabilidades..."
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
+                    rows={2}
+                  />
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-gray-500">Componentes:</span>
+                      <button
+                        type="button"
+                        onClick={() => addLayerComponent(layerIndex)}
+                        className="text-xs text-primary hover:text-primary-dark"
+                      >
+                        + Adicionar
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(layer.components || []).map((comp, compIndex) => (
+                        <div key={compIndex} className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1">
+                          <input
+                            type="text"
+                            value={comp}
+                            onChange={(e) => updateLayerComponent(layerIndex, compIndex, e.target.value)}
+                            placeholder="Componente..."
+                            className="w-24 text-xs border-none bg-transparent focus:ring-0 p-0"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeLayerComponent(layerIndex, compIndex)}
+                            className="text-gray-400 hover:text-red-500"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeLayer(layerIndex)}
+                  className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                  disabled={(localContent.layers || []).length <= 1}
+                >
+                  <Trash className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// =====================================================
+// TECHNOLOGIES EDITOR
+// =====================================================
+interface TechItem {
+  name: string
+  version?: string
+  description?: string
+  icon?: string
+}
+
+interface TechCategory {
+  category: string
+  items: TechItem[]
+}
+
+interface TechnologiesContent {
+  description?: string
+  categories?: TechCategory[]
+}
+
+function TechnologiesEditor({ 
+  content, 
+  onChange 
+}: { 
+  content: TechnologiesContent
+  onChange: (content: TechnologiesContent) => void 
+}) {
+  const [localContent, setLocalContent] = useState<TechnologiesContent>({
+    description: content?.description || '',
+    categories: content?.categories || [{ category: '', items: [{ name: '', version: '', description: '' }] }]
+  })
+
+  useEffect(() => {
+    setLocalContent({
+      description: content?.description || '',
+      categories: content?.categories || [{ category: '', items: [{ name: '', version: '', description: '' }] }]
+    })
+  }, [content])
+
+  const updateField = <K extends keyof TechnologiesContent>(field: K, value: TechnologiesContent[K]) => {
+    const updated = { ...localContent, [field]: value }
+    setLocalContent(updated)
+    onChange(updated)
+  }
+
+  const addCategory = () => {
+    const categories = [...(localContent.categories || []), { category: '', items: [{ name: '', version: '', description: '' }] }]
+    updateField('categories', categories)
+  }
+
+  const updateCategoryName = (index: number, name: string) => {
+    const categories = [...(localContent.categories || [])]
+    categories[index] = { ...categories[index], category: name }
+    updateField('categories', categories)
+  }
+
+  const addTechItem = (catIndex: number) => {
+    const categories = [...(localContent.categories || [])]
+    categories[catIndex] = { 
+      ...categories[catIndex], 
+      items: [...categories[catIndex].items, { name: '', version: '', description: '' }]
+    }
+    updateField('categories', categories)
+  }
+
+  const updateTechItem = (catIndex: number, itemIndex: number, field: keyof TechItem, value: string) => {
+    const categories = [...(localContent.categories || [])]
+    const items = [...categories[catIndex].items]
+    items[itemIndex] = { ...items[itemIndex], [field]: value }
+    categories[catIndex] = { ...categories[catIndex], items }
+    updateField('categories', categories)
+  }
+
+  const removeTechItem = (catIndex: number, itemIndex: number) => {
+    const categories = [...(localContent.categories || [])]
+    const items = categories[catIndex].items.filter((_, i) => i !== itemIndex)
+    categories[catIndex] = { 
+      ...categories[catIndex], 
+      items: items.length > 0 ? items : [{ name: '', version: '', description: '' }]
+    }
+    updateField('categories', categories)
+  }
+
+  const removeCategory = (index: number) => {
+    const categories = (localContent.categories || []).filter((_, i) => i !== index)
+    updateField('categories', categories.length > 0 ? categories : [{ category: '', items: [{ name: '', version: '', description: '' }] }])
+  }
+
+  const CATEGORY_SUGGESTIONS = ['Frontend', 'Backend', 'Database', 'DevOps', 'Testing', 'Tools', 'Cloud', 'Mobile']
+
+  return (
+    <div className="space-y-6">
+      {/* Description */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          📝 Descrição Geral
+        </label>
+        <textarea
+          value={localContent.description || ''}
+          onChange={(e) => updateField('description', e.target.value)}
+          placeholder="Visão geral das tecnologias utilizadas..."
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+          rows={2}
+        />
+      </div>
+
+      {/* Categories */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            ⚙️ Categorias de Tecnologias
+          </label>
+          <button
+            type="button"
+            onClick={addCategory}
+            className="text-sm text-primary hover:text-primary-dark flex items-center gap-1 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar Categoria
+          </button>
+        </div>
+        
+        {/* Category Suggestions */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {CATEGORY_SUGGESTIONS.map(cat => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => {
+                const exists = (localContent.categories || []).some(c => c.category === cat)
+                if (!exists) {
+                  const categories = [...(localContent.categories || []), { category: cat, items: [{ name: '', version: '', description: '' }] }]
+                  updateField('categories', categories)
+                }
+              }}
+              className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs hover:bg-primary/10 hover:text-primary transition-all"
+            >
+              + {cat}
+            </button>
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          {(localContent.categories || []).map((category, catIndex) => (
+            <div key={catIndex} className="p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/30 transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <input
+                  type="text"
+                  value={category.category}
+                  onChange={(e) => updateCategoryName(catIndex, e.target.value)}
+                  placeholder="Nome da categoria (ex: Frontend)"
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-semibold transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeCategory(catIndex)}
+                  className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                  disabled={(localContent.categories || []).length <= 1}
+                >
+                  <Trash className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="space-y-2">
+                {(category.items || []).map((item, itemIndex) => (
+                  <div key={itemIndex} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-gray-200">
+                    <input
+                      type="text"
+                      value={item.name}
+                      onChange={(e) => updateTechItem(catIndex, itemIndex, 'name', e.target.value)}
+                      placeholder="Tecnologia"
+                      className="flex-1 px-2 py-1 border-none bg-transparent focus:ring-0 text-sm font-medium"
+                    />
+                    <input
+                      type="text"
+                      value={item.version || ''}
+                      onChange={(e) => updateTechItem(catIndex, itemIndex, 'version', e.target.value)}
+                      placeholder="v1.0.0"
+                      className="w-20 px-2 py-1 border border-gray-200 rounded text-xs text-center"
+                    />
+                    <input
+                      type="text"
+                      value={item.description || ''}
+                      onChange={(e) => updateTechItem(catIndex, itemIndex, 'description', e.target.value)}
+                      placeholder="Descrição breve..."
+                      className="flex-1 px-2 py-1 border-none bg-transparent focus:ring-0 text-sm text-gray-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeTechItem(catIndex, itemIndex)}
+                      className="p-1 text-gray-400 hover:text-red-500"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => addTechItem(catIndex)}
+                  className="w-full py-2 border-2 border-dashed border-gray-200 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary transition-all"
+                >
+                  + Adicionar Tecnologia
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// =====================================================
+// FLOW EDITOR
+// =====================================================
+interface FlowStep {
+  id: string
+  title: string
+  description?: string
+  type?: string
+  icon?: string
+}
+
+interface FlowStep {
+  id: string
+  title: string
+  description?: string
+  icon?: string
+  type?: string
+  variant?: string
+}
+
+interface SingleFlow {
+  id: string
+  title: string
+  description?: string
+  icon?: string
+  steps: FlowStep[]
+}
+
+interface FlowContent {
+  title?: string
+  description?: string
+  steps?: FlowStep[]
+  flows?: SingleFlow[]
+}
+
+function FlowEditor({ 
+  content, 
+  onChange 
+}: { 
+  content: FlowContent
+  onChange: (content: FlowContent) => void 
+}) {
+  // Support both old format (single flow with steps) and new format (multiple flows)
+  const hasMultipleFlows = Array.isArray(content?.flows) && content.flows.length > 0
+  
+  const [localContent, setLocalContent] = useState<FlowContent>(() => {
+    if (hasMultipleFlows) {
+      return { flows: content.flows }
+    }
+    // Convert old format to new format with single flow
+    return {
+      flows: [{
+        id: 'flow-1',
+        title: content?.title || 'Fluxo Principal',
+        description: content?.description || '',
+        icon: '🔄',
+        steps: content?.steps || [{ id: 'step-1', title: '', description: '', type: 'process' }]
+      }]
+    }
+  })
+  
+  const [activeFlowIndex, setActiveFlowIndex] = useState(0)
+
+  useEffect(() => {
+    if (Array.isArray(content?.flows) && content.flows.length > 0) {
+      setLocalContent({ flows: content.flows })
+    } else if (content?.steps) {
+      // Convert old format
+      setLocalContent({
+        flows: [{
+          id: 'flow-1',
+          title: content?.title || 'Fluxo Principal',
+          description: content?.description || '',
+          icon: '🔄',
+          steps: content.steps
+        }]
+      })
+    }
+  }, [content])
+
+  const updateContent = (newContent: FlowContent) => {
+    setLocalContent(newContent)
+    onChange(newContent)
+  }
+
+  const addFlow = () => {
+    const flows = [...(localContent.flows || []), {
+      id: `flow-${Date.now()}`,
+      title: 'Novo Fluxo',
+      description: '',
+      icon: '🔄',
+      steps: [{ id: `step-${Date.now()}`, title: '', description: '', type: 'start' }]
+    }]
+    updateContent({ flows })
+    setActiveFlowIndex(flows.length - 1)
+  }
+
+  const removeFlow = (index: number) => {
+    if ((localContent.flows || []).length <= 1) return
+    const flows = (localContent.flows || []).filter((_, i) => i !== index)
+    updateContent({ flows })
+    if (activeFlowIndex >= flows.length) {
+      setActiveFlowIndex(flows.length - 1)
+    }
+  }
+
+  const updateFlow = (index: number, field: keyof SingleFlow, value: any) => {
+    const flows = [...(localContent.flows || [])]
+    flows[index] = { ...flows[index], [field]: value }
+    updateContent({ flows })
+  }
+
+  const addStep = (flowIndex: number) => {
+    const flows = [...(localContent.flows || [])]
+    const steps = [...flows[flowIndex].steps, { id: `step-${Date.now()}`, title: '', description: '', type: 'process' }]
+    flows[flowIndex] = { ...flows[flowIndex], steps }
+    updateContent({ flows })
+  }
+
+  const updateStep = (flowIndex: number, stepIndex: number, field: keyof FlowStep, value: string) => {
+    const flows = [...(localContent.flows || [])]
+    const steps = [...flows[flowIndex].steps]
+    steps[stepIndex] = { ...steps[stepIndex], [field]: value }
+    flows[flowIndex] = { ...flows[flowIndex], steps }
+    updateContent({ flows })
+  }
+
+  const removeStep = (flowIndex: number, stepIndex: number) => {
+    const flows = [...(localContent.flows || [])]
+    const steps = flows[flowIndex].steps.filter((_, i) => i !== stepIndex)
+    flows[flowIndex] = { ...flows[flowIndex], steps: steps.length > 0 ? steps : [{ id: 'step-1', title: '', description: '', type: 'process' }] }
+    updateContent({ flows })
+  }
+
+  const moveStep = (flowIndex: number, stepIndex: number, direction: 'up' | 'down') => {
+    const flows = [...(localContent.flows || [])]
+    const steps = [...flows[flowIndex].steps]
+    const newIndex = direction === 'up' ? stepIndex - 1 : stepIndex + 1
+    if (newIndex < 0 || newIndex >= steps.length) return
+    [steps[stepIndex], steps[newIndex]] = [steps[newIndex], steps[stepIndex]]
+    flows[flowIndex] = { ...flows[flowIndex], steps }
+    updateContent({ flows })
+  }
+
+  const STEP_TYPES = [
+    { value: 'start', label: 'Início', icon: '▶️' },
+    { value: 'process', label: 'Processo', icon: '⚙️' },
+    { value: 'decision', label: 'Decisão', icon: '🔀' },
+    { value: 'database', label: 'Banco de Dados', icon: '🗄️' },
+    { value: 'success', label: 'Sucesso', icon: '✅' },
+    { value: 'error', label: 'Erro', icon: '❌' },
+    { value: 'end', label: 'Fim', icon: '🏁' },
+    { value: 'camera', label: 'Câmera/OCR', icon: '📷' },
+    { value: 'vehicle', label: 'Veículo', icon: '🚗' },
+    { value: 'system', label: 'Sistema', icon: '💻' },
+  ]
+
+  const FLOW_ICONS = ['🔄', '🚗', '🚙', '💳', '🔐', '📊', '📧', '⚡', '🔔', '🔁', '⬆️', '⬇️', '❌']
+
+  const activeFlow = (localContent.flows || [])[activeFlowIndex]
+
+  return (
+    <div className="space-y-6">
+      {/* Flow Tabs */}
+      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-gray-200">
+        {(localContent.flows || []).map((flow, index) => (
+          <button
+            key={flow.id}
+            onClick={() => setActiveFlowIndex(index)}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
+              index === activeFlowIndex
+                ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            <span>{flow.icon || '🔄'}</span>
+            <span className="truncate max-w-[120px]">{flow.title || `Fluxo ${index + 1}`}</span>
+            {(localContent.flows || []).length > 1 && index === activeFlowIndex && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  removeFlow(index)
+                }}
+                className="ml-1 p-1 hover:bg-white/20 rounded"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </button>
+        ))}
+        <button
+          onClick={addFlow}
+          className="px-3 py-2 rounded-xl text-sm font-medium bg-green-100 text-green-700 hover:bg-green-200 transition-all flex items-center gap-1"
+        >
+          <Plus className="w-4 h-4" />
+          Novo Fluxo
+        </button>
+      </div>
+
+      {activeFlow && (
+        <>
+          {/* Flow Header */}
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Ícone</label>
+              <div className="flex flex-wrap gap-1 p-2 bg-gray-50 rounded-xl border border-gray-200">
+                {FLOW_ICONS.map(icon => (
+                  <button
+                    key={icon}
+                    onClick={() => updateFlow(activeFlowIndex, 'icon', icon)}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg transition-all ${
+                      activeFlow.icon === icon ? 'bg-primary text-white' : 'hover:bg-gray-200'
+                    }`}
+                  >
+                    {icon}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="col-span-5">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Título do Fluxo
+              </label>
+              <input
+                type="text"
+                value={activeFlow.title || ''}
+                onChange={(e) => updateFlow(activeFlowIndex, 'title', e.target.value)}
+                placeholder="Ex: Fluxo de Entrada"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              />
+            </div>
+            <div className="col-span-5">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Descrição
+              </label>
+              <input
+                type="text"
+                value={activeFlow.description || ''}
+                onChange={(e) => updateFlow(activeFlowIndex, 'description', e.target.value)}
+                placeholder="Descreva este fluxo..."
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Steps */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                📊 Etapas do Fluxo ({activeFlow.steps?.length || 0})
+              </label>
+              <button
+                type="button"
+                onClick={() => addStep(activeFlowIndex)}
+                className="text-sm text-primary hover:text-primary-dark flex items-center gap-1 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Adicionar Etapa
+              </button>
+            </div>
+            <div className="space-y-3">
+              {(activeFlow.steps || []).map((step, index) => (
+                <div key={step.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/30 transition-all">
+                  <div className="flex items-start gap-3">
+                    <div className="flex flex-col gap-1">
+                      <button
+                        type="button"
+                        onClick={() => moveStep(activeFlowIndex, index, 'up')}
+                        disabled={index === 0}
+                        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                      >
+                        <ChevronUp className="w-4 h-4" />
+                      </button>
+                      <span className="text-xs font-bold text-gray-400 text-center">{index + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => moveStep(activeFlowIndex, index, 'down')}
+                        disabled={index === (activeFlow.steps || []).length - 1}
+                        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    <div className="flex-1 space-y-2">
+                      <div className="flex gap-2">
+                        <select
+                          value={step.type || 'process'}
+                          onChange={(e) => updateStep(activeFlowIndex, index, 'type', e.target.value)}
+                          className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                        >
+                          {STEP_TYPES.map(t => (
+                            <option key={t.value} value={t.value}>{t.icon} {t.label}</option>
+                          ))}
+                        </select>
+                        <input
+                          type="text"
+                          value={step.title}
+                          onChange={(e) => updateStep(activeFlowIndex, index, 'title', e.target.value)}
+                          placeholder="Título da etapa"
+                          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
+                        />
+                      </div>
+                      <textarea
+                        value={step.description || ''}
+                        onChange={(e) => updateStep(activeFlowIndex, index, 'description', e.target.value)}
+                        placeholder="Descrição da etapa..."
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
+                        rows={2}
+                      />
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={() => removeStep(activeFlowIndex, index)}
+                      className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                      disabled={(activeFlow.steps || []).length <= 1}
+                    >
+                      <Trash className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// =====================================================
+// FAQ EDITOR
+// =====================================================
+interface FAQQuestion {
+  question: string
+  answer: string
+  category?: string
+}
+
+interface FAQContent {
+  questions?: FAQQuestion[]
+}
+
+function FAQEditor({ 
+  content, 
+  onChange 
+}: { 
+  content: FAQContent
+  onChange: (content: FAQContent) => void 
+}) {
+  const [localContent, setLocalContent] = useState<FAQContent>({
+    questions: content?.questions || [{ question: '', answer: '', category: '' }]
+  })
+
+  useEffect(() => {
+    setLocalContent({
+      questions: content?.questions || [{ question: '', answer: '', category: '' }]
+    })
+  }, [content])
+
+  const updateQuestions = (questions: FAQQuestion[]) => {
+    const updated = { ...localContent, questions }
+    setLocalContent(updated)
+    onChange(updated)
+  }
+
+  const addQuestion = () => {
+    const questions = [...(localContent.questions || []), { question: '', answer: '', category: '' }]
+    updateQuestions(questions)
+  }
+
+  const updateQuestion = (index: number, field: keyof FAQQuestion, value: string) => {
+    const questions = [...(localContent.questions || [])]
+    questions[index] = { ...questions[index], [field]: value }
+    updateQuestions(questions)
+  }
+
+  const removeQuestion = (index: number) => {
+    const questions = (localContent.questions || []).filter((_, i) => i !== index)
+    updateQuestions(questions.length > 0 ? questions : [{ question: '', answer: '', category: '' }])
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <label className="block text-sm font-semibold text-gray-700">
+          ❓ Perguntas Frequentes
+        </label>
+        <button
+          type="button"
+          onClick={addQuestion}
+          className="text-sm text-primary hover:text-primary-dark flex items-center gap-1 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Adicionar Pergunta
+        </button>
+      </div>
+      
+      <div className="space-y-4">
+        {(localContent.questions || []).map((q, index) => (
+          <div key={index} className="p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/30 transition-all">
+            <div className="flex items-start gap-3">
+              <span className="text-lg font-bold text-gray-300 mt-2">{index + 1}</span>
+              <div className="flex-1 space-y-3">
+                <input
+                  type="text"
+                  value={q.question}
+                  onChange={(e) => updateQuestion(index, 'question', e.target.value)}
+                  placeholder="Qual é a pergunta?"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
+                />
+                <textarea
+                  value={q.answer}
+                  onChange={(e) => updateQuestion(index, 'answer', e.target.value)}
+                  placeholder="Digite a resposta detalhada..."
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
+                  rows={3}
+                />
+                <input
+                  type="text"
+                  value={q.category || ''}
+                  onChange={(e) => updateQuestion(index, 'category', e.target.value)}
+                  placeholder="Categoria (opcional): Instalação, Uso, Deploy..."
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-xs transition-all"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => removeQuestion(index)}
+                className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                disabled={(localContent.questions || []).length <= 1}
+              >
+                <Trash className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// =====================================================
+// INSTALLATION EDITOR
+// =====================================================
+interface InstallStep {
+  title: string
+  description?: string
+  commands?: string[]
+  notes?: string
+}
+
+interface InstallRequirement {
+  name: string
+  version?: string
+  required?: boolean
+}
+
+interface InstallationContent {
+  description?: string
+  requirements?: InstallRequirement[]
+  steps?: InstallStep[]
+}
+
+function InstallationEditor({ 
+  content, 
+  onChange 
+}: { 
+  content: InstallationContent
+  onChange: (content: InstallationContent) => void 
+}) {
+  const [localContent, setLocalContent] = useState<InstallationContent>({
+    description: content?.description || '',
+    requirements: content?.requirements || [{ name: '', version: '', required: true }],
+    steps: content?.steps || [{ title: '', description: '', commands: [''], notes: '' }]
+  })
+
+  useEffect(() => {
+    setLocalContent({
+      description: content?.description || '',
+      requirements: content?.requirements || [{ name: '', version: '', required: true }],
+      steps: content?.steps || [{ title: '', description: '', commands: [''], notes: '' }]
+    })
+  }, [content])
+
+  const updateField = <K extends keyof InstallationContent>(field: K, value: InstallationContent[K]) => {
+    const updated = { ...localContent, [field]: value }
+    setLocalContent(updated)
+    onChange(updated)
+  }
+
+  // Requirements
+  const addRequirement = () => {
+    const requirements = [...(localContent.requirements || []), { name: '', version: '', required: true }]
+    updateField('requirements', requirements)
+  }
+
+  const updateRequirement = (index: number, field: keyof InstallRequirement, value: string | boolean) => {
+    const requirements = [...(localContent.requirements || [])]
+    requirements[index] = { ...requirements[index], [field]: value }
+    updateField('requirements', requirements)
+  }
+
+  const removeRequirement = (index: number) => {
+    const requirements = (localContent.requirements || []).filter((_, i) => i !== index)
+    updateField('requirements', requirements.length > 0 ? requirements : [{ name: '', version: '', required: true }])
+  }
+
+  // Steps
+  const addStep = () => {
+    const steps = [...(localContent.steps || []), { title: '', description: '', commands: [''], notes: '' }]
+    updateField('steps', steps)
+  }
+
+  const updateStep = (index: number, field: keyof InstallStep, value: string | string[]) => {
+    const steps = [...(localContent.steps || [])]
+    steps[index] = { ...steps[index], [field]: value }
+    updateField('steps', steps)
+  }
+
+  const removeStep = (index: number) => {
+    const steps = (localContent.steps || []).filter((_, i) => i !== index)
+    updateField('steps', steps.length > 0 ? steps : [{ title: '', description: '', commands: [''], notes: '' }])
+  }
+
+  const addCommand = (stepIndex: number) => {
+    const steps = [...(localContent.steps || [])]
+    steps[stepIndex] = { ...steps[stepIndex], commands: [...(steps[stepIndex].commands || []), ''] }
+    updateField('steps', steps)
+  }
+
+  const updateCommand = (stepIndex: number, cmdIndex: number, value: string) => {
+    const steps = [...(localContent.steps || [])]
+    const commands = [...(steps[stepIndex].commands || [])]
+    commands[cmdIndex] = value
+    steps[stepIndex] = { ...steps[stepIndex], commands }
+    updateField('steps', steps)
+  }
+
+  const removeCommand = (stepIndex: number, cmdIndex: number) => {
+    const steps = [...(localContent.steps || [])]
+    const commands = (steps[stepIndex].commands || []).filter((_, i) => i !== cmdIndex)
+    steps[stepIndex] = { ...steps[stepIndex], commands: commands.length > 0 ? commands : [''] }
+    updateField('steps', steps)
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Description */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          📝 Descrição Geral
+        </label>
+        <textarea
+          value={localContent.description || ''}
+          onChange={(e) => updateField('description', e.target.value)}
+          placeholder="Instruções gerais de instalação..."
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+          rows={2}
+        />
+      </div>
+
+      {/* Requirements */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            📋 Requisitos
+          </label>
+          <button
+            type="button"
+            onClick={addRequirement}
+            className="text-sm text-primary hover:text-primary-dark flex items-center gap-1 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar
+          </button>
+        </div>
+        <div className="space-y-2">
+          {(localContent.requirements || []).map((req, index) => (
+            <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg group">
+              <input
+                type="text"
+                value={req.name}
+                onChange={(e) => updateRequirement(index, 'name', e.target.value)}
+                placeholder="Node.js, Docker..."
+                className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+              <input
+                type="text"
+                value={req.version || ''}
+                onChange={(e) => updateRequirement(index, 'version', e.target.value)}
+                placeholder="v18+"
+                className="w-20 px-2 py-1.5 border border-gray-200 rounded-lg text-xs text-center"
+              />
+              <label className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={req.required !== false}
+                  onChange={(e) => updateRequirement(index, 'required', e.target.checked)}
+                  className="rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                Obrigatório
+              </label>
+              <button
+                type="button"
+                onClick={() => removeRequirement(index)}
+                className="p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Steps */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            📦 Passos de Instalação
+          </label>
+          <button
+            type="button"
+            onClick={addStep}
+            className="text-sm text-primary hover:text-primary-dark flex items-center gap-1 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar Passo
+          </button>
+        </div>
+        <div className="space-y-4">
+          {(localContent.steps || []).map((step, stepIndex) => (
+            <div key={stepIndex} className="p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/30 transition-all">
+              <div className="flex items-start gap-3">
+                <span className="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center text-sm font-bold">
+                  {stepIndex + 1}
+                </span>
+                <div className="flex-1 space-y-3">
+                  <input
+                    type="text"
+                    value={step.title}
+                    onChange={(e) => updateStep(stepIndex, 'title', e.target.value)}
+                    placeholder="Título do passo"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
+                  />
+                  <textarea
+                    value={step.description || ''}
+                    onChange={(e) => updateStep(stepIndex, 'description', e.target.value)}
+                    placeholder="Descrição detalhada..."
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
+                    rows={2}
+                  />
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-gray-500">💻 Comandos:</span>
+                      <button
+                        type="button"
+                        onClick={() => addCommand(stepIndex)}
+                        className="text-xs text-primary hover:text-primary-dark"
+                      >
+                        + Adicionar
+                      </button>
+                    </div>
+                    <div className="space-y-1">
+                      {(step.commands || []).map((cmd, cmdIndex) => (
+                        <div key={cmdIndex} className="flex items-center gap-2">
+                          <span className="text-gray-400 text-xs font-mono">$</span>
+                          <input
+                            type="text"
+                            value={cmd}
+                            onChange={(e) => updateCommand(stepIndex, cmdIndex, e.target.value)}
+                            placeholder="npm install..."
+                            className="flex-1 px-2 py-1 bg-gray-900 text-green-400 rounded text-sm font-mono focus:ring-2 focus:ring-primary"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeCommand(stepIndex, cmdIndex)}
+                            className="p-1 text-gray-400 hover:text-red-500"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    value={step.notes || ''}
+                    onChange={(e) => updateStep(stepIndex, 'notes', e.target.value)}
+                    placeholder="Notas/observações (opcional)"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-xs italic transition-all"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeStep(stepIndex)}
+                  className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                  disabled={(localContent.steps || []).length <= 1}
+                >
+                  <Trash className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// =====================================================
+// API ENDPOINTS EDITOR
+// =====================================================
+interface APIEndpoint {
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+  path: string
+  summary?: string
+  description?: string
+  requestBody?: string
+  response?: string
+}
+
+interface APIContent {
+  baseUrl?: string
+  description?: string
+  endpoints?: APIEndpoint[]
+}
+
+function APIEditor({ 
+  content, 
+  onChange 
+}: { 
+  content: APIContent
+  onChange: (content: APIContent) => void 
+}) {
+  const [localContent, setLocalContent] = useState<APIContent>({
+    baseUrl: content?.baseUrl || '',
+    description: content?.description || '',
+    endpoints: content?.endpoints || [{ method: 'GET', path: '', summary: '', description: '', requestBody: '', response: '' }]
+  })
+
+  useEffect(() => {
+    setLocalContent({
+      baseUrl: content?.baseUrl || '',
+      description: content?.description || '',
+      endpoints: content?.endpoints || [{ method: 'GET', path: '', summary: '', description: '', requestBody: '', response: '' }]
+    })
+  }, [content])
+
+  const updateField = <K extends keyof APIContent>(field: K, value: APIContent[K]) => {
+    const updated = { ...localContent, [field]: value }
+    setLocalContent(updated)
+    onChange(updated)
+  }
+
+  const addEndpoint = () => {
+    const endpoints = [...(localContent.endpoints || []), { method: 'GET' as const, path: '', summary: '', description: '', requestBody: '', response: '' }]
+    updateField('endpoints', endpoints)
+  }
+
+  const updateEndpoint = (index: number, field: keyof APIEndpoint, value: string) => {
+    const endpoints = [...(localContent.endpoints || [])]
+    endpoints[index] = { ...endpoints[index], [field]: value }
+    updateField('endpoints', endpoints)
+  }
+
+  const removeEndpoint = (index: number) => {
+    const endpoints = (localContent.endpoints || []).filter((_, i) => i !== index)
+    updateField('endpoints', endpoints.length > 0 ? endpoints : [{ method: 'GET', path: '', summary: '', description: '', requestBody: '', response: '' }])
+  }
+
+  const METHOD_COLORS: Record<string, string> = {
+    GET: 'bg-green-500',
+    POST: 'bg-blue-500',
+    PUT: 'bg-orange-500',
+    DELETE: 'bg-red-500',
+    PATCH: 'bg-purple-500',
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Base URL */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          🌐 URL Base
+        </label>
+        <input
+          type="text"
+          value={localContent.baseUrl || ''}
+          onChange={(e) => updateField('baseUrl', e.target.value)}
+          placeholder="https://api.exemplo.com/v1"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-mono text-sm"
+        />
+      </div>
+
+      {/* Description */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          📝 Descrição da API
+        </label>
+        <textarea
+          value={localContent.description || ''}
+          onChange={(e) => updateField('description', e.target.value)}
+          placeholder="Descrição geral da API e autenticação..."
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+          rows={2}
+        />
+      </div>
+
+      {/* Endpoints */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-semibold text-gray-700">
+            🔗 Endpoints
+          </label>
+          <button
+            type="button"
+            onClick={addEndpoint}
+            className="text-sm text-primary hover:text-primary-dark flex items-center gap-1 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar Endpoint
+          </button>
+        </div>
+        <div className="space-y-4">
+          {(localContent.endpoints || []).map((endpoint, index) => (
+            <div key={index} className="p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/30 transition-all">
+              <div className="flex items-start gap-3">
+                <div className="flex-1 space-y-3">
+                  <div className="flex gap-2">
+                    <select
+                      value={endpoint.method}
+                      onChange={(e) => updateEndpoint(index, 'method', e.target.value)}
+                      className={`px-3 py-2 rounded-lg text-white text-sm font-bold focus:ring-2 focus:ring-primary ${METHOD_COLORS[endpoint.method]}`}
+                    >
+                      {Object.keys(METHOD_COLORS).map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={endpoint.path}
+                      onChange={(e) => updateEndpoint(index, 'path', e.target.value)}
+                      placeholder="/users/:id"
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm transition-all"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={endpoint.summary || ''}
+                    onChange={(e) => updateEndpoint(index, 'summary', e.target.value)}
+                    placeholder="Resumo: Buscar usuário por ID"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium text-sm transition-all"
+                  />
+                  <textarea
+                    value={endpoint.description || ''}
+                    onChange={(e) => updateEndpoint(index, 'description', e.target.value)}
+                    placeholder="Descrição detalhada do endpoint..."
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
+                    rows={2}
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Request Body (JSON)</label>
+                      <textarea
+                        value={endpoint.requestBody || ''}
+                        onChange={(e) => updateEndpoint(index, 'requestBody', e.target.value)}
+                        placeholder='{ "name": "string" }'
+                        className="w-full px-3 py-2 bg-gray-900 text-green-400 rounded-lg font-mono text-xs resize-none transition-all"
+                        rows={3}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Response (JSON)</label>
+                      <textarea
+                        value={endpoint.response || ''}
+                        onChange={(e) => updateEndpoint(index, 'response', e.target.value)}
+                        placeholder='{ "id": 1, "name": "John" }'
+                        className="w-full px-3 py-2 bg-gray-900 text-green-400 rounded-lg font-mono text-xs resize-none transition-all"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeEndpoint(index)}
+                  className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                  disabled={(localContent.endpoints || []).length <= 1}
+                >
+                  <Trash className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// =====================================================
 // GENERIC SECTION EDITOR
 // =====================================================
 function GenericEditor({ 
@@ -1288,6 +2980,13 @@ function SectionEditor({ section, onUpdate, onGenerateWithAI, isGenerating }: Se
   // Render section-specific editor
   const renderEditor = () => {
     switch (section.type) {
+      case 'hero':
+        return (
+          <HeroEditor 
+            content={section.content as HeroContent} 
+            onChange={handleContentChange}
+          />
+        )
       case 'overview':
         return (
           <OverviewEditor 
@@ -1295,11 +2994,48 @@ function SectionEditor({ section, onUpdate, onGenerateWithAI, isGenerating }: Se
             onChange={handleContentChange}
           />
         )
-      // Add more cases for other section types here
-      // case 'hero':
-      //   return <HeroEditor content={section.content} onChange={handleContentChange} />
-      // case 'technologies':
-      //   return <TechnologiesEditor content={section.content} onChange={handleContentChange} />
+      case 'architecture':
+        return (
+          <ArchitectureEditor 
+            content={section.content as ArchitectureContent} 
+            onChange={handleContentChange}
+          />
+        )
+      case 'technologies':
+        return (
+          <TechnologiesEditor 
+            content={section.content as TechnologiesContent} 
+            onChange={handleContentChange}
+          />
+        )
+      case 'flow':
+        return (
+          <FlowEditor 
+            content={section.content as FlowContent} 
+            onChange={handleContentChange}
+          />
+        )
+      case 'faq':
+        return (
+          <FAQEditor 
+            content={section.content as FAQContent} 
+            onChange={handleContentChange}
+          />
+        )
+      case 'installation':
+        return (
+          <InstallationEditor 
+            content={section.content as InstallationContent} 
+            onChange={handleContentChange}
+          />
+        )
+      case 'api':
+        return (
+          <APIEditor 
+            content={section.content as APIContent} 
+            onChange={handleContentChange}
+          />
+        )
       default:
         return (
           <GenericEditor 
@@ -1335,7 +3071,7 @@ function SectionEditor({ section, onUpdate, onGenerateWithAI, isGenerating }: Se
           ) : (
             <Sparkles className="w-4 h-4" />
           )}
-          Gerar com IA
+          Preencher com IA
         </button>
       </div>
       
