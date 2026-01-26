@@ -324,7 +324,7 @@ router.post('/publish/:projectId', async (req: Request, res: Response) => {
     // Update project status to complete when published
     await prisma.project.update({
       where: { id: projectId },
-      data: { status: '✅ Publicado' }
+      data: { status: 'complete' }
     })
     
     res.status(existingPub ? 200 : 201).json({

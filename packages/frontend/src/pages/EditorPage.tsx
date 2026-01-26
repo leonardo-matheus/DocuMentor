@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+﻿import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate, useBlocker } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
@@ -143,7 +143,6 @@ export default function EditorPage() {
   const [sections, setSections] = useState<DocumentSection[]>([])
   const [selectedSection, setSelectedSection] = useState<string | null>(null)
   const [showAddSection, setShowAddSection] = useState(false)
-  const [showVersions, setShowVersions] = useState(false)
   const [showNavbarPreview, setShowNavbarPreview] = useState(true)
   const [commitMessage, setCommitMessage] = useState('')
   const [showCommitModal, setShowCommitModal] = useState(false)
@@ -711,18 +710,6 @@ export default function EditorPage() {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowVersions(!showVersions)}
-              className={`btn ${showVersions ? 'btn-primary' : 'btn-secondary'}`}
-            >
-              <History className="w-4 h-4" />
-              Versões
-              {versions.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 text-xs bg-gray-200 rounded-full">
-                  {versions.length}
-                </span>
-              )}
-            </button>
-            <button
               onClick={() => setShowCommitModal(true)}
               className="btn btn-success"
             >
@@ -798,16 +785,16 @@ export default function EditorPage() {
               
               {/* NavBar Preview */}
               {sections.filter(s => s.type !== 'hero').length > 0 && (
-                <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-700 rounded-xl border border-indigo-100 dark:border-slate-600">
                   <button
                     onClick={() => setShowNavbarPreview(!showNavbarPreview)}
-                    className="w-full text-xs font-medium text-gray-500 flex items-center justify-between hover:text-gray-700 transition-colors"
+                    className="w-full text-xs font-medium text-gray-500 dark:text-slate-400 flex items-center justify-between hover:text-gray-700 dark:hover:text-slate-300 transition-colors"
                   >
                     <span className="flex items-center gap-1">
                       <Eye className={`w-3 h-3 transition-opacity ${showNavbarPreview ? '' : 'opacity-50'}`} />
                       Preview da NavBar
                     </span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${showNavbarPreview ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200 text-gray-500'}`}>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${showNavbarPreview ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300' : 'bg-gray-200 dark:bg-slate-600 text-gray-500 dark:text-slate-400'}`}>
                       {showNavbarPreview ? 'Visível' : 'Oculto'}
                     </span>
                   </button>
@@ -818,7 +805,7 @@ export default function EditorPage() {
                         .map((section) => (
                           <span
                             key={section.id}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded-lg text-xs font-medium text-gray-700 shadow-sm border border-gray-100"
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-white dark:bg-slate-700 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 shadow-sm border border-gray-100 dark:border-slate-600"
                           >
                             <span>{SECTION_TYPES.find(s => s.type === section.type)?.icon || '📄'}</span>
                             <span className="truncate max-w-[80px]">{section.title}</span>
@@ -831,8 +818,8 @@ export default function EditorPage() {
               
               {/* Add Section Modal */}
               {showAddSection && (
-                <div className="mb-4 p-4 bg-gray-50 rounded-xl space-y-2">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Adicionar Seção:</p>
+                <div className="mb-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-xl space-y-2">
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Adicionar Seção:</p>
                   <div className="grid grid-cols-2 gap-2">
                     {SECTION_TYPES.map((section) => (
                       <button
@@ -845,7 +832,7 @@ export default function EditorPage() {
                       </button>
                     ))}
                   </div>
-                  <div className="pt-3 border-t border-gray-200 mt-3">
+                  <div className="pt-3 border-t border-gray-200 dark:border-slate-600 mt-3">
                     <button
                       onClick={() => startStreamGeneration()}
                       disabled={generationProgress.isGenerating}
@@ -1246,7 +1233,7 @@ export default function EditorPage() {
             
             {/* Content */}
             <div className="px-6 py-5">
-              <p className="text-gray-700 mb-4">
+              <p className="text-slate-700 dark:text-slate-300 mb-4">
                 <strong>Atenção!</strong> Se você sair agora, o processo de geração será interrompido e 
                 você perderá o progresso atual.
               </p>
@@ -1312,7 +1299,7 @@ export default function EditorPage() {
             </div>
             
             <div className="p-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Mensagem do Commit
               </label>
               <input
@@ -1320,7 +1307,7 @@ export default function EditorPage() {
                 value={commitMessage}
                 onChange={(e) => setCommitMessage(e.target.value)}
                 placeholder="Ex: Adicionado seção de FAQ, corrigido diagrama..."
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && commitMessage.trim()) {
@@ -1328,12 +1315,12 @@ export default function EditorPage() {
                   }
                 }}
               />
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">
                 Descreva as alterações feitas nesta versão
               </p>
             </div>
             
-            <div className="px-6 py-4 bg-gray-50 flex gap-3">
+            <div className="px-6 py-4 bg-gray-50 dark:bg-slate-700 flex gap-3">
               <button
                 onClick={handleCommit}
                 disabled={!commitMessage.trim()}
@@ -1411,7 +1398,7 @@ export default function EditorPage() {
       {showPublishModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowPublishModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+          <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
             <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -1433,17 +1420,17 @@ export default function EditorPage() {
             <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
               {/* URL Slug */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   URL da Documentação
                 </label>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">/docs/</span>
+                  <span className="text-sm text-gray-500 dark:text-slate-400">/docs/</span>
                   <input
                     type="text"
                     value={publishData.slug}
                     onChange={(e) => setPublishData(p => ({ ...p, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
                     placeholder="nome-do-sistema"
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono text-sm"
+                    className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono text-sm"
                   />
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
@@ -1453,7 +1440,7 @@ export default function EditorPage() {
               
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Título
                 </label>
                 <input
@@ -1461,13 +1448,13 @@ export default function EditorPage() {
                   value={publishData.title}
                   onChange={(e) => setPublishData(p => ({ ...p, title: e.target.value }))}
                   placeholder="Nome do Sistema"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
               
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Descrição Curta
                 </label>
                 <textarea
@@ -1475,13 +1462,13 @@ export default function EditorPage() {
                   onChange={(e) => setPublishData(p => ({ ...p, description: e.target.value }))}
                   placeholder="Uma breve descrição do sistema..."
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
                 />
               </div>
               
               {/* Icon */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Ícone
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -1492,8 +1479,8 @@ export default function EditorPage() {
                       onClick={() => setPublishData(p => ({ ...p, icon }))}
                       className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-all ${
                         publishData.icon === icon 
-                          ? 'bg-emerald-100 ring-2 ring-emerald-500' 
-                          : 'bg-gray-100 hover:bg-gray-200'
+                          ? 'bg-emerald-100 dark:bg-emerald-900 ring-2 ring-emerald-500' 
+                          : 'bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600'
                       }`}
                     >
                       {icon}
@@ -1504,7 +1491,7 @@ export default function EditorPage() {
               
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Categoria
                 </label>
                 
@@ -1514,7 +1501,7 @@ export default function EditorPage() {
                       <select
                         value={publishData.categoryId}
                         onChange={(e) => setPublishData(p => ({ ...p, categoryId: e.target.value }))}
-                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       >
                         <option value="">Sem categoria</option>
                         {categories.map((cat: Category) => (
@@ -1538,9 +1525,9 @@ export default function EditorPage() {
                     </p>
                   </>
                 ) : (
-                  <div className="bg-gray-50 rounded-lg p-3 space-y-3 border border-gray-200">
+                  <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3 space-y-3 border border-slate-200 dark:border-slate-600">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Nova Categoria</span>
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Nova Categoria</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -1558,7 +1545,7 @@ export default function EditorPage() {
                       value={newCategoryData.name}
                       onChange={(e) => setNewCategoryData(p => ({ ...p, name: e.target.value }))}
                       placeholder="Nome da categoria (ex: Estacionamento)"
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                       autoFocus
                     />
                     
@@ -1624,7 +1611,7 @@ export default function EditorPage() {
               
               {/* Version */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Versão
                 </label>
                 <input
@@ -1632,7 +1619,7 @@ export default function EditorPage() {
                   value={publishData.version}
                   onChange={(e) => setPublishData(p => ({ ...p, version: e.target.value }))}
                   placeholder="1.0.0"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono"
                 />
               </div>
               
@@ -1808,14 +1795,14 @@ function OverviewEditor({
     <div className="space-y-6">
       {/* Description */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           📝 Descrição do Projeto
         </label>
         <textarea
           value={localContent.description || ''}
           onChange={(e) => updateField('description', e.target.value)}
           placeholder="Descreva o projeto de forma clara e detalhada..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
           rows={4}
         />
         <p className="text-xs text-gray-400 mt-1">
@@ -1825,7 +1812,7 @@ function OverviewEditor({
 
       {/* Target Audience */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           👥 Público-Alvo
         </label>
         <input
@@ -1833,14 +1820,14 @@ function OverviewEditor({
           value={localContent.targetAudience || ''}
           onChange={(e) => updateField('targetAudience', e.target.value)}
           placeholder="Ex: Desenvolvedores, Gestores de Estacionamento, Operadores..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
         />
       </div>
 
       {/* Objectives */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
             🎯 Objetivos Principais
           </label>
           <button
@@ -1855,13 +1842,13 @@ function OverviewEditor({
         <div className="space-y-2">
           {(localContent.objectives || ['']).map((objective, index) => (
             <div key={index} className="flex items-center gap-2 group">
-              <span className="text-gray-400 text-sm w-6">{index + 1}.</span>
+              <span className="text-gray-400 dark:text-slate-500 text-sm w-6">{index + 1}.</span>
               <input
                 type="text"
                 value={objective}
                 onChange={(e) => updateObjective(index, e.target.value)}
                 placeholder="Descreva um objetivo do projeto..."
-                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <button
                 type="button"
@@ -1879,7 +1866,7 @@ function OverviewEditor({
       {/* Benefits */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
             ⭐ Benefícios
           </label>
           <button
@@ -1893,13 +1880,13 @@ function OverviewEditor({
         </div>
         <div className="space-y-4">
           {(localContent.benefits || []).map((benefit, index) => (
-            <div key={index} className="p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/30 transition-all">
+            <div key={index} className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-600 group hover:border-primary/30 transition-all">
               <div className="flex items-start gap-3">
                 {/* Icon Selector */}
                 <div className="relative">
-                  <div className="w-12 h-12 bg-white rounded-xl border-2 border-gray-200 flex items-center justify-center text-2xl cursor-pointer hover:border-primary transition-colors group/emoji">
+                  <div className="w-12 h-12 bg-white dark:bg-slate-700 rounded-xl border-2 border-gray-200 dark:border-slate-600 flex items-center justify-center text-2xl cursor-pointer hover:border-primary transition-colors group/emoji">
                     {benefit.icon || '✨'}
-                    <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 p-2 hidden group-hover/emoji:grid grid-cols-4 gap-1 z-10 min-w-[160px]">
+                    <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-700 rounded-lg shadow-xl border border-gray-200 dark:border-slate-600 p-2 hidden group-hover/emoji:grid grid-cols-4 gap-1 z-10 min-w-[160px]">
                       {EMOJI_OPTIONS.map((emoji) => (
                         <button
                           key={emoji}
@@ -1920,13 +1907,13 @@ function OverviewEditor({
                     value={benefit.title}
                     onChange={(e) => updateBenefit(index, 'title', e.target.value)}
                     placeholder="Título do benefício"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
                   />
                   <textarea
                     value={benefit.description}
                     onChange={(e) => updateBenefit(index, 'description', e.target.value)}
                     placeholder="Descrição do benefício..."
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
                     rows={2}
                   />
                 </div>
@@ -1988,7 +1975,7 @@ function HeroEditor({
     <div className="space-y-6">
       {/* Project Name */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           🏷️ Nome do Projeto
         </label>
         <input
@@ -1996,13 +1983,13 @@ function HeroEditor({
           value={localContent.projectName || ''}
           onChange={(e) => updateField('projectName', e.target.value)}
           placeholder="Ex: DocuMentor, Zeus, MoveMais..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
         />
       </div>
 
       {/* Title */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           🎯 Título Principal
         </label>
         <input
@@ -2010,7 +1997,7 @@ function HeroEditor({
           value={localContent.title || ''}
           onChange={(e) => updateField('title', e.target.value)}
           placeholder="Título chamativo para o hero..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-lg font-semibold"
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-lg font-semibold"
         />
         <p className="text-xs text-gray-400 mt-1">
           Um título impactante que resume o propósito do projeto.
@@ -2019,14 +2006,14 @@ function HeroEditor({
 
       {/* Subtitle */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           📝 Subtítulo / Descrição Curta
         </label>
         <textarea
           value={localContent.subtitle || ''}
           onChange={(e) => updateField('subtitle', e.target.value)}
           placeholder="Uma breve descrição do que o projeto faz..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
           rows={3}
         />
         <p className="text-xs text-gray-400 mt-1">
@@ -2119,7 +2106,7 @@ function ArchitectureEditor({
     <div className="space-y-6">
       {/* Pattern */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           🏛️ Padrão Arquitetural
         </label>
         <div className="flex flex-wrap gap-2 mb-2">
@@ -2131,7 +2118,7 @@ function ArchitectureEditor({
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                 localContent.pattern === pattern
                   ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600'
               }`}
             >
               {pattern}
@@ -2143,20 +2130,20 @@ function ArchitectureEditor({
           value={localContent.pattern || ''}
           onChange={(e) => updateField('pattern', e.target.value)}
           placeholder="Ou digite um padrão personalizado..."
-          className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
+          className="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
         />
       </div>
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           📝 Descrição da Arquitetura
         </label>
         <textarea
           value={localContent.description || ''}
           onChange={(e) => updateField('description', e.target.value)}
           placeholder="Descreva a arquitetura do sistema..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
           rows={3}
         />
       </div>
@@ -2164,7 +2151,7 @@ function ArchitectureEditor({
       {/* Layers */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
             📦 Camadas / Módulos
           </label>
           <button
@@ -2178,7 +2165,7 @@ function ArchitectureEditor({
         </div>
         <div className="space-y-4">
           {(localContent.layers || []).map((layer, layerIndex) => (
-            <div key={layerIndex} className="p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/30 transition-all">
+            <div key={layerIndex} className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-600 group hover:border-primary/30 transition-all">
               <div className="flex items-start gap-3">
                 <div className="flex-1 space-y-3">
                   <input
@@ -2186,13 +2173,13 @@ function ArchitectureEditor({
                     value={layer.name}
                     onChange={(e) => updateLayer(layerIndex, 'name', e.target.value)}
                     placeholder="Nome da camada (ex: Presentation Layer)"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
                   />
                   <textarea
                     value={layer.description}
                     onChange={(e) => updateLayer(layerIndex, 'description', e.target.value)}
                     placeholder="Descrição e responsabilidades..."
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
                     rows={2}
                   />
                   <div>
@@ -2208,13 +2195,13 @@ function ArchitectureEditor({
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {(layer.components || []).map((comp, compIndex) => (
-                        <div key={compIndex} className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1">
+                        <div key={compIndex} className="flex items-center gap-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1">
                           <input
                             type="text"
                             value={comp}
                             onChange={(e) => updateLayerComponent(layerIndex, compIndex, e.target.value)}
                             placeholder="Componente..."
-                            className="w-24 text-xs border-none bg-transparent focus:ring-0 p-0"
+                            className="w-24 text-xs border-none bg-transparent focus:ring-0 p-0 dark:text-slate-100"
                           />
                           <button
                             type="button"
@@ -2339,14 +2326,14 @@ function TechnologiesEditor({
     <div className="space-y-6">
       {/* Description */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           📝 Descrição Geral
         </label>
         <textarea
           value={localContent.description || ''}
           onChange={(e) => updateField('description', e.target.value)}
           placeholder="Visão geral das tecnologias utilizadas..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
           rows={2}
         />
       </div>
@@ -2354,7 +2341,7 @@ function TechnologiesEditor({
       {/* Categories */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
             ⚙️ Categorias de Tecnologias
           </label>
           <button
@@ -2380,7 +2367,7 @@ function TechnologiesEditor({
                   updateField('categories', categories)
                 }
               }}
-              className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs hover:bg-primary/10 hover:text-primary transition-all"
+              className="px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 rounded-lg text-xs hover:bg-primary/10 hover:text-primary transition-all"
             >
               + {cat}
             </button>
@@ -2389,14 +2376,14 @@ function TechnologiesEditor({
 
         <div className="space-y-4">
           {(localContent.categories || []).map((category, catIndex) => (
-            <div key={catIndex} className="p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/30 transition-all">
+            <div key={catIndex} className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-600 group hover:border-primary/30 transition-all">
               <div className="flex items-center gap-3 mb-4">
                 <input
                   type="text"
                   value={category.category}
                   onChange={(e) => updateCategoryName(catIndex, e.target.value)}
                   placeholder="Nome da categoria (ex: Frontend)"
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-semibold transition-all"
+                  className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-semibold transition-all"
                 />
                 <button
                   type="button"
@@ -2410,27 +2397,27 @@ function TechnologiesEditor({
               
               <div className="space-y-2">
                 {(category.items || []).map((item, itemIndex) => (
-                  <div key={itemIndex} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-gray-200">
+                  <div key={itemIndex} className="flex items-center gap-2 bg-white dark:bg-slate-700 p-2 rounded-lg border border-slate-200 dark:border-slate-600">
                     <input
                       type="text"
                       value={item.name}
                       onChange={(e) => updateTechItem(catIndex, itemIndex, 'name', e.target.value)}
                       placeholder="Tecnologia"
-                      className="flex-1 px-2 py-1 border-none bg-transparent focus:ring-0 text-sm font-medium"
+                      className="flex-1 px-2 py-1 border-none bg-transparent focus:ring-0 text-sm font-medium dark:text-slate-100"
                     />
                     <input
                       type="text"
                       value={item.version || ''}
                       onChange={(e) => updateTechItem(catIndex, itemIndex, 'version', e.target.value)}
                       placeholder="v1.0.0"
-                      className="w-20 px-2 py-1 border border-gray-200 rounded text-xs text-center"
+                      className="w-20 px-2 py-1 border border-slate-200 dark:border-slate-600 dark:bg-slate-600 dark:text-slate-100 rounded text-xs text-center"
                     />
                     <input
                       type="text"
                       value={item.description || ''}
                       onChange={(e) => updateTechItem(catIndex, itemIndex, 'description', e.target.value)}
                       placeholder="Descrição breve..."
-                      className="flex-1 px-2 py-1 border-none bg-transparent focus:ring-0 text-sm text-gray-600"
+                      className="flex-1 px-2 py-1 border-none bg-transparent focus:ring-0 text-sm text-gray-600 dark:text-slate-300"
                     />
                     <button
                       type="button"
@@ -2444,7 +2431,7 @@ function TechnologiesEditor({
                 <button
                   type="button"
                   onClick={() => addTechItem(catIndex)}
-                  className="w-full py-2 border-2 border-dashed border-gray-200 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary transition-all"
+                  className="w-full py-2 border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-lg text-sm text-gray-500 dark:text-slate-400 hover:border-primary hover:text-primary transition-all"
                 >
                   + Adicionar Tecnologia
                 </button>
@@ -2621,7 +2608,7 @@ function FlowEditor({
   return (
     <div className="space-y-6">
       {/* Flow Tabs */}
-      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-gray-200">
+      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-gray-200 dark:border-slate-600">
         {(localContent.flows || []).map((flow, index) => (
           <button
             key={flow.id}
@@ -2661,8 +2648,8 @@ function FlowEditor({
           {/* Flow Header */}
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Ícone</label>
-              <div className="flex flex-wrap gap-1 p-2 bg-gray-50 rounded-xl border border-gray-200">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Ícone</label>
+              <div className="flex flex-wrap gap-1 p-2 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-600">
                 {FLOW_ICONS.map(icon => (
                   <button
                     key={icon}
@@ -2677,7 +2664,7 @@ function FlowEditor({
               </div>
             </div>
             <div className="col-span-5">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                 Título do Fluxo
               </label>
               <input
@@ -2685,11 +2672,11 @@ function FlowEditor({
                 value={activeFlow.title || ''}
                 onChange={(e) => updateFlow(activeFlowIndex, 'title', e.target.value)}
                 placeholder="Ex: Fluxo de Entrada"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
             </div>
             <div className="col-span-5">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                 Descrição
               </label>
               <input
@@ -2697,7 +2684,7 @@ function FlowEditor({
                 value={activeFlow.description || ''}
                 onChange={(e) => updateFlow(activeFlowIndex, 'description', e.target.value)}
                 placeholder="Descreva este fluxo..."
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
             </div>
           </div>
@@ -2705,7 +2692,7 @@ function FlowEditor({
           {/* Steps */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-semibold text-gray-700">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
                 📊 Etapas do Fluxo ({activeFlow.steps?.length || 0})
               </label>
               <button
@@ -2746,7 +2733,7 @@ function FlowEditor({
                         <select
                           value={step.type || 'process'}
                           onChange={(e) => updateStep(activeFlowIndex, index, 'type', e.target.value)}
-                          className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                          className="px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
                         >
                           {STEP_TYPES.map(t => (
                             <option key={t.value} value={t.value}>{t.icon} {t.label}</option>
@@ -2757,14 +2744,14 @@ function FlowEditor({
                           value={step.title}
                           onChange={(e) => updateStep(activeFlowIndex, index, 'title', e.target.value)}
                           placeholder="Título da etapa"
-                          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
+                          className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
                         />
                       </div>
                       <textarea
                         value={step.description || ''}
                         onChange={(e) => updateStep(activeFlowIndex, index, 'description', e.target.value)}
                         placeholder="Descrição da etapa..."
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
                         rows={2}
                       />
                     </div>
@@ -2843,7 +2830,7 @@ function FAQEditor({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-semibold text-gray-700">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
           ❓ Perguntas Frequentes
         </label>
         <button
@@ -2858,22 +2845,22 @@ function FAQEditor({
       
       <div className="space-y-4">
         {(localContent.questions || []).map((q, index) => (
-          <div key={index} className="p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-primary/30 transition-all">
+          <div key={index} className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-600 group hover:border-primary/30 transition-all">
             <div className="flex items-start gap-3">
-              <span className="text-lg font-bold text-gray-300 mt-2">{index + 1}</span>
+              <span className="text-lg font-bold text-gray-300 dark:text-slate-500 mt-2">{index + 1}</span>
               <div className="flex-1 space-y-3">
                 <input
                   type="text"
                   value={q.question}
                   onChange={(e) => updateQuestion(index, 'question', e.target.value)}
                   placeholder="Qual é a pergunta?"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
                 />
                 <textarea
                   value={q.answer}
                   onChange={(e) => updateQuestion(index, 'answer', e.target.value)}
                   placeholder="Digite a resposta detalhada..."
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
                   rows={3}
                 />
                 <input
@@ -2881,7 +2868,7 @@ function FAQEditor({
                   value={q.category || ''}
                   onChange={(e) => updateQuestion(index, 'category', e.target.value)}
                   placeholder="Categoria (opcional): Instalação, Uso, Deploy..."
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-xs transition-all"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-xs transition-all"
                 />
               </div>
               <button
@@ -3008,14 +2995,14 @@ function InstallationEditor({
     <div className="space-y-6">
       {/* Description */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           📝 Descrição Geral
         </label>
         <textarea
           value={localContent.description || ''}
           onChange={(e) => updateField('description', e.target.value)}
           placeholder="Instruções gerais de instalação..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
           rows={2}
         />
       </div>
@@ -3023,7 +3010,7 @@ function InstallationEditor({
       {/* Requirements */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
             📋 Requisitos
           </label>
           <button
@@ -3037,27 +3024,27 @@ function InstallationEditor({
         </div>
         <div className="space-y-2">
           {(localContent.requirements || []).map((req, index) => (
-            <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg group">
+            <div key={index} className="flex items-center gap-2 bg-gray-50 dark:bg-slate-800 p-2 rounded-lg group">
               <input
                 type="text"
                 value={req.name}
                 onChange={(e) => updateRequirement(index, 'name', e.target.value)}
                 placeholder="Node.js, Docker..."
-                className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="flex-1 px-3 py-1.5 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
               />
               <input
                 type="text"
                 value={req.version || ''}
                 onChange={(e) => updateRequirement(index, 'version', e.target.value)}
                 placeholder="v18+"
-                className="w-20 px-2 py-1.5 border border-gray-200 rounded-lg text-xs text-center"
+                className="w-20 px-2 py-1.5 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg text-xs text-center"
               />
-              <label className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer">
+              <label className="flex items-center gap-1 text-xs text-gray-600 dark:text-slate-400 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={req.required !== false}
                   onChange={(e) => updateRequirement(index, 'required', e.target.checked)}
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
+                  className="rounded border-gray-300 dark:border-slate-500 text-primary focus:ring-primary"
                 />
                 Obrigatório
               </label>
@@ -3076,7 +3063,7 @@ function InstallationEditor({
       {/* Steps */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
             📦 Passos de Instalação
           </label>
           <button
@@ -3101,13 +3088,13 @@ function InstallationEditor({
                     value={step.title}
                     onChange={(e) => updateStep(stepIndex, 'title', e.target.value)}
                     placeholder="Título do passo"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium transition-all"
                   />
                   <textarea
                     value={step.description || ''}
                     onChange={(e) => updateStep(stepIndex, 'description', e.target.value)}
                     placeholder="Descrição detalhada..."
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
                     rows={2}
                   />
                   <div>
@@ -3148,7 +3135,7 @@ function InstallationEditor({
                     value={step.notes || ''}
                     onChange={(e) => updateStep(stepIndex, 'notes', e.target.value)}
                     placeholder="Notas/observações (opcional)"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-xs italic transition-all"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-xs italic transition-all"
                   />
                 </div>
                 <button
@@ -3241,7 +3228,7 @@ function APIEditor({
     <div className="space-y-6">
       {/* Base URL */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           🌐 URL Base
         </label>
         <input
@@ -3249,20 +3236,20 @@ function APIEditor({
           value={localContent.baseUrl || ''}
           onChange={(e) => updateField('baseUrl', e.target.value)}
           placeholder="https://api.exemplo.com/v1"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-mono text-sm"
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-mono text-sm"
         />
       </div>
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           📝 Descrição da API
         </label>
         <textarea
           value={localContent.description || ''}
           onChange={(e) => updateField('description', e.target.value)}
           placeholder="Descrição geral da API e autenticação..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
           rows={2}
         />
       </div>
@@ -3270,7 +3257,7 @@ function APIEditor({
       {/* Endpoints */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
             🔗 Endpoints
           </label>
           <button
@@ -3302,7 +3289,7 @@ function APIEditor({
                       value={endpoint.path}
                       onChange={(e) => updateEndpoint(index, 'path', e.target.value)}
                       placeholder="/users/:id"
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm transition-all"
+                      className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm transition-all"
                     />
                   </div>
                   <input
@@ -3310,13 +3297,13 @@ function APIEditor({
                     value={endpoint.summary || ''}
                     onChange={(e) => updateEndpoint(index, 'summary', e.target.value)}
                     placeholder="Resumo: Buscar usuário por ID"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium text-sm transition-all"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-medium text-sm transition-all"
                   />
                   <textarea
                     value={endpoint.description || ''}
                     onChange={(e) => updateEndpoint(index, 'description', e.target.value)}
                     placeholder="Descrição detalhada do endpoint..."
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
                     rows={2}
                   />
                   <div className="grid grid-cols-2 gap-2">
@@ -3393,7 +3380,7 @@ function GenericEditor({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-semibold text-gray-700">
+        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
           Conteúdo (JSON)
         </label>
         {error && (
@@ -3406,8 +3393,8 @@ function GenericEditor({
       <textarea
         value={jsonStr}
         onChange={(e) => handleChange(e.target.value)}
-        className={`w-full px-4 py-3 border rounded-xl font-mono text-sm focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all ${
-          error ? 'border-red-300 bg-red-50' : 'border-gray-200'
+        className={`w-full px-4 py-3 border rounded-xl font-mono text-sm focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all dark:bg-slate-900 dark:text-slate-100 ${
+          error ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-600'
         }`}
         rows={12}
         spellCheck={false}

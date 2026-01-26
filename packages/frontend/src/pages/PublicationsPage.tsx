@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { 
-  Plus, Folder, Loader2, Edit2, Trash, Check
+  Plus, Folder, Loader2, Edit2, Trash, Check, Copy
 } from 'lucide-react'
 import { publicationsApi, type Category, type Publication } from '@/services/api'
 import toast from 'react-hot-toast'
@@ -24,11 +24,80 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
+// Copy Button Component - completely isolated
+function CopyLinkButton({ slug }: { slug: string }) {
+  const [copied, setCopied] = useState(false)
+  
+  const copyToClipboard = () => {
+    const url = `${window.location.origin}/docs/${slug}`
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopied(true)
+        toast.success('Link copiado!')
+        setTimeout(() => setCopied(false), 2000)
+      }).catch(() => {
+        fallbackCopy(url)
+      })
+    } else {
+      fallbackCopy(url)
+    }
+  }
+  
+  const fallbackCopy = (text: string) => {
+    const textArea = document.createElement('textarea')
+    textArea.value = text
+    textArea.style.position = 'fixed'
+    textArea.style.left = '-9999px'
+    document.body.appendChild(textArea)
+    textArea.select()
+    try {
+      document.execCommand('copy')
+      setCopied(true)
+      toast.success('Link copiado!')
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error('Erro ao copiar')
+    }
+    document.body.removeChild(textArea)
+  }
+  
+  return (
+    <div 
+      className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+      style={{ zIndex: 9999 }}
+    >
+      <button
+        type="button"
+        onPointerDown={(e) => { e.stopPropagation(); e.preventDefault() }}
+        onMouseDown={(e) => { e.stopPropagation(); e.preventDefault() }}
+        onTouchStart={(e) => { e.stopPropagation() }}
+        onClick={(e) => {
+          e.stopPropagation()
+          e.preventDefault()
+          copyToClipboard()
+        }}
+        className={`w-7 h-7 rounded-full shadow-lg flex items-center justify-center transition-all cursor-pointer select-none ${
+          copied 
+            ? 'bg-green-500 text-white scale-110' 
+            : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light hover:bg-gray-100 dark:hover:bg-slate-600'
+        }`}
+        title="Copiar link"
+      >
+        {copied ? (
+          <Check className="w-3.5 h-3.5 pointer-events-none" />
+        ) : (
+          <Copy className="w-3.5 h-3.5 pointer-events-none" />
+        )}
+      </button>
+    </div>
+  )
+}
+
 // Sortable Publication Card (App style)
-function SortableAppCard({ publication, onEdit, onDelete }: { 
+function SortableAppCard({ publication, wasDragging }: { 
   publication: Publication
-  onEdit: () => void
-  onDelete: () => void 
+  wasDragging: boolean
 }) {
   const {
     attributes,
@@ -44,45 +113,63 @@ function SortableAppCard({ publication, onEdit, onDelete }: {
     transition,
   }
   
+  const handleClick = (e: React.MouseEvent) => {
+    // Bloqueia navegação se estava arrastando
+    if (wasDragging || isDragging) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
+  
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={`relative group ${isDragging ? 'z-50 opacity-80' : ''}`}
     >
-      {/* App Icon Style Card */}
-      <Link
-        to={`/docs/${publication.slug}`}
-        className="block"
-        {...attributes}
-        {...listeners}
-      >
-        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl shadow-lg hover:shadow-xl hover:scale-105 transition-all cursor-grab active:cursor-grabbing">
+      {/* Copy Link Button - isolated component */}
+      <CopyLinkButton slug={publication.slug} />
+      
+      {/* App Icon Style Card - drag area */}
+      <div {...attributes} {...listeners}>
+        <Link
+          to={`/docs/${publication.slug}`}
+          className="block"
+          onClick={handleClick}
+          draggable={false}
+        >
+          <div 
+            className={`w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl shadow-lg hover:shadow-xl hover:scale-105 transition-all ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          >
+            {publication.icon || '📄'}
+          </div>
+          <p className="mt-2 text-center text-sm font-medium text-gray-900 truncate max-w-[100px] mx-auto">
+            {publication.title}
+          </p>
+          {publication.version && (
+            <p className="text-center text-xs text-slate-500 dark:text-slate-400">v{publication.version}</p>
+          )}
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+// Simple Publication Card (for uncategorized items)
+function SimpleAppCard({ publication }: { publication: Publication }) {
+  return (
+    <div className="relative group">
+      {/* Copy Link Button - isolated component */}
+      <CopyLinkButton slug={publication.slug} />
+      
+      <Link to={`/docs/${publication.slug}`} className="block">
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-3xl shadow-lg hover:shadow-xl hover:scale-105 transition-all">
           {publication.icon || '📄'}
         </div>
         <p className="mt-2 text-center text-sm font-medium text-gray-900 truncate max-w-[100px] mx-auto">
           {publication.title}
         </p>
-        {publication.version && (
-          <p className="text-center text-xs text-gray-500">v{publication.version}</p>
-        )}
       </Link>
-      
-      {/* Actions on hover */}
-      <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-        <button
-          onClick={(e) => { e.preventDefault(); onEdit() }}
-          className="w-6 h-6 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-600 hover:text-primary"
-        >
-          <Edit2 className="w-3 h-3" />
-        </button>
-        <button
-          onClick={(e) => { e.preventDefault(); onDelete() }}
-          className="w-6 h-6 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-600 hover:text-red-500"
-        >
-          <Trash className="w-3 h-3" />
-        </button>
-      </div>
     </div>
   )
 }
@@ -93,25 +180,37 @@ function CategoryCard({
   publications,
   onEditCategory,
   onDeleteCategory,
-  onEditPub,
-  onDeletePub,
   onReorderPubs
 }: { 
   category: Category
   publications: Publication[]
   onEditCategory: () => void
   onDeleteCategory: () => void
-  onEditPub: (pub: Publication) => void
-  onDeletePub: (pub: Publication) => void
   onReorderPubs: (pubIds: string[], categoryId: string) => void
 }) {
+  const [wasDragging, setWasDragging] = useState(false)
+  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
   
+  const handleDragStart = () => {
+    setWasDragging(true)
+    if (dragTimeoutRef.current) {
+      clearTimeout(dragTimeoutRef.current)
+    }
+  }
+  
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
+    
+    // Reset wasDragging after a small delay to prevent click
+    dragTimeoutRef.current = setTimeout(() => {
+      setWasDragging(false)
+    }, 100)
+    
     if (!over || active.id === over.id) return
     
     const oldIndex = publications.findIndex(p => p.id === active.id)
@@ -135,8 +234,8 @@ function CategoryCard({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="text-2xl">{category.icon || '📁'}</span>
-          <h3 className="text-lg font-bold text-gray-900">{category.name}</h3>
-          <span className="text-xs bg-black/10 px-2 py-0.5 rounded-full text-gray-700">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-900">{category.name}</h3>
+          <span className="text-xs bg-black/10 px-2 py-0.5 rounded-full text-gray-700 dark:text-gray-700">
             {publications.length}
           </span>
         </div>
@@ -158,13 +257,14 @@ function CategoryCard({
       </div>
       
       {category.description && (
-        <p className="text-sm text-gray-600 mb-4">{category.description}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-600 mb-4">{category.description}</p>
       )}
       
       {/* Apps Grid */}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={publications.map(p => p.id)} strategy={rectSortingStrategy}>
@@ -173,8 +273,7 @@ function CategoryCard({
               <SortableAppCard
                 key={pub.id}
                 publication={pub}
-                onEdit={() => onEditPub(pub)}
-                onDelete={() => onDeletePub(pub)}
+                wasDragging={wasDragging}
               />
             ))}
           </div>
@@ -193,7 +292,6 @@ function CategoryCard({
 
 export default function PublicationsPage() {
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
   
   const [showNewCategoryModal, setShowNewCategoryModal] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
@@ -250,17 +348,6 @@ export default function PublicationsPage() {
     onError: () => toast.error('Erro ao remover categoria')
   })
   
-  // Delete publication mutation
-  const deletePublicationMutation = useMutation({
-    mutationFn: (id: string) => publicationsApi.unpublish(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-      queryClient.invalidateQueries({ queryKey: ['publications'] })
-      toast.success('Publicação removida!')
-    },
-    onError: () => toast.error('Erro ao remover publicação')
-  })
-  
   // Reorder publications mutation
   const reorderMutation = useMutation({
     mutationFn: (publications: { id: string; order: number; categoryId?: string }[]) =>
@@ -279,17 +366,6 @@ export default function PublicationsPage() {
     if (confirm(`Remover categoria "${category.name}"? As documentações serão movidas para "Sem categoria".`)) {
       deleteCategoryMutation.mutate(category.id)
     }
-  }
-  
-  const handleDeletePublication = (pub: Publication) => {
-    if (confirm(`Remover publicação "${pub.title}"? O projeto não será afetado.`)) {
-      deletePublicationMutation.mutate(pub.id)
-    }
-  }
-  
-  const handleEditPublication = (pub: Publication) => {
-    // Navigate to editor with the project
-    navigate(`/projects/${pub.projectId}/edit`)
   }
   
   const openEditCategoryModal = (category: Category) => {
@@ -359,8 +435,6 @@ export default function PublicationsPage() {
               publications={categoryPubs}
               onEditCategory={() => openEditCategoryModal(category)}
               onDeleteCategory={() => handleDeleteCategory(category)}
-              onEditPub={handleEditPublication}
-              onDeletePub={handleDeletePublication}
               onReorderPubs={handleReorderPubs}
             />
           )
@@ -368,42 +442,18 @@ export default function PublicationsPage() {
         
         {/* Uncategorized */}
         {uncategorizedPubs.length > 0 && (
-          <div className="rounded-3xl p-6 bg-gray-100">
+          <div className="rounded-3xl p-6 bg-gray-100 dark:bg-slate-800">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-2xl">📄</span>
-              <h3 className="text-lg font-bold text-gray-900">Sem Categoria</h3>
-              <span className="text-xs bg-black/10 px-2 py-0.5 rounded-full text-gray-700">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">Sem Categoria</h3>
+              <span className="text-xs bg-black/10 dark:bg-white/10 px-2 py-0.5 rounded-full text-gray-700 dark:text-slate-300">
                 {uncategorizedPubs.length}
               </span>
             </div>
             
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
               {uncategorizedPubs.map(pub => (
-                <div key={pub.id} className="relative group">
-                  <Link to={`/docs/${pub.slug}`} className="block">
-                    <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-3xl shadow-lg hover:shadow-xl hover:scale-105 transition-all">
-                      {pub.icon || '📄'}
-                    </div>
-                    <p className="mt-2 text-center text-sm font-medium text-gray-900 truncate max-w-[100px] mx-auto">
-                      {pub.title}
-                    </p>
-                  </Link>
-                  
-                  <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                    <button
-                      onClick={() => handleEditPublication(pub)}
-                      className="w-6 h-6 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-600 hover:text-primary"
-                    >
-                      <Edit2 className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => handleDeletePublication(pub)}
-                      className="w-6 h-6 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-600 hover:text-red-500"
-                    >
-                      <Trash className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
+                <SimpleAppCard key={pub.id} publication={pub} />
               ))}
             </div>
           </div>
@@ -412,11 +462,11 @@ export default function PublicationsPage() {
         {/* Empty State */}
         {categories.length === 0 && uncategorizedPubs.length === 0 && (
           <div className="text-center py-20">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Folder className="w-12 h-12 text-gray-400" />
+            <div className="w-24 h-24 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Folder className="w-12 h-12 text-gray-400 dark:text-slate-500" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Nenhuma publicação ainda</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Nenhuma publicação ainda</h2>
+            <p className="text-gray-600 dark:text-slate-400 mb-6">
               Publique documentações a partir do editor para vê-las aqui.
             </p>
             <Link to="/projects" className="btn btn-primary">
