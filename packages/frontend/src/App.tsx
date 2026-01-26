@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { ThemeProvider } from './contexts/ThemeContext'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
 import ProjectsPage from './pages/ProjectsPage'
@@ -6,6 +7,8 @@ import ProjectDetailPage from './pages/ProjectDetailPage'
 import NewProjectPage from './pages/NewProjectPage'
 import EditorPage from './pages/EditorPage'
 import PreviewPage from './pages/PreviewPage'
+import PublicationsPage from './pages/PublicationsPage'
+import PublicDocPage from './pages/PublicDocPage'
 
 const router = createBrowserRouter([
   {
@@ -18,7 +21,13 @@ const router = createBrowserRouter([
       { path: 'projects/:id', element: <ProjectDetailPage /> },
       { path: 'projects/:id/edit', element: <EditorPage /> },
       { path: 'projects/:id/preview', element: <PreviewPage /> },
+      { path: 'publications', element: <PublicationsPage /> },
     ],
+  },
+  // Public route (without Layout)
+  {
+    path: '/docs/:slug',
+    element: <PublicDocPage />,
   },
 ], {
   future: {
@@ -28,7 +37,11 @@ const router = createBrowserRouter([
 })
 
 function App() {
-  return <RouterProvider router={router} />
+  return (
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>
+  )
 }
 
 export default App

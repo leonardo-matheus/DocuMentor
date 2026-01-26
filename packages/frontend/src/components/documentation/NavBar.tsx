@@ -58,34 +58,77 @@ export default function NavBar({ items, sticky = true, className }: NavBarProps)
   return (
     <nav
       className={clsx(
-        'bg-white/95 backdrop-blur-xl border-b border-gray-200 z-40 transition-all duration-300 no-print',
+        'z-40 transition-all duration-500 no-print',
         sticky && 'sticky top-0',
-        isScrolled ? 'shadow-lg' : 'shadow-sm',
+        isScrolled 
+          ? 'bg-white/90 backdrop-blur-xl shadow-lg border-b border-gray-200/50' 
+          : 'bg-white/70 backdrop-blur-md shadow-sm border-b border-gray-100/50',
         className
       )}
     >
-      <ul className="flex items-center justify-center gap-1 px-6 py-3 overflow-x-auto max-w-7xl mx-auto">
-        {items.map((item) => {
-          const isActive = activeSection === item.id
-          return (
-            <li key={item.id}>
-              <button
-                onClick={() => handleClick(item.id)}
-                className={clsx(
-                  'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap cursor-pointer',
-                  isActive
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md scale-105'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                )}
-              >
-                {item.icon && <span>{item.icon}</span>}
-                {item.label}
-                {isActive && <span className="w-1.5 h-1.5 bg-white rounded-full ml-1 animate-pulse" />}
-              </button>
-            </li>
-          )
-        })}
-      </ul>
+      {/* Background Gradient when scrolled */}
+      {isScrolled && (
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/[0.02] via-purple-500/[0.02] to-pink-500/[0.02] pointer-events-none" />
+      )}
+      
+      <div className="relative w-[90%] mx-auto px-4">
+        <ul className="flex items-center justify-center gap-2 py-3 overflow-x-auto scrollbar-hide">
+          {items.map((item, idx) => {
+            const isActive = activeSection === item.id
+            return (
+              <li key={item.id}>
+                <button
+                  onClick={() => handleClick(item.id)}
+                  className={clsx(
+                    'group relative flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 whitespace-nowrap cursor-pointer',
+                    isActive
+                      ? 'text-white shadow-lg'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80'
+                  )}
+                >
+                  {/* Active Background */}
+                  {isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 rounded-xl shadow-lg shadow-indigo-500/30" />
+                  )}
+                  
+                  {/* Hover Underline */}
+                  {!isActive && (
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300 group-hover:w-1/2" />
+                  )}
+                  
+                  {/* Content */}
+                  <span className="relative flex items-center gap-2">
+                    {item.icon && (
+                      <span className={clsx(
+                        'text-base transition-transform duration-300',
+                        isActive ? 'scale-110' : 'group-hover:scale-110'
+                      )}>
+                        {item.icon}
+                      </span>
+                    )}
+                    <span className="relative">
+                      {item.label}
+                    </span>
+                    {isActive && (
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse shadow-sm" />
+                    )}
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+      
+      {/* Progress Indicator */}
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-100">
+        <div 
+          className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-300"
+          style={{ 
+            width: `${((items.findIndex(i => i.id === activeSection) + 1) / items.length) * 100}%` 
+          }}
+        />
+      </div>
     </nav>
   )
 }

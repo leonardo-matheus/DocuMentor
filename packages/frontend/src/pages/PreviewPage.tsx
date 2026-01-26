@@ -13,6 +13,7 @@ import {
   FAQSection,
   SummaryCard,
   Footer,
+  EndpointsSection,
 } from '@/components/documentation'
 import AIChat from '@/components/AIChat'
 import toast from 'react-hot-toast'
@@ -242,12 +243,12 @@ export default function PreviewPage() {
     const clone = content.cloneNode(true) as HTMLElement
     clone.querySelectorAll('.no-print').forEach(el => el.remove())
     
-    // Build navbar HTML for export
+    // Build navbar HTML for export (using section.id for correct navigation)
     const navbarItems = sections
       .filter((s: ProjectSection) => s.type !== 'hero')
       .map((section: ProjectSection) => {
         const sectionConfig = SECTION_ICONS[section.type] ? { icon: SECTION_ICONS[section.type], label: section.title } : { icon: '📄', label: section.title }
-        return `<li><a href="#${section.type}" class="nav-item">${sectionConfig.icon} ${sectionConfig.label}</a></li>`
+        return `<li><a href="#${section.id}" class="nav-item">${sectionConfig.icon} ${sectionConfig.label}</a></li>`
       }).join('')
     
     const navbarHTML = `
@@ -1054,16 +1055,17 @@ export default function PreviewPage() {
     )
   }
   
-  // Parse sections from project
-  const sections: ProjectSection[] = project?.sections 
+  // Parse sections from project and sort by order
+  const sections: ProjectSection[] = (project?.sections 
     ? (typeof project.sections === 'string' ? JSON.parse(project.sections) : project.sections)
     : []
+  ).sort((a: ProjectSection, b: ProjectSection) => (a.order ?? 0) - (b.order ?? 0))
   
-  // Build nav items from actual sections (exclude hero)
+  // Build nav items from actual sections (exclude hero), preserving order
   const navItems = sections
     .filter(s => s.type !== 'hero')
     .map(s => ({
-      id: s.type,
+      id: s.id, // Use unique section ID instead of type
       label: s.title,
       icon: SECTION_ICONS[s.type] || '📄'
     }))
@@ -1078,12 +1080,234 @@ export default function PreviewPage() {
     switch (section.type) {
       case 'hero':
         return null // Hero is rendered separately
+      
+      case 'about':
+        return (
+          <Section
+            key={section.id}
+            id={section.id}
+            number={index}
+            title={section.title}
+            subtitle={content.subtitle || 'Entenda de forma simples o que este sistema faz'}
+          >
+            {/* Introduction - Simple explanation */}
+            {content.introduction && (
+              <div className="mb-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                    💡
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold text-indigo-900 mb-2">O que é o {content.systemName || 'Sistema'}?</h4>
+                    <p className="text-indigo-800 leading-relaxed">{content.introduction}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Target Audience */}
+            {content.targetAudience && content.targetAudience.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center text-lg">👥</span>
+                  Para quem é este sistema?
+                </h4>
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {content.targetAudience.map((audience: any, i: number) => (
+                    <div key={i} className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 hover:shadow-md transition-all">
+                      <div className="text-2xl mb-2">{audience.icon || '👤'}</div>
+                      <h5 className="font-semibold text-emerald-800">{audience.name}</h5>
+                      <p className="text-sm text-emerald-700 mt-1">{audience.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Problems Solved */}
+            {content.problemsSolved && content.problemsSolved.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-lg">🎯</span>
+                  Quais problemas este sistema resolve?
+                </h4>
+                <div className="space-y-3">
+                  {content.problemsSolved.map((problem: any, i: number) => (
+                    <div key={i} className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:shadow-md transition-all">
+                      <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                        {i + 1}
+                      </div>
+                      <div>
+                        <h5 className="font-semibold text-gray-900">{problem.before}</h5>
+                        <div className="flex items-center gap-2 my-2">
+                          <span className="text-red-500">❌ Antes</span>
+                          <span className="text-gray-400">→</span>
+                          <span className="text-emerald-500">✅ Depois</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{problem.after}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Key Benefits - Visual Cards */}
+            {content.keyBenefits && content.keyBenefits.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center text-lg">✨</span>
+                  Principais benefícios
+                </h4>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {content.keyBenefits.map((benefit: any, i: number) => (
+                    <div key={i} className="p-5 bg-gradient-to-br from-sky-50 to-indigo-50 rounded-xl border border-sky-100 text-center hover:shadow-lg transition-all">
+                      <div className="text-3xl mb-3">{benefit.icon || '⭐'}</div>
+                      <h5 className="font-bold text-gray-900 mb-1">{benefit.title}</h5>
+                      <p className="text-sm text-gray-600">{benefit.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* How it Works - Simple Steps */}
+            {content.howItWorks && content.howItWorks.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-lg">🔄</span>
+                  Como funciona? (Passo a passo simples)
+                </h4>
+                <div className="relative">
+                  {/* Connection line */}
+                  <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-gradient-to-b from-purple-300 via-indigo-300 to-sky-300 hidden md:block" />
+                  
+                  <div className="space-y-4">
+                    {content.howItWorks.map((step: any, i: number) => (
+                      <div key={i} className="relative flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:shadow-md transition-all md:ml-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg relative z-10">
+                          {step.icon || i + 1}
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="font-semibold text-gray-900">{step.title}</h5>
+                          <p className="text-sm text-gray-600 mt-1">{step.description}</p>
+                          {step.example && (
+                            <div className="mt-2 p-2 bg-gray-50 rounded-lg text-sm text-gray-500 italic">
+                              💡 Exemplo: {step.example}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Metrics / KPIs */}
+            {content.metrics && content.metrics.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center text-lg">📊</span>
+                  Indicadores e resultados
+                </h4>
+                <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  {content.metrics.map((metric: any, i: number) => (
+                    <div key={i} className="p-5 bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl border border-rose-100 text-center">
+                      <div className="text-3xl font-bold text-rose-600 mb-1">{metric.value}</div>
+                      <div className="text-sm font-medium text-gray-700">{metric.label}</div>
+                      {metric.description && (
+                        <div className="text-xs text-gray-500 mt-1">{metric.description}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Glossary - Technical terms explained */}
+            {content.glossary && content.glossary.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center text-lg">📚</span>
+                  Glossário - Termos técnicos explicados
+                </h4>
+                <div className="bg-teal-50 rounded-xl border border-teal-100 overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-teal-100">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-teal-800 w-1/4">Termo</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-teal-800">O que significa</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-teal-100">
+                      {content.glossary.map((item: any, i: number) => (
+                        <tr key={i} className="hover:bg-teal-100/50 transition-colors">
+                          <td className="px-4 py-3 font-medium text-teal-700">{item.term}</td>
+                          <td className="px-4 py-3 text-gray-700">{item.definition}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            
+            {/* Integrations Overview */}
+            {content.integrations && content.integrations.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center text-lg">🔗</span>
+                  Com quais sistemas ele se conecta?
+                </h4>
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {content.integrations.map((integration: any, i: number) => (
+                    <div key={i} className="p-4 bg-white rounded-xl border border-gray-200 hover:border-cyan-300 hover:shadow-md transition-all">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center text-xl">
+                          {integration.icon || '🔌'}
+                        </div>
+                        <h5 className="font-semibold text-gray-900">{integration.name}</h5>
+                      </div>
+                      <p className="text-sm text-gray-600">{integration.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Quick FAQ for Non-Technical Users */}
+            {content.simpleFaq && content.simpleFaq.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center text-lg">❓</span>
+                  Perguntas frequentes
+                </h4>
+                <div className="space-y-3">
+                  {content.simpleFaq.map((faq: any, i: number) => (
+                    <details key={i} className="group bg-white rounded-xl border border-gray-200 overflow-hidden">
+                      <summary className="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50 transition-colors">
+                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold text-sm group-open:bg-orange-500 group-open:text-white transition-colors">
+                          ?
+                        </div>
+                        <span className="font-medium text-gray-900">{faq.question}</span>
+                      </summary>
+                      <div className="px-4 pb-4 pt-2 ml-11 text-gray-600 border-t border-gray-100">
+                        {faq.answer}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Section>
+        )
         
       case 'overview':
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle={content.description || 'Visão geral do sistema'}
@@ -1116,7 +1340,7 @@ export default function PreviewPage() {
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle={content.description || 'Arquitetura do sistema'}
@@ -1153,7 +1377,7 @@ export default function PreviewPage() {
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle="Tecnologias utilizadas no projeto"
@@ -1215,24 +1439,95 @@ export default function PreviewPage() {
         )
         
       case 'flow':
+        // Helper functions for step processing
+        const isError = (title: string, type?: string) => {
+          const titleLower = (title || '').toLowerCase()
+          if (titleLower.includes('erro') || 
+              titleLower.includes('error') || 
+              titleLower.includes('falha') ||
+              titleLower.includes('fail') ||
+              /\b4\d{2}\b/.test(title) ||
+              /\b5\d{2}\b/.test(title)) {
+            return true
+          }
+          return type === 'error'
+        }
+        
+        const isSuccess = (title: string, type?: string) => {
+          const titleLower = (title || '').toLowerCase()
+          if (titleLower.includes('sucesso') ||
+              titleLower.includes('success') ||
+              titleLower.includes('200') ||
+              titleLower.includes('201') ||
+              titleLower.includes('resposta ok') ||
+              titleLower.includes('aprovado') ||
+              (titleLower.includes('autorizado') && !titleLower.includes('não'))) {
+            return true
+          }
+          return type === 'success' || type === 'end'
+        }
+        
+        const getIcon = (title: string, type: string, icon?: string) => {
+          if (icon) return icon
+          if (isError(title, type)) return '❌'
+          if (isSuccess(title, type)) return '✅'
+          const iconMap: Record<string, string> = {
+            start: '▶️', decision: '🔀', database: '🗄️', process: '⚙️',
+            camera: '📷', vehicle: '🚗', system: '💻', end: '🏁'
+          }
+          return iconMap[type] || '⚙️'
+        }
+        
+        const getVariant = (title: string, type: string, variant?: string) => {
+          if (isError(title, type)) return 'error'
+          if (isSuccess(title, type)) return 'success'
+          if (variant) return variant
+          const variantMap: Record<string, string> = {
+            start: 'start', decision: 'decision', database: 'database', 
+            process: 'process', camera: 'camera', vehicle: 'vehicle', system: 'system', end: 'end'
+          }
+          return variantMap[type] || 'default'
+        }
+        
+        const processStep = (step: any) => {
+          const stepType = step.type || step.variant || ''
+          return {
+            id: step.id,
+            icon: getIcon(step.title, stepType, step.icon),
+            title: step.title,
+            description: step.description,
+            variant: getVariant(step.title, stepType, step.variant)
+          }
+        }
+        
+        // Check if we have multiple flows (new format) or single flow (old format)
+        const hasMultipleFlows = Array.isArray(content.flows) && content.flows.length > 0
+        
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle={content.description || 'Fluxo do sistema'}
           >
-            {content.steps && (
+            {hasMultipleFlows ? (
               <FlowDiagram
-                title={content.title || 'Fluxo Principal'}
-                steps={content.steps.map((step: any) => ({
-                  id: step.id,
-                  icon: step.type === 'start' ? '▶️' : step.type === 'end' ? '✅' : '⚙️',
-                  title: step.title,
-                  variant: step.type === 'start' ? 'vehicle' : step.type === 'end' ? 'success' : 'system'
+                flows={content.flows.map((flow: any) => ({
+                  id: flow.id,
+                  title: flow.title,
+                  description: flow.description,
+                  icon: flow.icon || '🔄',
+                  steps: (flow.steps || []).map(processStep)
                 }))}
               />
+            ) : content.steps ? (
+              <FlowDiagram
+                title={content.title || 'Fluxo Principal'}
+                steps={content.steps.map(processStep)}
+              />
+            ) : (
+              <p className="text-gray-500 text-center py-8">Nenhum fluxo definido</p>
             )}
           </Section>
         )
@@ -1241,7 +1536,7 @@ export default function PreviewPage() {
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle="Como instalar e configurar o projeto"
@@ -1286,7 +1581,7 @@ export default function PreviewPage() {
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle="Perguntas frequentes"
@@ -1300,11 +1595,36 @@ export default function PreviewPage() {
           </Section>
         )
         
+      case 'api':
+        return (
+          <Section
+            key={section.id}
+            id={section.id}
+            number={index}
+            title={section.title}
+            subtitle={content.description || 'Documentação da API'}
+            variant="alt"
+          >
+            <EndpointsSection
+              endpoints={content.endpoints?.map((ep: any) => ({
+                method: ep.method || 'GET',
+                path: ep.path || ep.endpoint,
+                summary: ep.summary || ep.description || '',
+                description: ep.description,
+                parameters: ep.parameters,
+                requestBody: ep.requestBody,
+                responses: ep.responses,
+                tags: ep.tags
+              })) || []}
+            />
+          </Section>
+        )
+        
       case 'comparison':
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle={content.title || 'Comparativo'}
@@ -1318,12 +1638,194 @@ export default function PreviewPage() {
             )}
           </Section>
         )
+      
+      case 'changelog':
+        return (
+          <Section
+            key={section.id}
+            id={section.id}
+            number={index}
+            title={section.title}
+            subtitle={content.description || 'Histórico de versões e releases'}
+          >
+            {/* Current Version Badge */}
+            {content.currentVersion && (
+              <div className="flex justify-center mb-8">
+                <span className="px-6 py-2 bg-emerald-600 text-white rounded-full font-semibold text-lg shadow-lg">
+                  Versão Atual: {content.currentVersion}
+                </span>
+              </div>
+            )}
+            
+            {/* Roadmap Timeline */}
+            <div className="relative max-w-4xl mx-auto">
+              {/* Timeline Line - mais fina e sutil */}
+              <div className="absolute left-[7px] top-4 bottom-[15rem] w-px bg-slate-600" />
+              
+              {/* Releases */}
+              <div className="space-y-6">
+                {(content.releases || []).map((release: any, releaseIndex: number) => (
+                  <div key={releaseIndex} className="relative flex gap-4 pl-6">
+                    {/* Timeline Node */}
+                    <div className="absolute left-0 top-2">
+                      <div className={`w-4 h-4 rounded-full ${
+                        releaseIndex === 0 
+                          ? 'bg-emerald-500 ring-4 ring-emerald-500/20' 
+                          : 'bg-slate-500'
+                      }`} />
+                    </div>
+                    
+                    {/* Release Card */}
+                    <div className={`flex-1 rounded-xl p-5 ${
+                      releaseIndex === 0 
+                        ? 'bg-slate-800 border-2 border-emerald-500/50' 
+                        : 'bg-slate-800/60 border border-slate-700'
+                    }`}>
+                      {/* Header */}
+                      <div className="flex flex-wrap items-center gap-3 mb-3">
+                        <span className={`px-3 py-1 rounded font-mono text-sm font-bold ${
+                          releaseIndex === 0 
+                            ? 'bg-emerald-600 text-white' 
+                            : 'bg-slate-700 text-slate-200'
+                        }`}>
+                          v{release.version}
+                        </span>
+                        <span className="text-sm text-slate-400">
+                          {release.date ? new Date(release.date).toLocaleDateString('pt-BR', { 
+                            day: '2-digit',
+                            month: 'short', 
+                            year: 'numeric' 
+                          }) : ''}
+                        </span>
+                        {release.title && (
+                          <span className="text-slate-200 font-medium">{release.title}</span>
+                        )}
+                      </div>
+                      
+                      {release.description && (
+                        <p className="text-slate-400 text-sm mb-4">{release.description}</p>
+                      )}
+                      
+                      {/* Categories - layout mais compacto */}
+                      <div className="space-y-3">
+                        {/* Features */}
+                        {release.categories?.features?.length > 0 && (
+                          <div>
+                            <h5 className="text-sm font-semibold text-emerald-400 mb-1.5 flex items-center gap-2">
+                              ✨ Novidades
+                            </h5>
+                            <ul className="space-y-1 pl-1">
+                              {release.categories.features.map((feature: string, i: number) => (
+                                <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
+                                  <span className="text-emerald-500 mt-0.5">›</span>
+                                  {feature}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {/* Fixes */}
+                        {release.categories?.fixes?.length > 0 && (
+                          <div>
+                            <h5 className="text-sm font-semibold text-amber-400 mb-1.5 flex items-center gap-2">
+                              🐛 Correções
+                            </h5>
+                            <ul className="space-y-1 pl-1">
+                              {release.categories.fixes.map((fix: string, i: number) => (
+                                <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
+                                  <span className="text-amber-500 mt-0.5">›</span>
+                                  {fix}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {/* Improvements */}
+                        {release.categories?.improvements?.length > 0 && (
+                          <div>
+                            <h5 className="text-sm font-semibold text-sky-400 mb-1.5 flex items-center gap-2">
+                              🔧 Melhorias
+                            </h5>
+                            <ul className="space-y-1 pl-1">
+                              {release.categories.improvements.map((improvement: string, i: number) => (
+                                <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
+                                  <span className="text-sky-500 mt-0.5">›</span>
+                                  {improvement}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {/* Breaking Changes */}
+                        {release.categories?.breaking?.length > 0 && (
+                          <div className="bg-red-950/30 p-3 rounded-lg border border-red-500/30">
+                            <h5 className="text-sm font-semibold text-red-400 mb-1.5 flex items-center gap-2">
+                              ⚠️ Breaking Changes
+                            </h5>
+                            <ul className="space-y-1 pl-1">
+                              {release.categories.breaking.map((breaking: string, i: number) => (
+                                <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
+                                  <span className="text-red-500 mt-0.5">›</span>
+                                  {breaking}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Upcoming/Roadmap */}
+              {content.upcoming && (content.upcoming.planned?.length > 0 || content.upcoming.inProgress?.length > 0) && (
+                <div className="mt-8 pt-6 border-t border-slate-600">
+                  <h4 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    🚀 Próximas Atualizações
+                  </h4>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {content.upcoming.inProgress?.length > 0 && (
+                      <div className="bg-amber-100 border-2 border-amber-400 rounded-lg p-4">
+                        <h5 className="font-semibold text-amber-700 mb-3 text-sm">🔨 Em Desenvolvimento</h5>
+                        <ul className="space-y-2">
+                          {content.upcoming.inProgress.map((item: string, i: number) => (
+                            <li key={i} className="text-sm text-slate-700 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-amber-500 rounded-full flex-shrink-0" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {content.upcoming.planned?.length > 0 && (
+                      <div className="bg-indigo-100 border-2 border-indigo-400 rounded-lg p-4">
+                        <h5 className="font-semibold text-indigo-700 mb-3 text-sm">📋 Planejado</h5>
+                        <ul className="space-y-2">
+                          {content.upcoming.planned.map((item: string, i: number) => (
+                            <li key={i} className="text-sm text-slate-700 flex items-center gap-2">
+                              <span className="text-indigo-500">○</span>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Section>
+        )
         
       default:
         return (
           <Section
             key={section.id}
-            id={section.type}
+            id={section.id}
             number={index}
             title={section.title}
             subtitle=""

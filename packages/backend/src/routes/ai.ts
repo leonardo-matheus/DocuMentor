@@ -9,6 +9,7 @@ const router = Router();
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Apresentação',
   overview: 'Visão Geral',
+  about: 'Sobre o Sistema',
   architecture: 'Arquitetura',
   technologies: 'Tecnologias',
   flow: 'Fluxo do Sistema',
@@ -18,6 +19,7 @@ const SECTION_LABELS: Record<string, string> = {
   glossary: 'Glossário',
   comparison: 'Comparativo',
   installation: 'Instalação',
+  changelog: 'Release Notes',
   custom: 'Seção Personalizada',
 };
 
@@ -157,9 +159,12 @@ router.get('/generate-stream/:projectId', async (req: Request, res: Response) =>
   };
   
   try {
-    // Get project data
+    // Get project data with additional repositories
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectId },
+      include: {
+        additionalRepos: true
+      }
     });
     if (!project) {
       sendEvent('error', { message: 'Project not found' });
@@ -171,17 +176,22 @@ router.get('/generate-stream/:projectId', async (req: Request, res: Response) =>
     const sectionTypes = ['hero', 'overview', 'architecture', 'technologies', 'installation', 'flow', 'faq'];
     const totalSections = sectionTypes.length;
     
+    const hasAdditionalRepos = project.additionalRepos && project.additionalRepos.length > 0;
+    
     sendEvent('start', { 
       totalSections,
       projectName: project.name,
-      message: 'Iniciando geração de documentação...'
+      additionalRepos: hasAdditionalRepos ? project.additionalRepos.length : 0,
+      message: hasAdditionalRepos 
+        ? `Iniciando geração de documentação integrada (${project.additionalRepos.length + 1} repositórios)...`
+        : 'Iniciando geração de documentação...'
     });
     
     // Get repository data - ENHANCED ANALYSIS
     let repositoryData: any = { projectName: project.name };
     sendEvent('progress', { 
       phase: 'analyzing',
-      message: 'Analisando repositório profundamente...',
+      message: 'Analisando repositório principal...',
       percent: 5
     });
     
@@ -219,6 +229,57 @@ router.get('/generate-stream/:projectId', async (req: Request, res: Response) =>
           percent: 10
         });
       }
+    }
+    
+    // Analyze additional repositories if any
+    const additionalReposData: any[] = [];
+    if (hasAdditionalRepos) {
+      sendEvent('progress', { 
+        phase: 'analyzing-additional',
+        message: `Analisando ${project.additionalRepos.length} repositório(s) adicional(is)...`,
+        percent: 12
+      });
+      
+      for (let i = 0; i < project.additionalRepos.length; i++) {
+        const additionalRepo = project.additionalRepos[i];
+        sendEvent('progress', { 
+          phase: 'analyzing-additional',
+          message: `Analisando: ${additionalRepo.name}...`,
+          percent: 12 + Math.round((i / project.additionalRepos.length) * 8)
+        });
+        
+        try {
+          const additionalData = await giteaService.analyzeRepository(additionalRepo.repositoryUrl);
+          additionalReposData.push({
+            name: additionalRepo.name,
+            customDescription: additionalRepo.description,
+            ...additionalData
+          });
+          
+          console.log(`Additional repo ${additionalRepo.name} analyzed:`, {
+            projectType: additionalData.projectType,
+            frameworks: additionalData.frameworks,
+          });
+        } catch (error) {
+          console.warn(`Could not analyze additional repo ${additionalRepo.name}:`, error);
+          additionalReposData.push({
+            name: additionalRepo.name,
+            description: additionalRepo.description,
+            error: 'Failed to analyze'
+          });
+        }
+      }
+      
+      // Add additional repos context to main repository data
+      repositoryData.additionalRepositories = additionalReposData;
+      repositoryData.isIntegratedDocumentation = true;
+      repositoryData.totalSystems = additionalReposData.length + 1;
+      
+      sendEvent('progress', { 
+        phase: 'analyzing-complete',
+        message: `Análise completa: ${additionalReposData.length + 1} sistemas detectados`,
+        percent: 20
+      });
     }
     
     const sections: any[] = [];

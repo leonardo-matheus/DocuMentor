@@ -1,5 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
-import type { Project, Repository, Section, Template, RepositoryAnalysis, GenerateResult, AIStatus } from '../types'
+import type { Project, Repository, Section, Template, RepositoryAnalysis, GenerateResult, AIStatus, AdditionalRepository } from '../types'
 
 // Use relative URL for proxy or explicit IP for direct access
 const API_URL = import.meta.env.VITE_API_URL || ''
@@ -53,8 +53,99 @@ export const projectsApi = {
     api.post<Section>(`/projects/${projectId}/sections`, data),
   deleteSection: (projectId: string, sectionId: string) =>
     api.delete(`/projects/${projectId}/sections/${sectionId}`),
+  reorderSections: (projectId: string, sections: { id: string; order: number }[]) =>
+    api.put(`/projects/${projectId}/sections/reorder`, { sections }),
   exportHtml: (id: string) => 
     api.post(`/projects/${id}/export`, {}, { responseType: 'blob' }),
+  
+  // Versioning
+  getVersions: (projectId: string) =>
+    api.get<ProjectVersion[]>(`/projects/${projectId}/versions`),
+  createVersion: (projectId: string, message: string, createdBy?: string) =>
+    api.post<ProjectVersion>(`/projects/${projectId}/versions`, { message, createdBy }),
+  getVersion: (projectId: string, versionId: string) =>
+    api.get<ProjectVersion>(`/projects/${projectId}/versions/${versionId}`),
+  checkout: (projectId: string, versionId: string, createBackup?: boolean) =>
+    api.post(`/projects/${projectId}/versions/${versionId}/checkout`, { createBackup }),
+  rollback: (projectId: string, versionId: string) =>
+    api.post(`/projects/${projectId}/versions/${versionId}/rollback`),
+  deleteVersion: (projectId: string, versionId: string) =>
+    api.delete(`/projects/${projectId}/versions/${versionId}`),
+  
+  // Additional Repositories
+  getAdditionalRepos: (projectId: string) =>
+    api.get<AdditionalRepository[]>(`/projects/${projectId}/repositories`),
+  addAdditionalRepo: (projectId: string, data: { name: string; repositoryUrl: string; description?: string }) =>
+    api.post<AdditionalRepository>(`/projects/${projectId}/repositories`, data),
+  updateAdditionalRepo: (projectId: string, repoId: string, data: { name?: string; repositoryUrl?: string; description?: string }) =>
+    api.put<AdditionalRepository>(`/projects/${projectId}/repositories/${repoId}`, data),
+  deleteAdditionalRepo: (projectId: string, repoId: string) =>
+    api.delete(`/projects/${projectId}/repositories/${repoId}`),
+    
+  // Git Sync
+  getSyncStatus: (projectId: string) =>
+    api.get<GitSyncStatus>(`/projects/${projectId}/sync`),
+  sync: (projectId: string, generateReleaseNotes?: boolean) =>
+    api.post<GitSyncResult>(`/projects/${projectId}/sync`, { generateReleaseNotes }),
+  getCommits: (projectId: string, limit?: number) =>
+    api.get<GitCommit[]>(`/projects/${projectId}/sync/commits`, { params: { limit } }),
+}
+
+// Git Sync types
+export interface GitCommit {
+  sha: string
+  message: string
+  author: string
+  authorEmail: string
+  date: string
+  url: string
+}
+
+export interface GitSyncRecord {
+  id: string
+  projectId: string
+  commitSha: string
+  commitMessage: string
+  commitAuthor: string
+  commitDate: string
+  branch: string
+  releaseNotes?: string
+  version?: string
+  createdAt: string
+}
+
+export interface GitSyncStatus {
+  lastSync: {
+    commitSha: string
+    commitMessage: string
+    commitAuthor: string
+    commitDate: string
+    version?: string
+    releaseNotes?: string
+    syncedAt: string
+  } | null
+  latestCommit: GitCommit | null
+  pendingCommits: GitCommit[]
+  hasPendingChanges: boolean
+  syncHistory: GitSyncRecord[]
+}
+
+export interface GitSyncResult {
+  message: string
+  sync?: GitSyncRecord
+  commitsIncluded?: number
+  upToDate: boolean
+}
+
+// Project Version type
+export interface ProjectVersion {
+  id: string
+  projectId: string
+  version: number
+  message: string
+  sections?: string
+  createdAt: string
+  createdBy?: string
 }
 
 // ===== Repositories API =====
@@ -112,4 +203,88 @@ export const templatesApi = {
     api.put<Template>(`/templates/${id}`, data),
   delete: (id: string) => api.delete(`/templates/${id}`),
   getDefault: () => api.get<Template>('/templates/default'),
+}
+
+// ===== Publications API =====
+export interface Category {
+  id: string
+  name: string
+  slug: string
+  description?: string
+  icon?: string
+  color?: string
+  order: number
+  publications?: PublicationSummary[]
+  _count?: { publications: number }
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PublicationSummary {
+  id: string
+  slug: string
+  title: string
+  icon?: string
+  version?: string
+  order: number
+}
+
+export interface Publication {
+  id: string
+  projectId: string
+  categoryId?: string
+  category?: { id: string; name: string; slug: string; icon?: string; color?: string }
+  project?: { id: string; name: string; repositoryUrl: string }
+  slug: string
+  title: string
+  description?: string
+  icon?: string
+  version?: string
+  content: string // JSON string
+  isPublic: boolean
+  order: number
+  publishedAt: string
+  publishedBy?: string
+  updatedAt: string
+}
+
+export interface PublicationStatus {
+  isPublished: boolean
+  publication?: Publication
+}
+
+export const publicationsApi = {
+  // Categories
+  getCategories: () => api.get<Category[]>('/publications/categories'),
+  createCategory: (data: { name: string; description?: string; icon?: string; color?: string }) =>
+    api.post<Category>('/publications/categories', data),
+  updateCategory: (id: string, data: Partial<Category>) =>
+    api.put<Category>(`/publications/categories/${id}`, data),
+  deleteCategory: (id: string) =>
+    api.delete(`/publications/categories/${id}`),
+  reorderCategories: (categories: { id: string; order: number }[]) =>
+    api.put('/publications/categories/reorder', { categories }),
+  
+  // Publications
+  list: (categoryId?: string) =>
+    api.get<Publication[]>('/publications', { params: categoryId ? { category: categoryId } : undefined }),
+  getBySlug: (slug: string) =>
+    api.get<Publication>(`/publications/view/${slug}`),
+  getStatus: (projectId: string) =>
+    api.get<PublicationStatus>(`/publications/status/${projectId}`),
+  publish: (projectId: string, data: {
+    slug?: string
+    title?: string
+    description?: string
+    icon?: string
+    categoryId?: string
+    version?: string
+    publishedBy?: string
+  }) => api.post<{ publication: Publication; publicUrl: string }>(`/publications/publish/${projectId}`, data),
+  update: (id: string, data: Partial<Publication>) =>
+    api.put<Publication>(`/publications/${id}`, data),
+  unpublish: (id: string) =>
+    api.delete(`/publications/${id}`),
+  reorder: (publications: { id: string; order: number; categoryId?: string }[]) =>
+    api.put('/publications/reorder', { publications }),
 }

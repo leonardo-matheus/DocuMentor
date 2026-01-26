@@ -9,6 +9,7 @@ import projectRoutes from './routes/projects';
 import repositoryRoutes from './routes/repositories';
 import aiRoutes from './routes/ai';
 import templateRoutes from './routes/templates';
+import publicationRoutes from './routes/publications';
 
 // Load environment variables
 dotenv.config();
@@ -43,6 +44,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/repositories', repositoryRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/templates', templateRoutes);
+app.use('/api/publications', publicationRoutes);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

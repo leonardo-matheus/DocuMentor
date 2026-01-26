@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../index';
 import { projectService } from '../services/project.service';
+import { giteaService } from '../services/gitea.service';
 
 const router = Router();
 
@@ -215,6 +216,636 @@ router.post('/:id/export', async (req: Request, res: Response) => {
     res.setHeader('Content-Type', 'text/html');
     res.setHeader('Content-Disposition', `attachment; filename="documentation-${id}.html"`);
     res.send(html);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================
+// VERSIONING ENDPOINTS
+// ==========================================
+
+// GET /api/projects/:id/versions - List all versions
+router.get('/:id/versions', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    const versions = await prisma.projectVersion.findMany({
+      where: { projectId: id },
+      orderBy: { version: 'desc' },
+      select: {
+        id: true,
+        version: true,
+        message: true,
+        createdAt: true,
+        createdBy: true
+      }
+    });
+    
+    res.json(versions);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/projects/:id/versions - Create new version (commit)
+router.post('/:id/versions', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { message, createdBy } = req.body;
+    
+    // Get current project sections
+    const project = await prisma.project.findUnique({
+      where: { id },
+      select: { sections: true }
+    });
+    
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    // Get latest version number
+    const latestVersion = await prisma.projectVersion.findFirst({
+      where: { projectId: id },
+      orderBy: { version: 'desc' },
+      select: { version: true }
+    });
+    
+    const newVersionNumber = (latestVersion?.version || 0) + 1;
+    
+    // Create new version
+    const version = await prisma.projectVersion.create({
+      data: {
+        projectId: id,
+        version: newVersionNumber,
+        message: message || `Versão ${newVersionNumber}`,
+        sections: project.sections || '[]',
+        createdBy
+      }
+    });
+    
+    res.status(201).json(version);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/projects/:id/versions/:versionId - Get specific version
+router.get('/:id/versions/:versionId', async (req: Request, res: Response) => {
+  try {
+    const { versionId } = req.params;
+    
+    const version = await prisma.projectVersion.findUnique({
+      where: { id: versionId }
+    });
+    
+    if (!version) {
+      return res.status(404).json({ error: 'Version not found' });
+    }
+    
+    res.json(version);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/projects/:id/versions/:versionId/checkout - Checkout to a version
+router.post('/:id/versions/:versionId/checkout', async (req: Request, res: Response) => {
+  try {
+    const { id, versionId } = req.params;
+    const { createBackup } = req.body;
+    
+    // Get version
+    const version = await prisma.projectVersion.findUnique({
+      where: { id: versionId }
+    });
+    
+    if (!version) {
+      return res.status(404).json({ error: 'Version not found' });
+    }
+    
+    // Optionally create backup of current state before checkout
+    if (createBackup) {
+      const project = await prisma.project.findUnique({
+        where: { id },
+        select: { sections: true }
+      });
+      
+      const latestVersion = await prisma.projectVersion.findFirst({
+        where: { projectId: id },
+        orderBy: { version: 'desc' },
+        select: { version: true }
+      });
+      
+      await prisma.projectVersion.create({
+        data: {
+          projectId: id,
+          version: (latestVersion?.version || 0) + 1,
+          message: `Backup antes de checkout para v${version.version}`,
+          sections: project?.sections || '[]'
+        }
+      });
+    }
+    
+    // Apply version sections to project
+    await prisma.project.update({
+      where: { id },
+      data: {
+        sections: version.sections,
+        updatedAt: new Date()
+      }
+    });
+    
+    res.json({ 
+      success: true, 
+      message: `Checkout para versão ${version.version} realizado com sucesso`,
+      version: version.version
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/projects/:id/versions/:versionId/rollback - Rollback to a version (creates new version)
+router.post('/:id/versions/:versionId/rollback', async (req: Request, res: Response) => {
+  try {
+    const { id, versionId } = req.params;
+    
+    // Get version to rollback to
+    const version = await prisma.projectVersion.findUnique({
+      where: { id: versionId }
+    });
+    
+    if (!version) {
+      return res.status(404).json({ error: 'Version not found' });
+    }
+    
+    // Get current sections for backup
+    const project = await prisma.project.findUnique({
+      where: { id },
+      select: { sections: true }
+    });
+    
+    // Get latest version number
+    const latestVersion = await prisma.projectVersion.findFirst({
+      where: { projectId: id },
+      orderBy: { version: 'desc' },
+      select: { version: true }
+    });
+    
+    // Create backup version of current state
+    await prisma.projectVersion.create({
+      data: {
+        projectId: id,
+        version: (latestVersion?.version || 0) + 1,
+        message: `Backup antes de rollback para v${version.version}`,
+        sections: project?.sections || '[]'
+      }
+    });
+    
+    // Create new version with rollback content
+    const newVersion = await prisma.projectVersion.create({
+      data: {
+        projectId: id,
+        version: (latestVersion?.version || 0) + 2,
+        message: `Rollback para versão ${version.version}`,
+        sections: version.sections
+      }
+    });
+    
+    // Apply to project
+    await prisma.project.update({
+      where: { id },
+      data: {
+        sections: version.sections,
+        updatedAt: new Date()
+      }
+    });
+    
+    res.json({ 
+      success: true, 
+      message: `Rollback para versão ${version.version} realizado com sucesso`,
+      newVersion: newVersion.version
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE /api/projects/:id/versions/:versionId - Delete a version
+router.delete('/:id/versions/:versionId', async (req: Request, res: Response) => {
+  try {
+    const { versionId } = req.params;
+    
+    await prisma.projectVersion.delete({
+      where: { id: versionId }
+    });
+    
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT /api/projects/:id/sections/reorder - Reorder sections
+router.put('/:id/sections/reorder', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { sections } = req.body; // Array of { id, order }
+    
+    // Update project sections JSON
+    const project = await prisma.project.findUnique({
+      where: { id },
+      select: { sections: true }
+    });
+    
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    // Parse current sections and reorder
+    let currentSections = [];
+    try {
+      currentSections = JSON.parse(project.sections || '[]');
+    } catch {
+      currentSections = [];
+    }
+    
+    // Create order map
+    const orderMap = new Map(sections.map((s: { id: string; order: number }) => [s.id, s.order]));
+    
+    // Update order
+    currentSections = currentSections.map((section: any) => ({
+      ...section,
+      order: orderMap.has(section.id) ? orderMap.get(section.id) : section.order
+    }));
+    
+    // Sort by new order
+    currentSections.sort((a: any, b: any) => a.order - b.order);
+    
+    // Save back
+    await prisma.project.update({
+      where: { id },
+      data: {
+        sections: JSON.stringify(currentSections),
+        updatedAt: new Date()
+      }
+    });
+    
+    res.json({ success: true, sections: currentSections });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// =====================================================
+// ADDITIONAL REPOSITORIES ROUTES
+// =====================================================
+
+// GET /api/projects/:id/repositories - List additional repositories
+router.get('/:id/repositories', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    const repos = await prisma.additionalRepository.findMany({
+      where: { projectId: id },
+      orderBy: { createdAt: 'asc' }
+    });
+    
+    res.json(repos);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/projects/:id/repositories - Add additional repository
+router.post('/:id/repositories', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, repositoryUrl, description } = req.body;
+    
+    if (!name || !repositoryUrl) {
+      return res.status(400).json({ error: 'Name and repositoryUrl are required' });
+    }
+    
+    // Verify project exists
+    const project = await prisma.project.findUnique({ where: { id } });
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    // Analyze the repository
+    const { giteaService } = await import('../services/gitea.service');
+    let languages: string[] = [];
+    
+    try {
+      const analysis = await giteaService.analyzeRepository(repositoryUrl);
+      languages = Object.keys(analysis.languages || {});
+    } catch (e) {
+      // Continue even if analysis fails
+      console.warn('Failed to analyze additional repository:', e);
+    }
+    
+    const repo = await prisma.additionalRepository.create({
+      data: {
+        projectId: id,
+        name,
+        repositoryUrl,
+        description,
+        languages: JSON.stringify(languages)
+      }
+    });
+    
+    res.status(201).json(repo);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT /api/projects/:id/repositories/:repoId - Update additional repository
+router.put('/:id/repositories/:repoId', async (req: Request, res: Response) => {
+  try {
+    const { repoId } = req.params;
+    const { name, repositoryUrl, description } = req.body;
+    
+    const repo = await prisma.additionalRepository.update({
+      where: { id: repoId },
+      data: {
+        name,
+        repositoryUrl,
+        description
+      }
+    });
+    
+    res.json(repo);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE /api/projects/:id/repositories/:repoId - Remove additional repository
+router.delete('/:id/repositories/:repoId', async (req: Request, res: Response) => {
+  try {
+    const { repoId } = req.params;
+    
+    await prisma.additionalRepository.delete({
+      where: { id: repoId }
+    });
+    
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==================== GIT SYNC ROUTES ====================
+
+// GET /api/projects/:id/sync - Get sync status and history
+router.get('/:id/sync', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Get project
+    const project = await prisma.project.findUnique({
+      where: { id }
+    });
+    
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    // Parse repo URL
+    const urlMatch = project.repositoryUrl.match(/\/([^\/]+)\/([^\/]+?)(?:\.git)?$/);
+    if (!urlMatch) {
+      return res.status(400).json({ error: 'Invalid repository URL' });
+    }
+    
+    const [, owner, repo] = urlMatch;
+    
+    // Get last sync
+    const lastSync = await prisma.gitSync.findFirst({
+      where: { projectId: id },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    // Get latest commit from Gitea
+    const latestCommit = await giteaService.getLatestCommit(owner, repo, 'master');
+    
+    // Get pending commits (commits since last sync)
+    let pendingCommits: any[] = [];
+    if (lastSync && latestCommit) {
+      if (lastSync.commitSha !== latestCommit.sha) {
+        pendingCommits = await giteaService.getCommitsSince(
+          owner, repo, lastSync.commitSha, 'master'
+        );
+      }
+    } else if (latestCommit) {
+      // No previous sync, get recent commits
+      pendingCommits = await giteaService.getCommits(owner, repo, { branch: 'master', limit: 20 });
+    }
+    
+    // Get sync history
+    const syncHistory = await prisma.gitSync.findMany({
+      where: { projectId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 10
+    });
+    
+    res.json({
+      lastSync: lastSync ? {
+        commitSha: lastSync.commitSha,
+        commitMessage: lastSync.commitMessage,
+        commitAuthor: lastSync.commitAuthor,
+        commitDate: lastSync.commitDate,
+        version: lastSync.version,
+        releaseNotes: lastSync.releaseNotes,
+        syncedAt: lastSync.createdAt
+      } : null,
+      latestCommit,
+      pendingCommits,
+      hasPendingChanges: pendingCommits.length > 0,
+      syncHistory
+    });
+  } catch (error: any) {
+    console.error('Error getting sync status:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/projects/:id/sync - Sync with Gitea and generate release notes
+router.post('/:id/sync', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { generateReleaseNotes = true } = req.body;
+    
+    // Get project
+    const project = await prisma.project.findUnique({
+      where: { id }
+    });
+    
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    // Parse repo URL
+    const urlMatch = project.repositoryUrl.match(/\/([^\/]+)\/([^\/]+?)(?:\.git)?$/);
+    if (!urlMatch) {
+      return res.status(400).json({ error: 'Invalid repository URL' });
+    }
+    
+    const [, owner, repo] = urlMatch;
+    
+    // Get last sync
+    const lastSync = await prisma.gitSync.findFirst({
+      where: { projectId: id },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    // Get latest commit from Gitea
+    const latestCommit = await giteaService.getLatestCommit(owner, repo, 'master');
+    
+    if (!latestCommit) {
+      return res.status(400).json({ error: 'Could not fetch latest commit from repository' });
+    }
+    
+    // Check if already synced with this commit
+    if (lastSync && lastSync.commitSha === latestCommit.sha) {
+      return res.json({
+        message: 'Already up to date',
+        sync: lastSync,
+        upToDate: true
+      });
+    }
+    
+    // Get commits since last sync for release notes
+    let commits: any[] = [];
+    if (lastSync) {
+      commits = await giteaService.getCommitsSince(owner, repo, lastSync.commitSha, 'master');
+    } else {
+      commits = await giteaService.getCommits(owner, repo, { branch: 'master', limit: 20 });
+    }
+    
+    // Generate release notes using AI
+    let releaseNotes = '';
+    let suggestedVersion = '';
+    
+    if (generateReleaseNotes && commits.length > 0) {
+      const { claudeService } = await import('../integrations/claude');
+      
+      // Categorize commits
+      const commitMessages = commits.map(c => c.message).join('\n');
+      
+      const releaseNotesPrompt = `
+Analise os seguintes commits de um repositório e gere release notes profissionais em português.
+
+COMMITS:
+${commits.map(c => `- ${c.message} (${c.author}, ${new Date(c.date).toLocaleDateString('pt-BR')})`).join('\n')}
+
+INSTRUÇÕES:
+1. Categorize as mudanças em: ✨ Novidades, 🐛 Correções, 🔧 Melhorias, ⚠️ Breaking Changes
+2. Escreva de forma clara e profissional
+3. Sugira uma versão semântica baseada nas mudanças (MAJOR.MINOR.PATCH)
+   - MAJOR: breaking changes
+   - MINOR: novas funcionalidades
+   - PATCH: correções e melhorias pequenas
+
+Retorne APENAS um JSON válido:
+{
+  "version": "X.Y.Z",
+  "summary": "Breve resumo das mudanças",
+  "categories": {
+    "novidades": ["descrição 1", "descrição 2"],
+    "correcoes": ["descrição 1"],
+    "melhorias": ["descrição 1"],
+    "breaking": []
+  },
+  "releaseNotes": "Texto formatado das release notes em markdown"
+}`;
+
+      try {
+        const aiResponse = await claudeService.generateRaw(releaseNotesPrompt);
+        const parsed = JSON.parse(aiResponse);
+        releaseNotes = parsed.releaseNotes || '';
+        suggestedVersion = parsed.version || '';
+      } catch (e) {
+        console.warn('Failed to generate AI release notes:', e);
+        // Fallback: simple release notes
+        releaseNotes = `## Commits incluídos\n\n${commits.map(c => `- ${c.message}`).join('\n')}`;
+        suggestedVersion = '0.0.1';
+      }
+    }
+    
+    // Create sync record
+    const sync = await prisma.gitSync.create({
+      data: {
+        projectId: id,
+        commitSha: latestCommit.sha,
+        commitMessage: latestCommit.message,
+        commitAuthor: latestCommit.author,
+        commitDate: new Date(latestCommit.date),
+        branch: 'master',
+        releaseNotes,
+        version: suggestedVersion
+      }
+    });
+    
+    // Also create a project version snapshot
+    const lastVersion = await prisma.projectVersion.findFirst({
+      where: { projectId: id },
+      orderBy: { version: 'desc' }
+    });
+    
+    if (project.sections) {
+      await prisma.projectVersion.create({
+        data: {
+          projectId: id,
+          version: (lastVersion?.version || 0) + 1,
+          message: `Sync: ${latestCommit.message.slice(0, 100)}`,
+          sections: project.sections,
+          createdBy: 'git-sync'
+        }
+      });
+    }
+    
+    res.json({
+      message: 'Synchronized successfully',
+      sync,
+      commitsIncluded: commits.length,
+      upToDate: false
+    });
+  } catch (error: any) {
+    console.error('Error syncing with Gitea:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/projects/:id/sync/commits - Get recent commits from repository
+router.get('/:id/sync/commits', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { limit = 20 } = req.query;
+    
+    const project = await prisma.project.findUnique({
+      where: { id }
+    });
+    
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    const urlMatch = project.repositoryUrl.match(/\/([^\/]+)\/([^\/]+?)(?:\.git)?$/);
+    if (!urlMatch) {
+      return res.status(400).json({ error: 'Invalid repository URL' });
+    }
+    
+    const [, owner, repo] = urlMatch;
+    
+    const commits = await giteaService.getCommits(owner, repo, { 
+      branch: 'master', 
+      limit: Number(limit) 
+    });
+    
+    res.json(commits);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
