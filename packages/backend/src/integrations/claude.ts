@@ -11,6 +11,7 @@ const TEMPERATURE = parseFloat(process.env.AZURE_AI_TEMPERATURE || '0.2');
 const SECTION_TOKEN_LIMITS: Record<string, number> = {
   hero: 8192,
   overview: 16384,
+  about: 24576,             // 24K - comprehensive about section for non-technical audience
   technologies: 16384,
   architecture: 24576,      // 24K - complex diagrams and explanations
   integrations: 24576,      // 24K - multiple integrations to document
@@ -640,6 +641,102 @@ Responda APENAS em formato JSON válido:
 {{sourceCode}}
 
 Contexto adicional: {{context}}`
+  },
+
+  about: {
+    system: `Você é um especialista em comunicação corporativa e documentação acessível.
+Sua tarefa é criar uma seção "SOBRE O SISTEMA" que QUALQUER pessoa da empresa possa entender.
+
+⚠️ REGRA MAIS IMPORTANTE - NÃO INVENTE NADA:
+- SOMENTE use informações que estão EXPLICITAMENTE no README ou código
+- Se o README diz que é um sistema de estacionamento, NÃO mencione RH, ponto eletrônico, etc.
+- Se não há evidência de uma integração, NÃO a mencione
+- Prefira deixar uma seção com menos itens do que inventar dados
+- Analise o README com MUITO cuidado para entender o propósito REAL do sistema
+
+PÚBLICO-ALVO REAL:
+- Identifique o público-alvo REAL do sistema baseado no README
+- NÃO liste departamentos genéricos (RH, Financeiro) se o sistema não os atende
+- Se é um sistema de estacionamento, o público são operadores, clientes, gestores de estacionamento
+
+REGRAS CRÍTICAS:
+1. Use linguagem SIMPLES e CLARA - evite jargões técnicos
+2. Baseie-se APENAS no que está documentado no README
+3. Foque no VALOR e BENEFÍCIO real do sistema
+4. Seja HONESTO - se não sabe, não invente
+5. Use exemplos práticos relacionados ao domínio REAL do sistema
+
+Responda APENAS em formato JSON válido:
+{
+  "subtitle": "string (frase de impacto baseada no propósito REAL)",
+  "systemName": "string (nome do sistema)",
+  "introduction": "string (explicação em 2-3 frases simples BASEADA NO README)",
+  "targetAudience": [{
+    "icon": "emoji representativo",
+    "name": "string (público REAL que usa o sistema)",
+    "description": "string (como este público usa - baseado no README)"
+  }],
+  "problemsSolved": [{
+    "before": "string (problema REAL que o sistema resolve)",
+    "after": "string (como o sistema resolve - baseado no README)"
+  }],
+  "keyBenefits": [{
+    "icon": "emoji",
+    "title": "string (benefício REAL em 3-4 palavras)",
+    "description": "string (explicação do benefício baseada no README)"
+  }],
+  "howItWorks": [{
+    "icon": "emoji ou número",
+    "title": "string (etapa REAL do fluxo)",
+    "description": "string (explicação baseada no código/README)",
+    "example": "string (exemplo do domínio REAL do sistema)"
+  }],
+  "metrics": [{
+    "value": "string (use 'N/A' se não houver dados reais)",
+    "label": "string (métrica relevante ao domínio)",
+    "description": "string (contexto opcional)"
+  }],
+  "glossary": [{
+    "term": "string (termo técnico DO DOMÍNIO do sistema)",
+    "definition": "string (explicação simples)"
+  }],
+  "integrations": [{
+    "icon": "emoji",
+    "name": "string (SOMENTE integrações mencionadas no README/código)",
+    "description": "string (o que essa integração faz)"
+  }],
+  "simpleFaq": [{
+    "question": "string (pergunta relevante ao domínio REAL)",
+    "answer": "string (resposta baseada no README)"
+  }]
+}`,
+    userTemplate: `Crie uma seção "SOBRE O SISTEMA" baseada APENAS nas informações fornecidas.
+
+⚠️ ATENÇÃO: NÃO INVENTE DADOS! Use SOMENTE o que está no README e código.
+
+📦 Nome do Sistema: {{projectName}}
+📝 Descrição: {{description}}
+🏗️ Tipo de Projeto: {{projectType}}
+🚀 Frameworks/Tecnologias: {{frameworks}}
+
+📖 README (LEIA COM ATENÇÃO - esta é a fonte principal):
+{{readme}}
+
+📁 Estrutura do Projeto:
+{{structure}}
+
+📦 Dependências:
+{{dependencies}}
+
+🔧 Variáveis de Ambiente:
+{{envVars}}
+
+REGRAS OBRIGATÓRIAS:
+1. Se o sistema é de ESTACIONAMENTO, fale SOMENTE sobre estacionamento
+2. NÃO mencione RH, ponto eletrônico, financeiro SE não estiver no README
+3. O público-alvo deve ser quem REALMENTE usa o sistema (operadores, clientes, etc.)
+4. Integrações SOMENTE as que estão mencionadas no README ou nas dependências
+5. Prefira menos itens corretos do que muitos itens inventados`
   }
 };
 
@@ -717,10 +814,72 @@ IMPORTANTE: Esta documentação deve explicar como os ${repositoryData.totalSyst
         }));
       }
       
+      // Validate flow has proper structure
+      if (sectionType === 'flow') {
+        // Ensure flows array exists and has proper structure
+        if (!parsed.flows || !Array.isArray(parsed.flows) || parsed.flows.length === 0) {
+          // Try to convert old format (steps) to new format (flows)
+          if (parsed.steps && Array.isArray(parsed.steps)) {
+            parsed.flows = [{
+              id: 'flow-1',
+              title: parsed.title || 'Fluxo Principal',
+              description: parsed.description || '',
+              icon: '🔄',
+              steps: parsed.steps
+            }];
+          } else {
+            // Create a default flow structure
+            parsed.flows = [{
+              id: 'flow-1',
+              title: 'Fluxo Principal',
+              description: 'Configure os passos do fluxo',
+              icon: '🔄',
+              steps: [
+                { id: 'step-1', title: 'Início', description: 'Início do processo', variant: 'start', icon: '▶️' },
+                { id: 'step-2', title: 'Processamento', description: 'Etapa de processamento', variant: 'process', icon: '⚙️' },
+                { id: 'step-3', title: 'Fim', description: 'Conclusão do processo', variant: 'end', icon: '🏁' }
+              ]
+            }];
+          }
+        }
+        
+        // Ensure each flow has valid steps
+        parsed.flows = parsed.flows.map((flow: any) => ({
+          ...flow,
+          id: flow.id || `flow-${Date.now()}`,
+          title: flow.title || 'Fluxo',
+          steps: (flow.steps || []).map((step: any, idx: number) => ({
+            id: step.id || `step-${idx + 1}`,
+            title: step.title || `Passo ${idx + 1}`,
+            description: step.description || '',
+            icon: step.icon || '📌',
+            variant: step.variant || step.type || 'process'
+          }))
+        }));
+      }
+      
       return parsed;
     } catch (e) {
       // Return as-is if not valid JSON
       console.error(`Failed to parse JSON for section ${sectionType}:`, e);
+      
+      // For flow sections, return a default structure instead of raw text
+      if (sectionType === 'flow') {
+        return {
+          flows: [{
+            id: 'flow-1',
+            title: 'Fluxo Principal',
+            description: 'Erro ao processar fluxo - configure manualmente',
+            icon: '🔄',
+            steps: [
+              { id: 'step-1', title: 'Início', description: 'Início do processo', variant: 'start', icon: '▶️' },
+              { id: 'step-2', title: 'Processamento', description: 'Etapa de processamento', variant: 'process', icon: '⚙️' },
+              { id: 'step-3', title: 'Fim', description: 'Conclusão do processo', variant: 'end', icon: '🏁' }
+            ]
+          }]
+        };
+      }
+      
       return { content: responseText };
     }
   },

@@ -71,7 +71,7 @@ interface AnalysisResult {
 
 export const giteaService = {
   /**
-   * List repositories for an organization or user
+   * List repositories for an organization or user (with pagination)
    */
   async listRepositories(org?: string): Promise<Repository[]> {
     try {
@@ -79,11 +79,30 @@ export const giteaService = {
         ? `/api/v1/orgs/${org}/repos`
         : '/api/v1/user/repos';
       
-      const response = await giteaClient.get(endpoint, {
-        params: { limit: 50 }
-      });
+      const allRepos: Repository[] = [];
+      let page = 1;
+      const limit = 50;
+      let hasMore = true;
       
-      return response.data;
+      // Fetch all pages
+      while (hasMore) {
+        const response = await giteaClient.get(endpoint, {
+          params: { limit, page }
+        });
+        
+        const repos = response.data;
+        if (repos && repos.length > 0) {
+          allRepos.push(...repos);
+          page++;
+          // If we got fewer than limit, we've reached the end
+          hasMore = repos.length === limit;
+        } else {
+          hasMore = false;
+        }
+      }
+      
+      console.log(`[Gitea] Fetched ${allRepos.length} repositories from ${org || 'user'}`);
+      return allRepos;
     } catch (error: any) {
       console.error('Error listing repositories:', error.message);
       throw new Error(`Failed to list repositories: ${error.message}`);

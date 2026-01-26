@@ -9,6 +9,7 @@ const router = Router();
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Apresentação',
   overview: 'Visão Geral',
+  about: 'Sobre o Sistema',
   architecture: 'Arquitetura',
   technologies: 'Tecnologias',
   flow: 'Fluxo do Sistema',

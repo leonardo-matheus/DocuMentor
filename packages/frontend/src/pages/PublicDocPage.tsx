@@ -9,7 +9,6 @@ import Hero from '@/components/documentation/Hero'
 import NavBar from '@/components/documentation/NavBar'
 import Section from '@/components/documentation/Section'
 import SummaryCard from '@/components/documentation/SummaryCard'
-import TechCard from '@/components/documentation/TechCard'
 import FlowDiagram from '@/components/documentation/FlowDiagram'
 import FAQSection from '@/components/documentation/FAQSection'
 import EndpointsSection from '@/components/documentation/EndpointsSection'
@@ -82,6 +81,9 @@ export default function PublicDocPage() {
   
   return (
     <div className="min-h-screen bg-white">
+      {/* Navigation - Fixed at top */}
+      {navItems.length > 0 && <NavBar items={navItems} />}
+      
       {/* Back to publications link */}
       <div className="fixed top-4 left-4 z-50">
         <Link 
@@ -104,9 +106,6 @@ export default function PublicDocPage() {
       
       {/* Render sections */}
       {sections.map((section, index) => renderSection(section, index, sections.length))}
-      
-      {/* Navigation */}
-      {navItems.length > 0 && <NavBar items={navItems} />}
       
       {/* Footer */}
       <Footer 
@@ -147,6 +146,228 @@ function renderSection(section: ProjectSection, index: number, _total: number) {
           meta={content.meta}
           highlights={content.highlights}
         />
+      )
+    
+    case 'about':
+      return (
+        <Section
+          key={section.id}
+          id={section.id}
+          number={index}
+          title={section.title}
+          subtitle={content.subtitle || 'Entenda de forma simples o que este sistema faz'}
+        >
+          {/* Introduction - Simple explanation */}
+          {content.introduction && (
+            <div className="mb-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                  💡
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-indigo-900 mb-2">O que é o {content.systemName || 'Sistema'}?</h4>
+                  <p className="text-indigo-800 leading-relaxed">{content.introduction}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Target Audience */}
+          {content.targetAudience && content.targetAudience.length > 0 && (
+            <div className="mb-8">
+              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center text-lg">👥</span>
+                Para quem é este sistema?
+              </h4>
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {content.targetAudience.map((audience: any, i: number) => (
+                  <div key={i} className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 hover:shadow-md transition-all">
+                    <div className="text-2xl mb-2">{audience.icon || '👤'}</div>
+                    <h5 className="font-semibold text-emerald-800">{audience.name}</h5>
+                    <p className="text-sm text-emerald-700 mt-1">{audience.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Problems Solved */}
+          {content.problemsSolved && content.problemsSolved.length > 0 && (
+            <div className="mb-8">
+              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-lg">🎯</span>
+                Quais problemas este sistema resolve?
+              </h4>
+              <div className="space-y-3">
+                {content.problemsSolved.map((problem: any, i: number) => (
+                  <div key={i} className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:shadow-md transition-all">
+                    <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                      {i + 1}
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-gray-900">{problem.before}</h5>
+                      <div className="flex items-center gap-2 my-2">
+                        <span className="text-red-500">❌ Antes</span>
+                        <span className="text-gray-400">→</span>
+                        <span className="text-emerald-500">✅ Depois</span>
+                      </div>
+                      <p className="text-sm text-gray-600">{problem.after}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Key Benefits - Visual Cards */}
+          {content.keyBenefits && content.keyBenefits.length > 0 && (
+            <div className="mb-8">
+              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center text-lg">✨</span>
+                Principais benefícios
+              </h4>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {content.keyBenefits.map((benefit: any, i: number) => (
+                  <div key={i} className="p-5 bg-gradient-to-br from-sky-50 to-indigo-50 rounded-xl border border-sky-100 text-center hover:shadow-lg transition-all">
+                    <div className="text-3xl mb-3">{benefit.icon || '⭐'}</div>
+                    <h5 className="font-bold text-gray-900 mb-1">{benefit.title}</h5>
+                    <p className="text-sm text-gray-600">{benefit.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* How it Works - Simple Steps */}
+          {content.howItWorks && content.howItWorks.length > 0 && (
+            <div className="mb-8">
+              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-lg">🔄</span>
+                Como funciona? (Passo a passo simples)
+              </h4>
+              <div className="relative">
+                {/* Connection line */}
+                <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-gradient-to-b from-purple-300 via-indigo-300 to-sky-300 hidden md:block" />
+                
+                <div className="space-y-4">
+                  {content.howItWorks.map((step: any, i: number) => (
+                    <div key={i} className="relative flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:shadow-md transition-all md:ml-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg relative z-10">
+                        {step.icon || i + 1}
+                      </div>
+                      <div className="flex-1">
+                        <h5 className="font-semibold text-gray-900">{step.title}</h5>
+                        <p className="text-sm text-gray-600 mt-1">{step.description}</p>
+                        {step.example && (
+                          <div className="mt-2 p-2 bg-gray-50 rounded-lg text-sm text-gray-500 italic">
+                            💡 Exemplo: {step.example}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Metrics / KPIs */}
+          {content.metrics && content.metrics.length > 0 && (
+            <div className="mb-8">
+              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center text-lg">📊</span>
+                Indicadores e resultados
+              </h4>
+              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+                {content.metrics.map((metric: any, i: number) => (
+                  <div key={i} className="p-5 bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl border border-rose-100 text-center">
+                    <div className="text-3xl font-bold text-rose-600 mb-1">{metric.value}</div>
+                    <div className="text-sm font-medium text-gray-700">{metric.label}</div>
+                    {metric.description && (
+                      <div className="text-xs text-gray-500 mt-1">{metric.description}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Glossary - Technical terms explained */}
+          {content.glossary && content.glossary.length > 0 && (
+            <div className="mb-8">
+              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center text-lg">📚</span>
+                Glossário - Termos técnicos explicados
+              </h4>
+              <div className="bg-teal-50 rounded-xl border border-teal-100 overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-teal-100">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-teal-800 w-1/4">Termo</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-teal-800">O que significa</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-teal-100">
+                    {content.glossary.map((item: any, i: number) => (
+                      <tr key={i} className="hover:bg-teal-100/50 transition-colors">
+                        <td className="px-4 py-3 font-medium text-teal-700">{item.term}</td>
+                        <td className="px-4 py-3 text-gray-700">{item.definition}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          
+          {/* Integrations Overview */}
+          {content.integrations && content.integrations.length > 0 && (
+            <div className="mb-8">
+              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center text-lg">🔗</span>
+                Com quais sistemas ele se conecta?
+              </h4>
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {content.integrations.map((integration: any, i: number) => (
+                  <div key={i} className="p-4 bg-white rounded-xl border border-gray-200 hover:border-cyan-300 hover:shadow-md transition-all">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center text-xl">
+                        {integration.icon || '🔌'}
+                      </div>
+                      <h5 className="font-semibold text-gray-900">{integration.name}</h5>
+                    </div>
+                    <p className="text-sm text-gray-600">{integration.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Quick FAQ for Non-Technical Users */}
+          {content.simpleFaq && content.simpleFaq.length > 0 && (
+            <div className="mb-8">
+              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center text-lg">❓</span>
+                Perguntas frequentes
+              </h4>
+              <div className="space-y-3">
+                {content.simpleFaq.map((faq: any, i: number) => (
+                  <details key={i} className="group bg-white rounded-xl border border-gray-200 overflow-hidden">
+                    <summary className="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50 transition-colors">
+                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold text-sm group-open:bg-orange-500 group-open:text-white transition-colors">
+                        ?
+                      </div>
+                      <span className="font-medium text-gray-900">{faq.question}</span>
+                    </summary>
+                    <div className="px-4 pb-4 pt-2 ml-11 text-gray-600 border-t border-gray-100">
+                      {faq.answer}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+          )}
+        </Section>
       )
     
     case 'overview':
@@ -231,24 +452,62 @@ function renderSection(section: ProjectSection, index: number, _total: number) {
           id={section.id}
           number={index}
           title={section.title}
-          subtitle={content.description}
+          subtitle={content.description || 'Tecnologias utilizadas no projeto'}
+          variant="alt"
         >
-          {(content.categories || []).map((cat: any, catIdx: number) => (
-            <div key={catIdx} className="mb-8 last:mb-0">
-              <h4 className="text-lg font-semibold mb-4 text-gray-800">{cat.category}</h4>
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {(cat.items || []).map((tech: any, i: number) => (
-                  <TechCard
-                    key={i}
-                    icon={tech.icon || '🔧'}
-                    title={tech.name}
-                    fullName={tech.version ? `${tech.name} ${tech.version}` : tech.name}
-                    features={tech.description ? [{ icon: '📝', title: tech.description, description: '' }] : []}
-                  />
-                ))}
+          <div className="grid md:grid-cols-2 gap-6">
+            {(content.categories || []).map((cat: any, catIdx: number) => (
+              <div key={catIdx} className="p-6 bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300">
+                <h4 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm">
+                    {catIdx + 1}
+                  </span>
+                  {cat.name || cat.category}
+                </h4>
+                <div className="space-y-3">
+                  {(cat.technologies || cat.items || []).map((tech: any, i: number) => {
+                    // Check if icon is a URL or emoji
+                    const isUrl = tech.icon && (tech.icon.startsWith('http') || tech.icon.startsWith('/'))
+                    return (
+                      <div key={i} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 group cursor-default">
+                        <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center p-2 group-hover:scale-110 transition-transform duration-300">
+                          {isUrl ? (
+                            <img 
+                              src={tech.icon} 
+                              alt={tech.name} 
+                              className="w-8 h-8 object-contain"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none'
+                                const parent = (e.target as HTMLImageElement).parentElement
+                                if (parent) {
+                                  parent.innerHTML = '<span class="text-2xl">💻</span>'
+                                }
+                              }}
+                            />
+                          ) : (
+                            <span className="text-2xl">{tech.icon || '💻'}</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">{tech.name}</span>
+                            {tech.version && (
+                              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                                v{tech.version}
+                              </span>
+                            )}
+                          </div>
+                          {tech.description && (
+                            <p className="text-sm text-gray-600 mt-1 line-clamp-2">{tech.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </Section>
       )
     
@@ -284,12 +543,18 @@ function renderSection(section: ProjectSection, index: number, _total: number) {
                 steps: (flow.steps || []).map(processStep)
               }))}
             />
-          ) : content.steps ? (
+          ) : content.steps && content.steps.length > 0 ? (
             <FlowDiagram
               title={content.title}
               steps={content.steps.map(processStep)}
             />
-          ) : null}
+          ) : (
+            <div className="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+              <div className="text-4xl mb-3">🔄</div>
+              <h4 className="text-lg font-medium text-gray-700 mb-2">Fluxo ainda não definido</h4>
+              <p className="text-gray-500 text-sm">Regenere esta seção para gerar o diagrama de fluxo do sistema</p>
+            </div>
+          )}
         </Section>
       )
     
@@ -401,62 +666,130 @@ function renderSection(section: ProjectSection, index: number, _total: number) {
           id={section.id}
           number={index}
           title={section.title}
-          subtitle={content.description}
+          subtitle={content.description || 'Histórico de versões e releases'}
         >
-          {/* Render changelog timeline */}
+          {/* Current Version Badge */}
+          {content.currentVersion && (
+            <div className="flex justify-center mb-8">
+              <span className="px-6 py-2 bg-emerald-600 text-white rounded-full font-semibold text-lg shadow-lg">
+                Versão Atual: {content.currentVersion}
+              </span>
+            </div>
+          )}
+          
+          {/* Roadmap Timeline */}
           <div className="relative max-w-4xl mx-auto">
-            <div className="absolute left-[7px] top-4 bottom-24 w-px bg-slate-300" />
+            {/* Timeline Line */}
+            <div className="absolute left-[7px] top-4 bottom-[15rem] w-px bg-slate-600" />
             
+            {/* Releases */}
             <div className="space-y-6">
               {(content.releases || []).map((release: any, releaseIndex: number) => (
                 <div key={releaseIndex} className="relative flex gap-4 pl-6">
+                  {/* Timeline Node */}
                   <div className="absolute left-0 top-2">
                     <div className={`w-4 h-4 rounded-full ${
                       releaseIndex === 0 
                         ? 'bg-emerald-500 ring-4 ring-emerald-500/20' 
-                        : 'bg-slate-400'
+                        : 'bg-slate-500'
                     }`} />
                   </div>
                   
-                  <div className="flex-1 bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+                  {/* Release Card - Dark theme */}
+                  <div className={`flex-1 rounded-xl p-5 ${
+                    releaseIndex === 0 
+                      ? 'bg-slate-800 border-2 border-emerald-500/50' 
+                      : 'bg-slate-800/60 border border-slate-700'
+                  }`}>
+                    {/* Header */}
                     <div className="flex flex-wrap items-center gap-3 mb-3">
                       <span className={`px-3 py-1 rounded font-mono text-sm font-bold ${
                         releaseIndex === 0 
-                          ? 'bg-emerald-100 text-emerald-700' 
-                          : 'bg-gray-100 text-gray-700'
+                          ? 'bg-emerald-600 text-white' 
+                          : 'bg-slate-700 text-slate-200'
                       }`}>
                         v{release.version}
                       </span>
-                      {release.date && (
-                        <span className="text-sm text-gray-500">
-                          {new Date(release.date).toLocaleDateString('pt-BR')}
-                        </span>
+                      <span className="text-sm text-slate-400">
+                        {release.date ? new Date(release.date).toLocaleDateString('pt-BR', { 
+                          day: '2-digit',
+                          month: 'short', 
+                          year: 'numeric' 
+                        }) : ''}
+                      </span>
+                      {release.title && (
+                        <span className="text-slate-200 font-medium">{release.title}</span>
                       )}
                     </div>
                     
+                    {release.description && (
+                      <p className="text-slate-400 text-sm mb-4">{release.description}</p>
+                    )}
+                    
+                    {/* Categories */}
                     <div className="space-y-3">
+                      {/* Features */}
                       {release.categories?.features?.length > 0 && (
                         <div>
-                          <h5 className="text-sm font-semibold text-emerald-600 mb-1.5">✨ Novidades</h5>
+                          <h5 className="text-sm font-semibold text-emerald-400 mb-1.5 flex items-center gap-2">
+                            ✨ Novidades
+                          </h5>
                           <ul className="space-y-1 pl-1">
-                            {release.categories.features.map((f: string, i: number) => (
-                              <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
+                            {release.categories.features.map((feature: string, i: number) => (
+                              <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
                                 <span className="text-emerald-500 mt-0.5">›</span>
-                                {f}
+                                {feature}
                               </li>
                             ))}
                           </ul>
                         </div>
                       )}
                       
+                      {/* Fixes */}
                       {release.categories?.fixes?.length > 0 && (
                         <div>
-                          <h5 className="text-sm font-semibold text-amber-600 mb-1.5">🐛 Correções</h5>
+                          <h5 className="text-sm font-semibold text-amber-400 mb-1.5 flex items-center gap-2">
+                            🐛 Correções
+                          </h5>
                           <ul className="space-y-1 pl-1">
-                            {release.categories.fixes.map((f: string, i: number) => (
-                              <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
+                            {release.categories.fixes.map((fix: string, i: number) => (
+                              <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
                                 <span className="text-amber-500 mt-0.5">›</span>
-                                {f}
+                                {fix}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {/* Improvements */}
+                      {release.categories?.improvements?.length > 0 && (
+                        <div>
+                          <h5 className="text-sm font-semibold text-sky-400 mb-1.5 flex items-center gap-2">
+                            🔧 Melhorias
+                          </h5>
+                          <ul className="space-y-1 pl-1">
+                            {release.categories.improvements.map((improvement: string, i: number) => (
+                              <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
+                                <span className="text-sky-500 mt-0.5">›</span>
+                                {improvement}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {/* Breaking Changes */}
+                      {release.categories?.breaking?.length > 0 && (
+                        <div className="bg-red-950/30 p-3 rounded-lg border border-red-500/30">
+                          <h5 className="text-sm font-semibold text-red-400 mb-1.5 flex items-center gap-2">
+                            ⚠️ Breaking Changes
+                          </h5>
+                          <ul className="space-y-1 pl-1">
+                            {release.categories.breaking.map((breaking: string, i: number) => (
+                              <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
+                                <span className="text-red-500 mt-0.5">›</span>
+                                {breaking}
                               </li>
                             ))}
                           </ul>
@@ -467,6 +800,43 @@ function renderSection(section: ProjectSection, index: number, _total: number) {
                 </div>
               ))}
             </div>
+            
+            {/* Upcoming/Roadmap */}
+            {content.upcoming && (content.upcoming.planned?.length > 0 || content.upcoming.inProgress?.length > 0) && (
+              <div className="mt-8 pt-6 border-t border-slate-300">
+                <h4 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  🚀 Próximas Atualizações
+                </h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {content.upcoming.inProgress?.length > 0 && (
+                    <div className="bg-amber-100 border-2 border-amber-400 rounded-lg p-4">
+                      <h5 className="font-semibold text-amber-700 mb-3 text-sm">🔨 Em Desenvolvimento</h5>
+                      <ul className="space-y-2">
+                        {content.upcoming.inProgress.map((item: string, i: number) => (
+                          <li key={i} className="text-sm text-slate-700 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-amber-500 rounded-full flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {content.upcoming.planned?.length > 0 && (
+                    <div className="bg-indigo-100 border-2 border-indigo-400 rounded-lg p-4">
+                      <h5 className="font-semibold text-indigo-700 mb-3 text-sm">📋 Planejado</h5>
+                      <ul className="space-y-2">
+                        {content.upcoming.planned.map((item: string, i: number) => (
+                          <li key={i} className="text-sm text-slate-700 flex items-center gap-2">
+                            <span className="text-indigo-500">○</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </Section>
       )

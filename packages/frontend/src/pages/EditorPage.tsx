@@ -50,6 +50,7 @@ interface GenerationProgress {
 
 const SECTION_TYPES = [
   { type: 'hero', label: 'Hero / Cabeçalho', icon: '🎯' },
+  { type: 'about', label: 'Sobre o Sistema', icon: '📖' },
   { type: 'overview', label: 'Visão Geral', icon: '📋' },
   { type: 'architecture', label: 'Arquitetura', icon: '🏗️' },
   { type: 'technologies', label: 'Tecnologias', icon: '⚙️' },
@@ -212,6 +213,15 @@ export default function EditorPage() {
   })
   const [isPublishing, setIsPublishing] = useState(false)
   
+  // State for inline category creation
+  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false)
+  const [newCategoryData, setNewCategoryData] = useState({
+    name: '',
+    icon: '📁',
+    color: '#e0e7ff'
+  })
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false)
+  
   // Fetch publication status
   const { data: publicationStatus, refetch: refetchPublicationStatus } = useQuery({
     queryKey: ['publicationStatus', id],
@@ -220,10 +230,41 @@ export default function EditorPage() {
   })
   
   // Fetch categories for publication
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [], refetch: refetchCategories } = useQuery({
     queryKey: ['categories'],
     queryFn: () => publicationsApi.getCategories().then(res => res.data),
   })
+  
+  // Create category inline
+  const handleCreateCategory = async () => {
+    if (!newCategoryData.name.trim()) {
+      toast.error('Digite o nome da categoria')
+      return
+    }
+    
+    setIsCreatingCategory(true)
+    try {
+      const result = await publicationsApi.createCategory({
+        name: newCategoryData.name,
+        icon: newCategoryData.icon,
+        color: newCategoryData.color
+      })
+      
+      toast.success('Categoria criada!')
+      refetchCategories()
+      
+      // Select the new category
+      setPublishData(p => ({ ...p, categoryId: result.data.id }))
+      
+      // Reset and close form
+      setNewCategoryData({ name: '', icon: '📁', color: '#e0e7ff' })
+      setShowNewCategoryForm(false)
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao criar categoria')
+    } finally {
+      setIsCreatingCategory(false)
+    }
+  }
   
   // State for collapsible panels
   const [collapsedPanels, setCollapsedPanels] = useState<Record<string, boolean>>({
@@ -579,13 +620,77 @@ export default function EditorPage() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 transition-colors">
+      {/* Overlay to block interaction during AI generation */}
+      {generationProgress.isGenerating && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-md mx-4 animate-fade-in-up">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-white animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Gerando Documentação</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Aguarde enquanto a IA processa...</p>
+              </div>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="relative h-4 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden mb-4">
+              <div 
+                className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500 ease-out"
+                style={{ width: `${generationProgress.percent}%` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+            </div>
+            
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3 text-center mb-4">
+              <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{generationProgress.percent}%</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Progresso</div>
+              </div>
+              <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{formatTime(generationProgress.elapsed)}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Decorrido</div>
+              </div>
+              <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">~{formatTime(generationProgress.estimatedRemaining)}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Restante</div>
+              </div>
+            </div>
+            
+            {/* Current Message */}
+            <div className="text-sm text-gray-600 dark:text-gray-300 mb-4 flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+              {generationProgress.message}
+            </div>
+            
+            {/* Completed Sections */}
+            {generationProgress.completedSections.length > 0 && (
+              <div className="max-h-32 overflow-y-auto space-y-1">
+                {generationProgress.completedSections.map((title, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{title}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-slate-600 text-center">
+              <p className="text-xs text-gray-400">Não feche esta página durante a geração</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Top Bar */}
-      <div className="sticky top-16 z-30 bg-white border-b border-gray-200 px-6 py-3">
+      <div className="sticky top-16 z-30 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-6 py-3 transition-colors">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="font-semibold text-gray-900">{project?.name || 'Novo Projeto'}</h1>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <h1 className="font-semibold text-gray-900 dark:text-white">{project?.name || 'Novo Projeto'}</h1>
+            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
               <span>Editor de Documentação</span>
               {isSaving && (
                 <span className="flex items-center gap-1 text-blue-500">
@@ -660,15 +765,15 @@ export default function EditorPage() {
             <div className="sticky top-40 space-y-3">
               
               {/* Sections Panel */}
-              <div className="doc-card overflow-hidden">
+              <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 overflow-hidden">
                 <button
                   onClick={() => togglePanel('sections')}
-                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                 >
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                     <FileText className="w-4 h-4" />
                     Seções
-                    <span className="text-xs text-gray-400 font-normal">({sections.length})</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 font-normal">({sections.length})</span>
                   </h3>
                   <div className="flex items-center gap-2">
                     <div
@@ -676,9 +781,9 @@ export default function EditorPage() {
                       tabIndex={0}
                       onClick={(e) => { e.stopPropagation(); setShowAddSection(!showAddSection) }}
                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); setShowAddSection(!showAddSection) } }}
-                      className="p-1.5 hover:bg-gray-200 rounded transition-colors cursor-pointer"
+                      className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors cursor-pointer"
                     >
-                      <Plus className="w-4 h-4 text-gray-600" />
+                      <Plus className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                     </div>
                     {collapsedPanels.sections ? (
                       <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -689,7 +794,7 @@ export default function EditorPage() {
                 </button>
                 
                 {!collapsedPanels.sections && (
-                  <div className="p-3 pt-0 border-t border-gray-100">
+                  <div className="p-3 pt-0 border-t border-gray-100 dark:border-slate-700">
               
               {/* NavBar Preview */}
               {sections.filter(s => s.type !== 'hero').length > 0 && (
@@ -852,15 +957,15 @@ export default function EditorPage() {
               </div>
             
               {/* Versions Panel */}
-              <div className="doc-card overflow-hidden">
+              <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 overflow-hidden">
                 <button
                   onClick={() => togglePanel('versions')}
-                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                 >
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                     <History className="w-4 h-4" />
                     Histórico
-                    <span className="text-xs text-gray-400 font-normal">({versions.length})</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 font-normal">({versions.length})</span>
                   </h3>
                   {collapsedPanels.versions ? (
                     <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -870,9 +975,9 @@ export default function EditorPage() {
                 </button>
                 
                 {!collapsedPanels.versions && (
-                  <div className="p-3 pt-0 border-t border-gray-100 max-h-[200px] overflow-y-auto">
+                  <div className="p-3 pt-0 border-t border-gray-100 dark:border-slate-700 max-h-[200px] overflow-y-auto">
                 {versions.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500">
+                  <div className="text-center py-4 text-gray-500 dark:text-gray-400">
                     <GitCommit className="w-6 h-6 mx-auto mb-1 opacity-50" />
                     <p className="text-xs">Nenhuma versão ainda</p>
                   </div>
@@ -1063,7 +1168,7 @@ export default function EditorPage() {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-4 text-gray-500">
+                <div className="text-center py-4 text-gray-500 dark:text-gray-400">
                   <RefreshCw className="w-6 h-6 mx-auto mb-1 opacity-50" />
                   <p className="text-xs">Nenhuma sincronização ainda</p>
                 </div>
@@ -1092,12 +1197,12 @@ export default function EditorPage() {
                 isGenerating={generateMutation.isPending}
               />
             ) : (
-              <div className="doc-card p-12 text-center">
-                <Settings className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 p-12 text-center">
+                <Settings className="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   Selecione uma seção para editar
                 </h3>
-                <p className="text-gray-500 mb-6">
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
                   Ou adicione uma nova seção usando o botão + na barra lateral
                 </p>
                 <button
@@ -1402,21 +1507,119 @@ export default function EditorPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Categoria
                 </label>
-                <select
-                  value={publishData.categoryId}
-                  onChange={(e) => setPublishData(p => ({ ...p, categoryId: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                >
-                  <option value="">Sem categoria</option>
-                  {categories.map((cat: Category) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.icon} {cat.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-400 mt-1">
-                  Agrupe sistemas por categoria para facilitar a navegação
-                </p>
+                
+                {!showNewCategoryForm ? (
+                  <>
+                    <div className="flex gap-2">
+                      <select
+                        value={publishData.categoryId}
+                        onChange={(e) => setPublishData(p => ({ ...p, categoryId: e.target.value }))}
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      >
+                        <option value="">Sem categoria</option>
+                        {categories.map((cat: Category) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.icon} {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setShowNewCategoryForm(true)}
+                        className="px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors flex items-center gap-1"
+                        title="Criar nova categoria"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Nova
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Agrupe sistemas por categoria para facilitar a navegação
+                    </p>
+                  </>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-3 space-y-3 border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Nova Categoria</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowNewCategoryForm(false)
+                          setNewCategoryData({ name: '', icon: '📁', color: '#e0e7ff' })
+                        }}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    <input
+                      type="text"
+                      value={newCategoryData.name}
+                      onChange={(e) => setNewCategoryData(p => ({ ...p, name: e.target.value }))}
+                      placeholder="Nome da categoria (ex: Estacionamento)"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                      autoFocus
+                    />
+                    
+                    <div className="flex gap-4">
+                      {/* Icon selector */}
+                      <div className="flex-1">
+                        <span className="text-xs text-gray-500 mb-1 block">Ícone</span>
+                        <div className="flex flex-wrap gap-1">
+                          {['📁', '🚗', '💳', '📊', '🔧', '📱', '🏢', '⚡'].map(icon => (
+                            <button
+                              key={icon}
+                              type="button"
+                              onClick={() => setNewCategoryData(p => ({ ...p, icon }))}
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all ${
+                                newCategoryData.icon === icon 
+                                  ? 'bg-emerald-100 ring-2 ring-emerald-500' 
+                                  : 'bg-white border hover:bg-gray-100'
+                              }`}
+                            >
+                              {icon}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Color selector */}
+                      <div>
+                        <span className="text-xs text-gray-500 mb-1 block">Cor</span>
+                        <div className="flex gap-1">
+                          {['#e0e7ff', '#d1fae5', '#fef3c7', '#fce7f3', '#e0f2fe'].map(color => (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => setNewCategoryData(p => ({ ...p, color }))}
+                              className={`w-6 h-6 rounded transition-all ${
+                                newCategoryData.color === color 
+                                  ? 'ring-2 ring-gray-900 ring-offset-1' 
+                                  : ''
+                              }`}
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={handleCreateCategory}
+                      disabled={isCreatingCategory || !newCategoryData.name.trim()}
+                      className="w-full py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm font-medium"
+                    >
+                      {isCreatingCategory ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Check className="w-4 h-4" />
+                      )}
+                      Criar Categoria
+                    </button>
+                  </div>
+                )}
               </div>
               
               {/* Version */}

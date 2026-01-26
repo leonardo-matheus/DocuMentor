@@ -230,15 +230,29 @@ router.post('/publish/:projectId', async (req: Request, res: Response) => {
     }
     
     // Convert sections to JSON for snapshot
-    const sectionsSnapshot = JSON.stringify(
-      project.sectionsList.map(s => ({
-        id: s.id,
-        type: s.type,
-        title: s.title,
-        content: JSON.parse(s.content),
-        order: s.order
-      }))
-    )
+    // Try sectionsList (relation) first, fallback to sections (JSON field)
+    let sectionsSnapshot: string
+    
+    if (project.sectionsList && project.sectionsList.length > 0) {
+      // Use sectionsList relation
+      sectionsSnapshot = JSON.stringify(
+        project.sectionsList.map(s => ({
+          id: s.id,
+          type: s.type,
+          title: s.title,
+          content: JSON.parse(s.content),
+          order: s.order
+        }))
+      )
+    } else if (project.sections) {
+      // Fallback to sections JSON field
+      const parsedSections = typeof project.sections === 'string' 
+        ? JSON.parse(project.sections) 
+        : project.sections
+      sectionsSnapshot = JSON.stringify(parsedSections)
+    } else {
+      return res.status(400).json({ error: 'Project has no sections to publish' })
+    }
     
     // Check if publication already exists for this project
     const existingPub = await prisma.publication.findFirst({
@@ -306,6 +320,12 @@ router.post('/publish/:projectId', async (req: Request, res: Response) => {
         }
       })
     }
+    
+    // Update project status to complete when published
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { status: '✅ Publicado' }
+    })
     
     res.status(existingPub ? 200 : 201).json({
       publication,

@@ -106,7 +106,7 @@ function RepositoryDropdown({
       
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden">
+        <div className="absolute z-[100] w-full mt-2 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden">
           {/* Search Input */}
           <div className="p-3 border-b border-gray-100">
             <div className="relative">
@@ -294,20 +294,20 @@ export default function NewProjectPage() {
     <div className="max-w-3xl mx-auto px-6 py-12">
       {/* Header */}
       <div className="text-center mb-12">
-        <div className="w-16 h-16 rounded-2xl bg-movemais/10 flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 rounded-2xl bg-movemais/10 dark:bg-movemais/20 flex items-center justify-center mx-auto mb-4">
           <GitBranch className="w-8 h-8 text-movemais" />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Novo Projeto de Documentação
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           Selecione um repositório do Gitea para começar
         </p>
       </div>
       
       {/* Step 1: Repository Selection */}
-      <div className="doc-card p-8 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+      <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 p-8 mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <span className="w-8 h-8 rounded-full bg-primary text-white text-sm flex items-center justify-center">1</span>
           Repositório Principal
         </h2>
@@ -320,27 +320,27 @@ export default function NewProjectPage() {
           placeholder="Selecione o repositório principal..."
         />
         
-        <p className="text-sm text-gray-500 mt-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
           Selecione o repositório principal que será documentado
         </p>
       </div>
       
       {/* Analysis Result */}
       {analyzeMutation.isPending && (
-        <div className="doc-card p-8 mb-6">
+        <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 p-8 mb-6">
           <div className="flex items-center gap-4">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <div>
-              <h3 className="font-semibold text-gray-900">Analisando repositório...</h3>
-              <p className="text-sm text-gray-500">Isso pode levar alguns segundos</p>
+              <h3 className="font-semibold text-gray-900 dark:text-white">Analisando repositório...</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Isso pode levar alguns segundos</p>
             </div>
           </div>
         </div>
       )}
       
       {analysis && (
-        <div className="doc-card p-8 mb-6 animate-fade-in-up">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 p-8 mb-6 animate-fade-in-up">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <span className="w-8 h-8 rounded-full bg-primary text-white text-sm flex items-center justify-center">2</span>
             Análise do Repositório
           </h2>

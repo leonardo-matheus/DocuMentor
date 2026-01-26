@@ -323,13 +323,13 @@ export default function PublicationsPage() {
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-8 transition-colors">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Publicações</h1>
-            <p className="text-gray-600 mt-1">Documentações publicadas e acessíveis</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Publicações</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Documentações publicadas e acessíveis</p>
           </div>
           <button
             onClick={() => {

@@ -33,31 +33,31 @@ function DeleteModal({
   
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in-up">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-            <AlertTriangle className="w-6 h-6 text-red-600" />
+          <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
+            <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Excluir Projeto</h3>
-            <p className="text-sm text-gray-500">Esta ação não pode ser desfeita</p>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Excluir Projeto</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Esta ação não pode ser desfeita</p>
           </div>
           <button 
             onClick={onClose}
-            className="ml-auto p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="ml-auto p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
         
         {/* Content */}
         <div className="mb-6">
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Tem certeza que deseja excluir o projeto{' '}
-            <strong className="text-gray-900">"{projectName}"</strong>?
+            <strong className="text-gray-900 dark:text-white">"{projectName}"</strong>?
           </p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
             Todas as seções, configurações e dados de documentação serão permanentemente removidos.
           </p>
         </div>
@@ -133,10 +133,10 @@ export default function ProjectsPage() {
     return (
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="animate-pulse space-y-6">
-          <div className="h-10 bg-gray-200 rounded w-1/4" />
+          <div className="h-10 bg-gray-200 dark:bg-slate-700 rounded w-1/4" />
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-48 bg-gray-200 rounded-2xl" />
+              <div key={i} className="h-48 bg-gray-200 dark:bg-slate-700 rounded-2xl" />
             ))}
           </div>
         </div>
@@ -149,8 +149,8 @@ export default function ProjectsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8 animate-fade-in-up">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Meus Projetos</h1>
-          <p className="text-gray-600 mt-1">Documentações geradas e em progresso</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Meus Projetos</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Documentações geradas e em progresso</p>
         </div>
         <Link to="/projects/new" className="btn btn-primary hover-lift">
           <Plus className="w-5 h-5" />
@@ -164,22 +164,22 @@ export default function ProjectsPage() {
           {projects.map((project, index) => (
             <div 
               key={project.id} 
-              className="doc-card overflow-hidden group animate-fade-in-up hover-lift"
+              className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 overflow-hidden group animate-fade-in-up hover-lift"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* Card Header */}
-              <div className="p-6 border-b border-gray-100">
+              <div className="p-6 border-b border-gray-100 dark:border-slate-700">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-movemais to-movemais-dark flex items-center justify-center text-white shadow-lg">
                       <FileText className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{project.name}</h3>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">{project.name}</h3>
                       <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                        project.status === 'complete' ? 'bg-green-100 text-green-700' :
-                        project.status === 'generating' ? 'bg-amber-100 text-amber-700 animate-pulse' :
-                        'bg-gray-100 text-gray-600'
+                        project.status === 'complete' ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400' :
+                        project.status === 'generating' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 animate-pulse' :
+                        'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400'
                       }`}>
                         {project.status === 'complete' ? '✓ Completo' :
                          project.status === 'generating' ? '⏳ Gerando...' : '📝 Rascunho'}
@@ -189,7 +189,7 @@ export default function ProjectsPage() {
                   {/* Delete Button */}
                   <button 
                     onClick={() => handleDeleteClick(project)}
-                    className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 rounded-lg transition-all text-gray-400 hover:text-red-500"
+                    className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all text-gray-400 hover:text-red-500"
                     title="Excluir projeto"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -199,11 +199,11 @@ export default function ProjectsPage() {
               
               {/* Card Body */}
               <div className="p-6">
-                <p className="text-gray-600 text-sm line-clamp-2 mb-4">
+                <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-4">
                   {project.description || 'Sem descrição'}
                 </p>
                 
-                <div className="flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-500">
                   <div className="flex items-center gap-1">
                     <GitBranch className="w-3.5 h-3.5" />
                     <span className="truncate max-w-[120px]">
@@ -239,13 +239,13 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <div className="text-center py-20 animate-fade-in-up">
-          <div className="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-6 animate-float">
-            <FileText className="w-10 h-10 text-gray-400" />
+          <div className="w-20 h-20 rounded-2xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-6 animate-float">
+            <FileText className="w-10 h-10 text-gray-400 dark:text-gray-600" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
             Nenhum projeto ainda
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             Comece criando sua primeira documentação
           </p>
           <Link to="/projects/new" className="btn btn-primary hover-lift">

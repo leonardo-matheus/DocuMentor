@@ -1080,6 +1080,228 @@ export default function PreviewPage() {
     switch (section.type) {
       case 'hero':
         return null // Hero is rendered separately
+      
+      case 'about':
+        return (
+          <Section
+            key={section.id}
+            id={section.id}
+            number={index}
+            title={section.title}
+            subtitle={content.subtitle || 'Entenda de forma simples o que este sistema faz'}
+          >
+            {/* Introduction - Simple explanation */}
+            {content.introduction && (
+              <div className="mb-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                    💡
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold text-indigo-900 mb-2">O que é o {content.systemName || 'Sistema'}?</h4>
+                    <p className="text-indigo-800 leading-relaxed">{content.introduction}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Target Audience */}
+            {content.targetAudience && content.targetAudience.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center text-lg">👥</span>
+                  Para quem é este sistema?
+                </h4>
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {content.targetAudience.map((audience: any, i: number) => (
+                    <div key={i} className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 hover:shadow-md transition-all">
+                      <div className="text-2xl mb-2">{audience.icon || '👤'}</div>
+                      <h5 className="font-semibold text-emerald-800">{audience.name}</h5>
+                      <p className="text-sm text-emerald-700 mt-1">{audience.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Problems Solved */}
+            {content.problemsSolved && content.problemsSolved.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-lg">🎯</span>
+                  Quais problemas este sistema resolve?
+                </h4>
+                <div className="space-y-3">
+                  {content.problemsSolved.map((problem: any, i: number) => (
+                    <div key={i} className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:shadow-md transition-all">
+                      <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                        {i + 1}
+                      </div>
+                      <div>
+                        <h5 className="font-semibold text-gray-900">{problem.before}</h5>
+                        <div className="flex items-center gap-2 my-2">
+                          <span className="text-red-500">❌ Antes</span>
+                          <span className="text-gray-400">→</span>
+                          <span className="text-emerald-500">✅ Depois</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{problem.after}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Key Benefits - Visual Cards */}
+            {content.keyBenefits && content.keyBenefits.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-sky-100 rounded-lg flex items-center justify-center text-lg">✨</span>
+                  Principais benefícios
+                </h4>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {content.keyBenefits.map((benefit: any, i: number) => (
+                    <div key={i} className="p-5 bg-gradient-to-br from-sky-50 to-indigo-50 rounded-xl border border-sky-100 text-center hover:shadow-lg transition-all">
+                      <div className="text-3xl mb-3">{benefit.icon || '⭐'}</div>
+                      <h5 className="font-bold text-gray-900 mb-1">{benefit.title}</h5>
+                      <p className="text-sm text-gray-600">{benefit.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* How it Works - Simple Steps */}
+            {content.howItWorks && content.howItWorks.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-lg">🔄</span>
+                  Como funciona? (Passo a passo simples)
+                </h4>
+                <div className="relative">
+                  {/* Connection line */}
+                  <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-gradient-to-b from-purple-300 via-indigo-300 to-sky-300 hidden md:block" />
+                  
+                  <div className="space-y-4">
+                    {content.howItWorks.map((step: any, i: number) => (
+                      <div key={i} className="relative flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:shadow-md transition-all md:ml-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg relative z-10">
+                          {step.icon || i + 1}
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="font-semibold text-gray-900">{step.title}</h5>
+                          <p className="text-sm text-gray-600 mt-1">{step.description}</p>
+                          {step.example && (
+                            <div className="mt-2 p-2 bg-gray-50 rounded-lg text-sm text-gray-500 italic">
+                              💡 Exemplo: {step.example}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Metrics / KPIs */}
+            {content.metrics && content.metrics.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center text-lg">📊</span>
+                  Indicadores e resultados
+                </h4>
+                <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  {content.metrics.map((metric: any, i: number) => (
+                    <div key={i} className="p-5 bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl border border-rose-100 text-center">
+                      <div className="text-3xl font-bold text-rose-600 mb-1">{metric.value}</div>
+                      <div className="text-sm font-medium text-gray-700">{metric.label}</div>
+                      {metric.description && (
+                        <div className="text-xs text-gray-500 mt-1">{metric.description}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Glossary - Technical terms explained */}
+            {content.glossary && content.glossary.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center text-lg">📚</span>
+                  Glossário - Termos técnicos explicados
+                </h4>
+                <div className="bg-teal-50 rounded-xl border border-teal-100 overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-teal-100">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-teal-800 w-1/4">Termo</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-teal-800">O que significa</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-teal-100">
+                      {content.glossary.map((item: any, i: number) => (
+                        <tr key={i} className="hover:bg-teal-100/50 transition-colors">
+                          <td className="px-4 py-3 font-medium text-teal-700">{item.term}</td>
+                          <td className="px-4 py-3 text-gray-700">{item.definition}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            
+            {/* Integrations Overview */}
+            {content.integrations && content.integrations.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center text-lg">🔗</span>
+                  Com quais sistemas ele se conecta?
+                </h4>
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {content.integrations.map((integration: any, i: number) => (
+                    <div key={i} className="p-4 bg-white rounded-xl border border-gray-200 hover:border-cyan-300 hover:shadow-md transition-all">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center text-xl">
+                          {integration.icon || '🔌'}
+                        </div>
+                        <h5 className="font-semibold text-gray-900">{integration.name}</h5>
+                      </div>
+                      <p className="text-sm text-gray-600">{integration.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Quick FAQ for Non-Technical Users */}
+            {content.simpleFaq && content.simpleFaq.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center text-lg">❓</span>
+                  Perguntas frequentes
+                </h4>
+                <div className="space-y-3">
+                  {content.simpleFaq.map((faq: any, i: number) => (
+                    <details key={i} className="group bg-white rounded-xl border border-gray-200 overflow-hidden">
+                      <summary className="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50 transition-colors">
+                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold text-sm group-open:bg-orange-500 group-open:text-white transition-colors">
+                          ?
+                        </div>
+                        <span className="font-medium text-gray-900">{faq.question}</span>
+                      </summary>
+                      <div className="px-4 pb-4 pt-2 ml-11 text-gray-600 border-t border-gray-100">
+                        {faq.answer}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Section>
+        )
         
       case 'overview':
         return (

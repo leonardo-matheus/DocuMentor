@@ -3,11 +3,13 @@ import {
   FileText, 
   GitBranch, 
   Sparkles, 
-  FolderOpen, 
   ArrowRight,
   Zap,
   Eye,
-  Download
+  Globe,
+  Moon,
+  Layers,
+  BookOpen
 } from 'lucide-react'
 
 export default function HomePage() {
@@ -40,63 +42,63 @@ export default function HomePage() {
               <Sparkles className="w-5 h-5" />
               Começar Agora
             </Link>
-            <Link to="/projects" className="btn btn-outline border-white/30 text-white hover:bg-white/10">
-              <FolderOpen className="w-5 h-5" />
-              Ver Projetos
+            <Link to="/publications" className="btn btn-outline border-white/30 text-white hover:bg-white/10">
+              <Globe className="w-5 h-5" />
+              Ver Publicações
             </Link>
           </div>
         </div>
       </section>
       
       {/* Features */}
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6 bg-white dark:bg-slate-900 transition-colors">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
               Como Funciona
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Conecte seus repositórios, deixe a IA analisar e gere documentação visual profissional em minutos
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
             {/* Step 1 */}
-            <div className="doc-card p-8 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center mx-auto mb-6">
-                <GitBranch className="w-8 h-8 text-blue-600" />
+            <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 p-8 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mx-auto mb-6">
+                <GitBranch className="w-8 h-8 text-blue-600 dark:text-blue-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
                 1. Conecte o Repositório
               </h3>
-              <p className="text-gray-600">
-                Cole a URL do repositório Gitea e o sistema analisa automaticamente a estrutura do projeto
+              <p className="text-gray-600 dark:text-gray-400">
+                Selecione entre os 66+ repositórios do Gitea MoveMais e adicione repositórios relacionados
               </p>
             </div>
             
             {/* Step 2 */}
-            <div className="doc-card p-8 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-purple-100 flex items-center justify-center mx-auto mb-6">
-                <Sparkles className="w-8 h-8 text-purple-600" />
+            <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 p-8 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center mx-auto mb-6">
+                <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
                 2. Gere com IA
               </h3>
-              <p className="text-gray-600">
-                Claude Opus 4.5 analisa o código e gera documentação completa seguindo o padrão MoveMais
+              <p className="text-gray-600 dark:text-gray-400">
+                Claude Opus 4.5 analisa código e README para gerar seções completas automaticamente
               </p>
             </div>
             
             {/* Step 3 */}
-            <div className="doc-card p-8 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-green-100 flex items-center justify-center mx-auto mb-6">
-                <Download className="w-8 h-8 text-green-600" />
+            <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 p-8 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/50 flex items-center justify-center mx-auto mb-6">
+                <Globe className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                3. Exporte e Compartilhe
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                3. Publique e Compartilhe
               </h3>
-              <p className="text-gray-600">
-                Exporte como HTML standalone, PDF ou Markdown para wikis e repositórios
+              <p className="text-gray-600 dark:text-gray-400">
+                Publique com um clique e compartilhe a URL pública com toda a equipe
               </p>
             </div>
           </div>
@@ -104,52 +106,72 @@ export default function HomePage() {
       </section>
       
       {/* Features Grid */}
-      <section className="py-20 px-6 bg-gray-50">
+      <section className="py-20 px-6 bg-gray-50 dark:bg-slate-950 transition-colors">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
               Recursos Poderosos
             </h2>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="flex gap-4 bg-white rounded-2xl p-6 shadow-card">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="flex gap-4 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card dark:border dark:border-slate-700">
               <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-movemais/10 flex items-center justify-center">
                 <Zap className="w-6 h-6 text-movemais" />
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">Análise Automática</h4>
-                <p className="text-gray-600 text-sm">Detecta frameworks, dependências e padrões automaticamente</p>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Análise Automática</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Detecta frameworks, dependências e padrões automaticamente</p>
               </div>
             </div>
             
-            <div className="flex gap-4 bg-white rounded-2xl p-6 shadow-card">
+            <div className="flex gap-4 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card dark:border dark:border-slate-700">
               <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Eye className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">Preview em Tempo Real</h4>
-                <p className="text-gray-600 text-sm">Visualize a documentação enquanto edita</p>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Preview em Tempo Real</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Visualize a documentação enquanto edita</p>
               </div>
             </div>
             
-            <div className="flex gap-4 bg-white rounded-2xl p-6 shadow-card">
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                <FileText className="w-6 h-6 text-amber-600" />
+            <div className="flex gap-4 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card dark:border dark:border-slate-700">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+                <Layers className="w-6 h-6 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">Componentes Visuais</h4>
-                <p className="text-gray-600 text-sm">Cards, diagramas, tabelas e fluxos prontos para usar</p>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Drag & Drop</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Reordene seções e publicações arrastando</p>
               </div>
             </div>
             
-            <div className="flex gap-4 bg-white rounded-2xl p-6 shadow-card">
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                <GitBranch className="w-6 h-6 text-purple-600" />
+            <div className="flex gap-4 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card dark:border dark:border-slate-700">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
+                <Globe className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">Integração Gitea</h4>
-                <p className="text-gray-600 text-sm">Conecte diretamente com code.movemais.com</p>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Publicações por Categoria</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Organize docs em categorias estilo apps</p>
+              </div>
+            </div>
+            
+            <div className="flex gap-4 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card dark:border dark:border-slate-700">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
+                <Moon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Modo Escuro</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Interface adaptável claro/escuro</p>
+              </div>
+            </div>
+            
+            <div className="flex gap-4 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card dark:border dark:border-slate-700">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-rose-600 dark:text-rose-400" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Seção "Sobre"</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Docs acessíveis para toda empresa (RH, Comercial...)</p>
               </div>
             </div>
           </div>
