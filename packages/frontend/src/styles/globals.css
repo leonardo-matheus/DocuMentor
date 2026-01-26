@@ -3,13 +3,15 @@
 @tailwind utilities;
 
 /* =====================================================
-   DESIGN TOKENS - MoveMais Pattern
+   DESIGN TOKENS - DocuMentor Theme
    ===================================================== */
 :root {
-  --primary: #2563eb;
-  --primary-dark: #1d4ed8;
-  --primary-light: #3b82f6;
+  /* Primary palette - softer blue */
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-light: #60a5fa;
   
+  /* Brand colors */
   --movemais: #10b981;
   --movemais-dark: #059669;
   --movemais-light: #34d399;
@@ -18,22 +20,46 @@
   --multipark-dark: #d97706;
   --multipark-light: #fbbf24;
   
+  /* Semantic colors */
   --link-color: #0ea5e9;
   --wps-color: #8b5cf6;
   --parco-color: #10b981;
   --ocr-color: #ec4899;
   --rfid-color: #06b6d4;
   
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
+  /* Light mode grays - softer, warmer tones */
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  
+  /* Background and surface colors */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+}
+
+/* Dark mode variables */
+.dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --surface: #1e293b;
+  --surface-elevated: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
 }
 
 /* =====================================================
@@ -51,9 +77,16 @@ html {
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: var(--gray-50);
-  color: var(--gray-800);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   line-height: 1.6;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Dark mode body */
+.dark body,
+body.dark {
+  background-color: var(--bg-primary);
 }
 
 /* =====================================================
@@ -69,6 +102,10 @@ body {
   border-radius: 4px;
 }
 
+.dark ::-webkit-scrollbar-track {
+  background: var(--gray-800);
+}
+
 ::-webkit-scrollbar-thumb {
   background: var(--gray-300);
   border-radius: 4px;
@@ -78,13 +115,27 @@ body {
   background: var(--gray-400);
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--gray-600);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
 /* =====================================================
    COMPONENT UTILITIES
    ===================================================== */
 @layer components {
-  /* Card Base */
+  /* Card Base - with dark mode support */
   .doc-card {
-    @apply bg-white rounded-2xl shadow-card transition-all duration-300;
+    @apply bg-slate-50 rounded-2xl shadow-card transition-all duration-300;
+    background-color: var(--surface);
+  }
+  
+  .dark .doc-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border-color);
   }
   
   .doc-card:hover {

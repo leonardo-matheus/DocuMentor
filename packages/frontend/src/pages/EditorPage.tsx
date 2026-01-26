@@ -103,8 +103,8 @@ function SortableSectionItem({ section, isSelected, onSelect, onRemove }: Sortab
       style={style}
       className={`group p-3 rounded-xl border-2 transition-all cursor-pointer ${
         isSelected
-          ? 'border-primary bg-primary/5'
-          : 'border-transparent hover:border-gray-200 bg-white'
+          ? 'border-primary bg-primary/5 dark:bg-primary/10'
+          : 'border-transparent hover:border-slate-300 dark:hover:border-slate-600 bg-slate-50 dark:bg-slate-800'
       } ${isDragging ? 'shadow-lg' : ''}`}
       onClick={onSelect}
     >
@@ -114,19 +114,19 @@ function SortableSectionItem({ section, isSelected, onSelect, onRemove }: Sortab
           <button
             {...attributes}
             {...listeners}
-            className="p-1 cursor-grab hover:bg-gray-100 rounded active:cursor-grabbing touch-none"
+            className="p-1 cursor-grab hover:bg-slate-200 dark:hover:bg-slate-700 rounded active:cursor-grabbing touch-none"
             onClick={(e) => e.stopPropagation()}
           >
-            <GripVertical className="w-4 h-4 text-gray-400" />
+            <GripVertical className="w-4 h-4 text-slate-400 dark:text-slate-500" />
           </button>
           <span className="text-lg">
             {SECTION_TYPES.find(s => s.type === section.type)?.icon || '📄'}
           </span>
-          <span className="font-medium text-sm text-gray-900">{section.title}</span>
+          <span className="font-medium text-sm text-slate-800 dark:text-slate-200">{section.title}</span>
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onRemove() }}
-          className="p-1.5 hover:bg-red-100 rounded-lg text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500 dark:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
           title="Excluir seção"
         >
           <Trash className="w-4 h-4" />
@@ -869,14 +869,14 @@ export default function EditorPage() {
               
               {/* Generation Progress Modal */}
               {generationProgress.isGenerating && (
-                <div className="mb-4 p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+                <div className="mb-4 p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-xl border border-blue-200 dark:border-blue-800">
                   <div className="flex items-center gap-2 mb-3">
                     <Zap className="w-5 h-5 text-yellow-500 animate-pulse" />
-                    <span className="font-semibold text-gray-900">Gerando Documentação</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-100">Gerando Documentação</span>
                   </div>
                   
                   {/* Progress Bar */}
-                  <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden mb-3">
+                  <div className="relative h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mb-3">
                     <div 
                       className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500 ease-out"
                       style={{ width: `${generationProgress.percent}%` }}
@@ -886,34 +886,34 @@ export default function EditorPage() {
                   
                   {/* Stats */}
                   <div className="grid grid-cols-3 gap-2 text-center mb-3">
-                    <div className="bg-white/50 rounded-lg p-2">
-                      <div className="text-lg font-bold text-blue-600">{generationProgress.percent}%</div>
-                      <div className="text-xs text-gray-500">Progresso</div>
+                    <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-2">
+                      <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{generationProgress.percent}%</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">Progresso</div>
                     </div>
-                    <div className="bg-white/50 rounded-lg p-2">
-                      <div className="text-lg font-bold text-green-600 flex items-center justify-center gap-1">
+                    <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-2">
+                      <div className="text-lg font-bold text-green-600 dark:text-green-400 flex items-center justify-center gap-1">
                         <Clock className="w-4 h-4" />
                         {formatTime(generationProgress.elapsed)}
                       </div>
-                      <div className="text-xs text-gray-500">Decorrido</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">Decorrido</div>
                     </div>
-                    <div className="bg-white/50 rounded-lg p-2">
-                      <div className="text-lg font-bold text-purple-600">
+                    <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-2">
+                      <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
                         ~{formatTime(generationProgress.estimatedRemaining)}
                       </div>
-                      <div className="text-xs text-gray-500">Restante</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">Restante</div>
                     </div>
                   </div>
                   
                   {/* Current Section */}
-                  <div className="text-sm text-gray-600 mb-2">
+                  <div className="text-sm text-slate-600 dark:text-slate-300 mb-2">
                     {generationProgress.message}
                   </div>
                   
                   {/* Completed Sections */}
                   <div className="space-y-1">
                     {generationProgress.completedSections.map((title, i) => (
-                      <div key={i} className="flex items-center gap-2 text-sm text-green-600">
+                      <div key={i} className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                         <CheckCircle2 className="w-4 h-4" />
                         <span>{title}</span>
                       </div>
@@ -960,24 +960,24 @@ export default function EditorPage() {
               <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 overflow-hidden">
                 <button
                   onClick={() => togglePanel('versions')}
-                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                  className="w-full flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 >
-                  <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                     <History className="w-4 h-4" />
                     Histórico
-                    <span className="text-xs text-gray-400 dark:text-gray-500 font-normal">({versions.length})</span>
+                    <span className="text-xs text-slate-400 dark:text-slate-500 font-normal">({versions.length})</span>
                   </h3>
                   {collapsedPanels.versions ? (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                    <ChevronDown className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                   ) : (
-                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                    <ChevronUp className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                   )}
                 </button>
                 
                 {!collapsedPanels.versions && (
-                  <div className="p-3 pt-0 border-t border-gray-100 dark:border-slate-700 max-h-[200px] overflow-y-auto">
+                  <div className="p-3 pt-0 border-t border-slate-100 dark:border-slate-700 max-h-[200px] overflow-y-auto">
                 {versions.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                  <div className="text-center py-4 text-slate-500 dark:text-slate-400">
                     <GitCommit className="w-6 h-6 mx-auto mb-1 opacity-50" />
                     <p className="text-xs">Nenhuma versão ainda</p>
                   </div>
@@ -986,15 +986,15 @@ export default function EditorPage() {
                     {versions.slice(0, 5).map((version) => (
                       <div
                         key={version.id}
-                        className="p-2 bg-gray-50 rounded-lg border border-gray-100 hover:border-primary/30 transition-all group"
+                        className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg border border-slate-100 dark:border-slate-600 hover:border-primary/30 dark:hover:border-primary/50 transition-all group"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-mono bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                              <span className="text-xs font-mono bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded">
                                 v{version.version}
                               </span>
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-slate-400 dark:text-slate-500">
                                 {new Date(version.createdAt).toLocaleDateString('pt-BR', {
                                   day: '2-digit',
                                   month: '2-digit',
@@ -1003,21 +1003,21 @@ export default function EditorPage() {
                                 })}
                               </span>
                             </div>
-                            <p className="text-sm font-medium text-gray-900 mt-1 truncate">
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200 mt-1 truncate">
                               {version.message}
                             </p>
                           </div>
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={() => handleCheckout(version.id, version.version)}
-                              className="p-1.5 hover:bg-blue-100 rounded text-blue-600"
+                              className="p-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded text-blue-600 dark:text-blue-400"
                               title="Checkout"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleRollback(version.id, version.version)}
-                              className="p-1.5 hover:bg-amber-100 rounded text-amber-600"
+                              className="p-1.5 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded text-amber-600 dark:text-amber-400"
                               title="Rollback"
                             >
                               <RotateCcw className="w-4 h-4" />
@@ -1033,12 +1033,12 @@ export default function EditorPage() {
               </div>
             
               {/* Git Sync Panel */}
-              <div className="doc-card overflow-hidden">
+              <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 overflow-hidden">
                 <button
                   onClick={() => togglePanel('sync')}
-                  className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 >
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                     <RefreshCw className="w-4 h-4" />
                     Sincronização Git
                     {syncStatus?.hasPendingChanges && (
@@ -1065,20 +1065,20 @@ export default function EditorPage() {
                       )}
                     </div>
                     {collapsedPanels.sync ? (
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                      <ChevronDown className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                     ) : (
-                      <ChevronUp className="w-4 h-4 text-gray-400" />
+                      <ChevronUp className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                     )}
                   </div>
                 </button>
                 
                 {!collapsedPanels.sync && (
-                  <div className="p-3 pt-0 border-t border-gray-100">
+                  <div className="p-3 pt-0 border-t border-slate-100 dark:border-slate-700">
               
               {/* Sync Status */}
               {syncStatus?.hasPendingChanges && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                  <div className="flex items-center gap-2 text-amber-700">
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-3 mb-4">
+                  <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
                     <AlertTriangle className="w-4 h-4" />
                     <span className="text-sm font-medium">
                       {syncStatus.pendingCommits.length} commit(s) pendente(s)
@@ -1086,13 +1086,13 @@ export default function EditorPage() {
                   </div>
                   <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
                     {syncStatus.pendingCommits.slice(0, 5).map((commit) => (
-                      <div key={commit.sha} className="text-xs text-amber-600 truncate flex items-center gap-1">
+                      <div key={commit.sha} className="text-xs text-amber-600 dark:text-amber-400 truncate flex items-center gap-1">
                         <GitCommit className="w-3 h-3 flex-shrink-0" />
                         <span className="truncate">{commit.message.split('\n')[0]}</span>
                       </div>
                     ))}
                     {syncStatus.pendingCommits.length > 5 && (
-                      <p className="text-xs text-amber-500">
+                      <p className="text-xs text-amber-500 dark:text-amber-400">
                         +{syncStatus.pendingCommits.length - 5} mais commits...
                       </p>
                     )}
@@ -1101,8 +1101,8 @@ export default function EditorPage() {
               )}
               
               {!syncStatus?.hasPendingChanges && syncStatus?.lastSync && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4">
-                  <div className="flex items-center gap-2 text-emerald-700">
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-lg p-3 mb-4">
+                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
                     <CheckCircle2 className="w-4 h-4" />
                     <span className="text-sm font-medium">Sincronizado</span>
                   </div>
@@ -1112,14 +1112,14 @@ export default function EditorPage() {
               {/* Last Sync Info */}
               {syncStatus?.lastSync ? (
                 <div className="space-y-3">
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="p-3 bg-slate-50 dark:bg-slate-700 rounded-xl border border-slate-100 dark:border-slate-600">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">
+                          <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 px-2 py-0.5 rounded">
                             {syncStatus.lastSync.version || 'v?'}
                           </span>
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-slate-400 dark:text-slate-500">
                             {new Date(syncStatus.lastSync.syncedAt).toLocaleDateString('pt-BR', {
                               day: '2-digit',
                               month: 'short',
@@ -1128,17 +1128,17 @@ export default function EditorPage() {
                             })}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-700 truncate">
+                        <p className="text-sm text-slate-700 dark:text-slate-300 truncate">
                           {syncStatus.lastSync.commitMessage.split('\n')[0]}
                         </p>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                           por {syncStatus.lastSync.commitAuthor}
                         </p>
                       </div>
                       {syncStatus.lastSync.releaseNotes && (
                         <button
                           onClick={() => setShowReleaseNotes(true)}
-                          className="p-1.5 hover:bg-gray-200 rounded text-gray-500"
+                          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-600 rounded text-slate-500 dark:text-slate-400"
                           title="Ver Release Notes"
                         >
                           <FileText className="w-4 h-4" />
@@ -1150,15 +1150,15 @@ export default function EditorPage() {
                   {/* Sync History */}
                   {syncStatus.syncHistory.length > 1 && (
                     <details className="text-xs">
-                      <summary className="cursor-pointer text-gray-500 hover:text-gray-700">
+                      <summary className="cursor-pointer text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
                         Histórico de sincronizações ({syncStatus.syncHistory.length})
                       </summary>
                       <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
                         {syncStatus.syncHistory.slice(1, 6).map((sync) => (
-                          <div key={sync.id} className="flex items-center gap-2 text-gray-500 py-1">
+                          <div key={sync.id} className="flex items-center gap-2 text-slate-500 dark:text-slate-400 py-1">
                             <GitCommit className="w-3 h-3 flex-shrink-0" />
                             <span className="truncate flex-1">{sync.commitMessage.split('\n')[0]}</span>
-                            <span className="text-gray-400 flex-shrink-0">
+                            <span className="text-slate-400 dark:text-slate-500 flex-shrink-0">
                               {new Date(sync.createdAt).toLocaleDateString('pt-BR')}
                             </span>
                           </div>

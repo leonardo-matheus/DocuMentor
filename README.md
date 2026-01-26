@@ -18,6 +18,10 @@ O **DocuMentor** é uma plataforma completa que automatiza a criação de docume
 - 💬 **Chat com IA** - Edição em tempo real via conversação
 - 📄 **Export HTML** - Páginas standalone prontas para uso
 - 💾 **Versionamento** - Armazenamento e histórico de todas as versões
+- 🌙 **Modo Escuro** - Interface adaptável com tema claro/escuro
+- 📦 **Publicações por Categoria** - Organize e compartilhe documentação
+- 🔄 **Drag & Drop** - Reordene seções e publicações facilmente
+- 🔔 **Sincronização Git** - Acompanhe commits e atualize documentação
 
 ## 🏗️ Arquitetura
 
@@ -51,6 +55,7 @@ DocuMentor/
 │   │   ├── src/
 │   │   │   ├── components/    # Componentes reutilizáveis
 │   │   │   │   └── documentation/  # Componentes de documentação
+│   │   │   ├── contexts/      # ThemeContext (dark mode)
 │   │   │   ├── pages/         # Páginas da aplicação
 │   │   │   ├── services/      # API clients (Axios)
 │   │   │   ├── types/         # TypeScript types
@@ -60,6 +65,9 @@ DocuMentor/
 │   ├── backend/               # Node.js + Express + Prisma
 │   │   ├── src/
 │   │   │   ├── routes/        # Rotas da API REST
+│   │   │   │   ├── projects.ts    # CRUD projetos
+│   │   │   │   ├── publications.ts # Sistema de publicação
+│   │   │   │   └── ai.ts          # Endpoints de IA
 │   │   │   ├── services/      # Lógica de negócio
 │   │   │   ├── integrations/  # Claude AI, Gitea
 │   │   │   └── index.ts       # Entry point
@@ -120,6 +128,7 @@ npm run dev
 |---------|-----|
 | Frontend | http://localhost:5173 |
 | Backend API | http://localhost:3001/api |
+| Publicações Públicas | http://localhost:5173/docs/:slug |
 | Health Check | http://localhost:3001/health |
 
 ## ⚙️ Configuração
@@ -183,18 +192,39 @@ npm run mcp:start
 
 O sistema gera documentação modular com os seguintes tipos de seção:
 
-| Tipo | Descrição | Tokens |
-|------|-----------|--------|
-| `hero` | Banner de abertura com logos | 8K |
-| `overview` | Visão geral do projeto | 16K |
-| `technologies` | Stack tecnológica | 16K |
-| `architecture` | Arquitetura e diagramas | 24K |
-| `integrations` | Integrações externas | 24K |
-| `endpoints` | Documentação de APIs | 32K |
-| `dataModels` | Modelos de dados | 24K |
-| `flows` | Diagramas de sequência | 24K |
-| `faq` | Perguntas frequentes | 16K |
-| `glossary` | Glossário de termos | 16K |
+| Tipo | Descrição | Ícone |
+|------|-----------|-------|
+| `hero` | Banner de abertura com logos | 🎯 |
+| `overview` | Visão geral do projeto | 📋 |
+| `about` | Sobre o sistema | 📖 |
+| `architecture` | Arquitetura e diagramas | 🏗️ |
+| `technologies` | Stack tecnológica | ⚙️ |
+| `installation` | Guia de instalação | 📦 |
+| `flow` | Fluxo / Diagramas de sequência | 🔄 |
+| `comparison` | Tabela comparativa | 📊 |
+| `faq` | Perguntas frequentes | ❓ |
+| `changelog` | Release Notes | 📝 |
+| `api` | Documentação de APIs | 🔌 |
+| `custom` | Seção personalizada | ✏️ |
+
+## 🌙 Modo Escuro
+
+O DocuMentor suporta tema claro e escuro:
+
+- **Toggle automático** via botão no navbar
+- **Persistência** em localStorage
+- **Paleta suave** sem branco/preto puros para melhor leitura
+- **Transição suave** entre temas
+
+## 📦 Sistema de Publicações
+
+Organize e compartilhe sua documentação:
+
+- **Categorias personalizáveis** com ícones e cores
+- **Drag & Drop** para reordenar publicações
+- **URLs públicas** acessíveis em `/docs/:slug`
+- **Versionamento** para cada publicação
+- **Status automático** - projeto marcado como "✅ Publicado"
 
 ## 💬 Chat com IA
 
@@ -228,6 +258,18 @@ O DocuMentor possui um chat integrado com Claude que permite:
 | PUT | `/api/projects/:id/sections/:sectionId` | Atualizar seção |
 | GET | `/api/projects/:id/export/html` | Exportar HTML |
 
+### Publicações
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/api/publications` | Listar publicações |
+| POST | `/api/publications` | Criar publicação |
+| PUT | `/api/publications/:id` | Atualizar publicação |
+| DELETE | `/api/publications/:id` | Remover publicação |
+| GET | `/api/publications/view/:slug` | Visualizar pública |
+| GET | `/api/publications/categories` | Listar categorias |
+| POST | `/api/publications/categories` | Criar categoria |
+
 ### IA
 
 | Método | Endpoint | Descrição |
@@ -245,6 +287,23 @@ O DocuMentor possui um chat integrado com Claude que permite:
 | GET | `/api/repositories/files` | Listar arquivos |
 
 ## 🧪 Desenvolvimento
+
+### Stack Frontend
+
+- **React 18** - Biblioteca de UI
+- **Vite** - Build tool
+- **TailwindCSS** - Estilização utility-first
+- **React Query** - Gerenciamento de estado servidor
+- **React Router** - Roteamento SPA
+- **dnd-kit** - Drag and Drop
+- **Lucide React** - Ícones
+
+### Stack Backend
+
+- **Node.js + Express** - Servidor HTTP
+- **Prisma** - ORM + SQLite
+- **TypeScript** - Tipagem estática
+- **Azure AI / Anthropic** - Claude AI
 
 ### Estrutura do Frontend
 
@@ -323,5 +382,5 @@ MIT License - Veja [LICENSE](LICENSE) para detalhes.
 ---
 
 <p align="center">
-  Feito com ❤️ por <a href="https://github.com/leonardo-matheus">Leonardo Matheus</a>
+  Feito com ❤️ para o time MULTIPARK
 </p>
