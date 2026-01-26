@@ -164,6 +164,34 @@ export const repositoriesApi = {
     api.get<Record<string, number>>(`/repositories/${owner}/${repo}/languages`),
   analyze: (repositoryUrl: string) => 
     api.post<RepositoryAnalysis>('/repositories/analyze', { repositoryUrl }),
+  getCommits: (owner: string, repo: string, options?: { branch?: string; limit?: number; since?: string }) =>
+    api.get<RepositoryCommit[]>(`/repositories/${owner}/${repo}/commits`, { params: options }),
+  getFixCommits: (owner: string, repo: string, limit?: number) =>
+    api.get<FixCommit[]>(`/repositories/${owner}/${repo}/fixes`, { params: { limit } }),
+}
+
+// Repository commit types
+export interface RepositoryCommit {
+  sha: string
+  message: string
+  author: string
+  authorEmail: string
+  date: string
+  url: string
+}
+
+export interface FixCommit {
+  sha: string
+  shortSha: string
+  message: string
+  title: string
+  description: string
+  problem: string
+  solution: string
+  author: string
+  date: string
+  url: string
+  category: string
 }
 
 // ===== AI API =====

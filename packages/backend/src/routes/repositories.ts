@@ -92,4 +92,40 @@ router.post('/analyze', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/repositories/:owner/:repo/commits - Get repository commits
+router.get('/:owner/:repo/commits', async (req: Request, res: Response) => {
+  try {
+    const { owner, repo } = req.params;
+    const { branch, limit, since } = req.query;
+    
+    const commits = await giteaService.getCommits(owner, repo, {
+      branch: branch as string,
+      limit: limit ? parseInt(limit as string) : undefined,
+      since: since as string
+    });
+    
+    res.json(commits);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/repositories/:owner/:repo/fixes - Get fix commits (troubleshooting)
+router.get('/:owner/:repo/fixes', async (req: Request, res: Response) => {
+  try {
+    const { owner, repo } = req.params;
+    const { limit } = req.query;
+    
+    const fixes = await giteaService.getFixCommits(
+      owner, 
+      repo, 
+      limit ? parseInt(limit as string) : undefined
+    );
+    
+    res.json(fixes);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

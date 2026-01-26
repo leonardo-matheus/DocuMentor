@@ -291,5 +291,157 @@ export const giteaService = {
       owner: match[1],
       repo: match[2]
     };
+  },
+
+  /**
+   * Get repository commits
+   */
+  async getCommits(
+    owner: string, 
+    repo: string, 
+    options?: { 
+      page?: number; 
+      limit?: number; 
+      sha?: string;
+      keyword?: string;
+    }
+  ): Promise<{
+    sha: string;
+    message: string;
+    author: { name: string; email: string; date: string };
+    committer: { name: string; email: string; date: string };
+    html_url: string;
+  }[]> {
+    try {
+      const response = await giteaClient.get(
+        `/api/v1/repos/${owner}/${repo}/commits`,
+        { 
+          params: { 
+            page: options?.page || 1, 
+            limit: options?.limit || 50,
+            sha: options?.sha,
+            keyword: options?.keyword
+          } 
+        }
+      );
+      
+      return response.data.map((commit: any) => ({
+        sha: commit.sha,
+        message: commit.commit?.message || '',
+        author: {
+          name: commit.commit?.author?.name || '',
+          email: commit.commit?.author?.email || '',
+          date: commit.commit?.author?.date || ''
+        },
+        committer: {
+          name: commit.commit?.committer?.name || '',
+          email: commit.commit?.committer?.email || '',
+          date: commit.commit?.committer?.date || ''
+        },
+        html_url: commit.html_url || ''
+      }));
+    } catch (error: any) {
+      console.error('Error getting commits:', error.message);
+      throw new Error(`Failed to get commits: ${error.message}`);
+    }
+  },
+
+  /**
+   * Get fix commits (commits with fix/bugfix/hotfix in message)
+   */
+  async getFixCommits(
+    owner: string, 
+    repo: string,
+    limit?: number
+  ): Promise<{
+    sha: string;
+    shortSha: string;
+    message: string;
+    title: string;
+    description: string;
+    problem: string;
+    solution: string;
+    author: string;
+    date: string;
+    url: string;
+    category: string;
+  }[]> {
+    try {
+      // Get all commits
+      const allCommits = await this.getCommits(owner, repo, { limit: limit || 100 });
+      
+      // Filter fix commits
+      const fixPatterns = /^(fix|bugfix|hotfix|corrige|correção|resolve|resolved|fixed|🐛|🔧|🚑|🩹)/i;
+      const fixCommits = allCommits.filter(commit => 
+        fixPatterns.test(commit.message.trim())
+      );
+      
+      // Parse commit messages to extract problem/solution
+      return fixCommits.map(commit => {
+        const lines = commit.message.split('\n');
+        const title = lines[0].replace(/^(fix|bugfix|hotfix|corrige|correção|resolve|🐛|🔧|🚑|🩹)[\s:()-]*/i, '').trim();
+        const description = lines.slice(1).join('\n').trim();
+        
+        // Try to extract problem and solution from commit message
+        let problem = '';
+        let solution = '';
+        let category = 'Correção Geral';
+        
+        // Check for conventional commit format or structured message
+        const bodyLines = description.split('\n').filter(l => l.trim());
+        
+        // Try to detect category from keywords
+        if (/entrada|entrar|ingresso/i.test(commit.message)) {
+          category = 'Entrada de Veículo';
+        } else if (/saída|sair|egresso/i.test(commit.message)) {
+          category = 'Saída de Veículo';
+        } else if (/ocr|placa|leitura/i.test(commit.message)) {
+          category = 'Leitura OCR';
+        } else if (/rfid|tag|wps/i.test(commit.message)) {
+          category = 'TAG RFID';
+        } else if (/sync|sincroni|dessincr/i.test(commit.message)) {
+          category = 'Sincronização';
+        } else if (/api|integra|endpoint/i.test(commit.message)) {
+          category = 'Integração API';
+        } else if (/banco|database|db|prisma/i.test(commit.message)) {
+          category = 'Banco de Dados';
+        } else if (/auth|login|token|permiss/i.test(commit.message)) {
+          category = 'Autenticação';
+        } else if (/ui|interface|tela|visual|css|estilo/i.test(commit.message)) {
+          category = 'Interface';
+        }
+        
+        // Try to extract problem/solution from description
+        for (const line of bodyLines) {
+          if (/^(problema|issue|bug|erro|falha)[\s:]/i.test(line)) {
+            problem = line.replace(/^(problema|issue|bug|erro|falha)[\s:]*/i, '').trim();
+          } else if (/^(solução|fix|correção|tratativa|resolved)[\s:]/i.test(line)) {
+            solution = line.replace(/^(solução|fix|correção|tratativa|resolved)[\s:]*/i, '').trim();
+          }
+        }
+        
+        // If no structured format, use title as problem and description as solution
+        if (!problem) problem = title;
+        if (!solution && description) solution = description.split('\n')[0];
+        if (!solution) solution = 'Correção aplicada no código';
+        
+        return {
+          sha: commit.sha,
+          shortSha: commit.sha.substring(0, 7),
+          message: commit.message,
+          title,
+          description,
+          problem,
+          solution,
+          author: commit.author.name,
+          date: commit.author.date,
+          url: commit.html_url,
+          category
+        };
+      });
+    } catch (error: any) {
+      console.error('Error getting fix commits:', error.message);
+      throw new Error(`Failed to get fix commits: ${error.message}`);
+    }
   }
 };
