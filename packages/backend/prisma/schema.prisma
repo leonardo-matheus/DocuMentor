@@ -25,6 +25,7 @@ model Project {
   versions      ProjectVersion[] @relation(name: "ProjectVersions")
   additionalRepos AdditionalRepository[] @relation(name: "ProjectAdditionalRepos")
   gitSyncs      GitSync[] @relation(name: "ProjectGitSyncs")
+  publications  Publication[] @relation(name: "ProjectPublications")
 }
 
 model AdditionalRepository {
@@ -126,4 +127,49 @@ model GitSync {
   
   @@index([projectId])
   @@unique([projectId, commitSha])
+}
+
+// ===== PUBLICATION SYSTEM =====
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique // ex: "Estacionamento", "Financeiro"
+  slug        String   @unique // ex: "estacionamento"
+  description String?
+  icon        String?  // Emoji ou ícone
+  color       String?  // Cor de fundo do card
+  order       Int      @default(0)
+  
+  publications Publication[] @relation(name: "CategoryPublications")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Publication {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade, name: "ProjectPublications")
+  
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], name: "CategoryPublications")
+  
+  slug        String   @unique // URL amigável: "dionisio", "hermes"
+  title       String   // Nome exibido
+  description String?  // Descrição curta
+  icon        String?  // Emoji ou ícone
+  version     String?  // Versão publicada
+  
+  content     String   // Snapshot JSON das seções no momento da publicação
+  
+  isPublic    Boolean  @default(true)
+  order       Int      @default(0) // Ordem dentro da categoria
+  
+  publishedAt DateTime @default(now())
+  publishedBy String?  // Quem publicou
+  updatedAt   DateTime @updatedAt
+  
+  @@index([projectId])
+  @@index([categoryId])
+  @@index([slug])
 }

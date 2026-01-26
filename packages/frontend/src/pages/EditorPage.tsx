@@ -5,9 +5,9 @@ import {
   Eye, Sparkles, Plus, Trash, 
   Loader2, FileText, Settings, CheckCircle2, Clock, Zap, AlertTriangle,
   GripVertical, GitCommit, RotateCcw, History, Check, X, ChevronUp, ChevronDown,
-  RefreshCw
+  RefreshCw, Globe, ExternalLink
 } from 'lucide-react'
-import { projectsApi, aiApi } from '@/services/api'
+import { projectsApi, aiApi, publicationsApi, type Category } from '@/services/api'
 import toast from 'react-hot-toast'
 import AIChat from '@/components/AIChat'
 import {
@@ -199,6 +199,31 @@ export default function EditorPage() {
   // State for syncing
   const [isSyncing, setIsSyncing] = useState(false)
   const [showReleaseNotes, setShowReleaseNotes] = useState(false)
+  
+  // State for publication
+  const [showPublishModal, setShowPublishModal] = useState(false)
+  const [publishData, setPublishData] = useState({
+    slug: '',
+    title: '',
+    description: '',
+    icon: '📄',
+    categoryId: '',
+    version: ''
+  })
+  const [isPublishing, setIsPublishing] = useState(false)
+  
+  // Fetch publication status
+  const { data: publicationStatus, refetch: refetchPublicationStatus } = useQuery({
+    queryKey: ['publicationStatus', id],
+    queryFn: () => publicationsApi.getStatus(id!).then(res => res.data),
+    enabled: !!id,
+  })
+  
+  // Fetch categories for publication
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => publicationsApi.getCategories().then(res => res.data),
+  })
   
   // State for collapsible panels
   const [collapsedPanels, setCollapsedPanels] = useState<Record<string, boolean>>({
@@ -598,6 +623,24 @@ export default function EditorPage() {
             >
               <GitCommit className="w-4 h-4" />
               Commit
+            </button>
+            <button
+              onClick={() => {
+                // Pre-fill publish data
+                setPublishData({
+                  slug: publicationStatus?.publication?.slug || project?.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '',
+                  title: publicationStatus?.publication?.title || project?.name || '',
+                  description: publicationStatus?.publication?.description || '',
+                  icon: publicationStatus?.publication?.icon || '📄',
+                  categoryId: publicationStatus?.publication?.categoryId || '',
+                  version: publicationStatus?.publication?.version || '1.0.0'
+                })
+                setShowPublishModal(true)
+              }}
+              className={`btn ${publicationStatus?.isPublished ? 'btn-secondary' : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700'}`}
+            >
+              <Globe className="w-4 h-4" />
+              {publicationStatus?.isPublished ? 'Atualizar' : 'Publicar'}
             </button>
             <button
               onClick={() => navigate(`/projects/${id}/preview`)}
@@ -1253,6 +1296,221 @@ export default function EditorPage() {
                 className="btn btn-primary"
               >
                 Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Publish Modal */}
+      {showPublishModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowPublishModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">
+                    {publicationStatus?.isPublished ? 'Atualizar Publicação' : 'Publicar Documentação'}
+                  </h3>
+                  <p className="text-white/80 text-sm">
+                    {publicationStatus?.isPublished 
+                      ? 'Atualize a documentação pública'
+                      : 'Torne a documentação acessível publicamente'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              {/* URL Slug */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  URL da Documentação
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">/docs/</span>
+                  <input
+                    type="text"
+                    value={publishData.slug}
+                    onChange={(e) => setPublishData(p => ({ ...p, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
+                    placeholder="nome-do-sistema"
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono text-sm"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  URL final: /docs/{publishData.slug || 'nome-do-sistema'}
+                </p>
+              </div>
+              
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Título
+                </label>
+                <input
+                  type="text"
+                  value={publishData.title}
+                  onChange={(e) => setPublishData(p => ({ ...p, title: e.target.value }))}
+                  placeholder="Nome do Sistema"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
+              
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Descrição Curta
+                </label>
+                <textarea
+                  value={publishData.description}
+                  onChange={(e) => setPublishData(p => ({ ...p, description: e.target.value }))}
+                  placeholder="Uma breve descrição do sistema..."
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                />
+              </div>
+              
+              {/* Icon */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ícone
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {['📄', '🚗', '💳', '📊', '🔧', '📱', '🖥️', '🗄️', '🔐', '📈', '🎯', '⚡'].map(icon => (
+                    <button
+                      key={icon}
+                      type="button"
+                      onClick={() => setPublishData(p => ({ ...p, icon }))}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-all ${
+                        publishData.icon === icon 
+                          ? 'bg-emerald-100 ring-2 ring-emerald-500' 
+                          : 'bg-gray-100 hover:bg-gray-200'
+                      }`}
+                    >
+                      {icon}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Categoria
+                </label>
+                <select
+                  value={publishData.categoryId}
+                  onChange={(e) => setPublishData(p => ({ ...p, categoryId: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                >
+                  <option value="">Sem categoria</option>
+                  {categories.map((cat: Category) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.icon} {cat.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-400 mt-1">
+                  Agrupe sistemas por categoria para facilitar a navegação
+                </p>
+              </div>
+              
+              {/* Version */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Versão
+                </label>
+                <input
+                  type="text"
+                  value={publishData.version}
+                  onChange={(e) => setPublishData(p => ({ ...p, version: e.target.value }))}
+                  placeholder="1.0.0"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono"
+                />
+              </div>
+              
+              {/* Warning for existing publication */}
+              {publicationStatus?.isPublished && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <p className="text-sm text-amber-700 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Esta documentação já está publicada. Atualizar irá substituir a versão atual.
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <div className="px-6 py-4 bg-gray-50 flex gap-3">
+              <button
+                onClick={async () => {
+                  if (!id || !publishData.slug.trim() || !publishData.title.trim()) {
+                    toast.error('Preencha o URL e o título')
+                    return
+                  }
+                  
+                  setIsPublishing(true)
+                  try {
+                    const result = await publicationsApi.publish(id, {
+                      slug: publishData.slug,
+                      title: publishData.title,
+                      description: publishData.description,
+                      icon: publishData.icon,
+                      categoryId: publishData.categoryId || undefined,
+                      version: publishData.version
+                    })
+                    
+                    toast.success(
+                      publicationStatus?.isPublished 
+                        ? 'Publicação atualizada!' 
+                        : 'Documentação publicada!'
+                    )
+                    
+                    refetchPublicationStatus()
+                    setShowPublishModal(false)
+                    
+                    // Show link to published doc
+                    toast((t) => (
+                      <div className="flex items-center gap-3">
+                        <span>Acessar:</span>
+                        <a 
+                          href={result.data.publicUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-emerald-600 font-medium underline flex items-center gap-1"
+                          onClick={() => toast.dismiss(t.id)}
+                        >
+                          {result.data.publicUrl}
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    ), { duration: 10000 })
+                    
+                  } catch (error: any) {
+                    toast.error(error.response?.data?.error || 'Erro ao publicar')
+                  } finally {
+                    setIsPublishing(false)
+                  }
+                }}
+                disabled={isPublishing || !publishData.slug.trim() || !publishData.title.trim()}
+                className="flex-1 btn bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPublishing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Globe className="w-4 h-4" />
+                )}
+                {publicationStatus?.isPublished ? 'Atualizar Publicação' : 'Publicar'}
+              </button>
+              <button
+                onClick={() => setShowPublishModal(false)}
+                className="btn btn-secondary"
+                disabled={isPublishing}
+              >
+                Cancelar
               </button>
             </div>
           </div>

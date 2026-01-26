@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { FileText, FolderOpen, Plus, Home } from 'lucide-react'
+import { FileText, FolderOpen, Plus, Home, Globe } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function Navbar() {
@@ -8,6 +8,7 @@ export default function Navbar() {
   const links = [
     { to: '/', label: 'Início', icon: Home },
     { to: '/projects', label: 'Projetos', icon: FolderOpen },
+    { to: '/publications', label: 'Publicações', icon: Globe },
     { to: '/projects/new', label: 'Novo Projeto', icon: Plus },
   ]
   

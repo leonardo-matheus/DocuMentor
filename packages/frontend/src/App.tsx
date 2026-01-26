@@ -6,6 +6,8 @@ import ProjectDetailPage from './pages/ProjectDetailPage'
 import NewProjectPage from './pages/NewProjectPage'
 import EditorPage from './pages/EditorPage'
 import PreviewPage from './pages/PreviewPage'
+import PublicationsPage from './pages/PublicationsPage'
+import PublicDocPage from './pages/PublicDocPage'
 
 const router = createBrowserRouter([
   {
@@ -18,7 +20,13 @@ const router = createBrowserRouter([
       { path: 'projects/:id', element: <ProjectDetailPage /> },
       { path: 'projects/:id/edit', element: <EditorPage /> },
       { path: 'projects/:id/preview', element: <PreviewPage /> },
+      { path: 'publications', element: <PublicationsPage /> },
     ],
+  },
+  // Public route (without Layout)
+  {
+    path: '/docs/:slug',
+    element: <PublicDocPage />,
   },
 ], {
   future: {

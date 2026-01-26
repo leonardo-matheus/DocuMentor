@@ -204,3 +204,87 @@ export const templatesApi = {
   delete: (id: string) => api.delete(`/templates/${id}`),
   getDefault: () => api.get<Template>('/templates/default'),
 }
+
+// ===== Publications API =====
+export interface Category {
+  id: string
+  name: string
+  slug: string
+  description?: string
+  icon?: string
+  color?: string
+  order: number
+  publications?: PublicationSummary[]
+  _count?: { publications: number }
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PublicationSummary {
+  id: string
+  slug: string
+  title: string
+  icon?: string
+  version?: string
+  order: number
+}
+
+export interface Publication {
+  id: string
+  projectId: string
+  categoryId?: string
+  category?: { id: string; name: string; slug: string; icon?: string; color?: string }
+  project?: { id: string; name: string; repositoryUrl: string }
+  slug: string
+  title: string
+  description?: string
+  icon?: string
+  version?: string
+  content: string // JSON string
+  isPublic: boolean
+  order: number
+  publishedAt: string
+  publishedBy?: string
+  updatedAt: string
+}
+
+export interface PublicationStatus {
+  isPublished: boolean
+  publication?: Publication
+}
+
+export const publicationsApi = {
+  // Categories
+  getCategories: () => api.get<Category[]>('/publications/categories'),
+  createCategory: (data: { name: string; description?: string; icon?: string; color?: string }) =>
+    api.post<Category>('/publications/categories', data),
+  updateCategory: (id: string, data: Partial<Category>) =>
+    api.put<Category>(`/publications/categories/${id}`, data),
+  deleteCategory: (id: string) =>
+    api.delete(`/publications/categories/${id}`),
+  reorderCategories: (categories: { id: string; order: number }[]) =>
+    api.put('/publications/categories/reorder', { categories }),
+  
+  // Publications
+  list: (categoryId?: string) =>
+    api.get<Publication[]>('/publications', { params: categoryId ? { category: categoryId } : undefined }),
+  getBySlug: (slug: string) =>
+    api.get<Publication>(`/publications/view/${slug}`),
+  getStatus: (projectId: string) =>
+    api.get<PublicationStatus>(`/publications/status/${projectId}`),
+  publish: (projectId: string, data: {
+    slug?: string
+    title?: string
+    description?: string
+    icon?: string
+    categoryId?: string
+    version?: string
+    publishedBy?: string
+  }) => api.post<{ publication: Publication; publicUrl: string }>(`/publications/publish/${projectId}`, data),
+  update: (id: string, data: Partial<Publication>) =>
+    api.put<Publication>(`/publications/${id}`, data),
+  unpublish: (id: string) =>
+    api.delete(`/publications/${id}`),
+  reorder: (publications: { id: string; order: number; categoryId?: string }[]) =>
+    api.put('/publications/reorder', { publications }),
+}
