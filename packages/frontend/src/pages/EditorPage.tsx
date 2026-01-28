@@ -57,7 +57,8 @@ const SECTION_TYPES = [
   { type: 'flow', label: 'Fluxo / Diagrama', icon: '🔄' },
   { type: 'comparison', label: 'Comparativo', icon: '📊' },
   { type: 'changelog', label: 'Release Notes', icon: '📝' },
-  { type: 'faq', label: 'FAQ / Troubleshooting', icon: '❓' },
+  { type: 'faq', label: 'FAQ', icon: '❓' },
+  { type: 'troubleshooting', label: 'Troubleshooting', icon: '🔧' },
   { type: 'api', label: 'API / Endpoints', icon: '🔌' },
   { type: 'installation', label: 'Instalação', icon: '📦' },
   { type: 'custom', label: 'Seção Personalizada', icon: '✏️' },
@@ -598,6 +599,22 @@ export default function EditorPage() {
         toast.success(`Sincronizado! ${result.data.commitsIncluded || 0} commit(s) incluído(s)`)
         if (result.data.sync?.releaseNotes) {
           setShowReleaseNotes(true)
+          
+          // Update changelog section if it exists
+          const changelogSection = sections.find(s => s.type === 'changelog')
+          if (changelogSection) {
+            const updatedContent = {
+              ...(changelogSection.content as Record<string, unknown> || {}),
+              version: result.data.sync.version,
+              date: new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+              releaseNotes: result.data.sync.releaseNotes
+            }
+            setSections(sections.map(s => 
+              s.id === changelogSection.id 
+                ? { ...s, content: updatedContent }
+                : s
+            ))
+          }
         }
       }
       
@@ -1182,6 +1199,17 @@ export default function EditorPage() {
                   }
                 }}
                 isGenerating={generateMutation.isPending}
+                onSync={handleSync}
+                isSyncing={isSyncing}
+                syncStatus={syncStatus ? {
+                  lastSync: syncStatus.lastSync ? {
+                    commitSha: syncStatus.lastSync.commitSha,
+                    commitDate: syncStatus.lastSync.commitDate,
+                    releaseNotes: syncStatus.lastSync.releaseNotes
+                  } : null,
+                  hasPendingChanges: syncStatus.hasPendingChanges,
+                  pendingCommits: syncStatus.pendingCommits
+                } : undefined}
               />
             ) : (
               <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 p-12 text-center">
@@ -1716,6 +1744,17 @@ interface SectionEditorProps {
   onUpdate: (section: DocumentSection) => void
   onGenerateWithAI: () => void
   isGenerating: boolean
+  onSync?: () => Promise<void>
+  isSyncing?: boolean
+  syncStatus?: {
+    lastSync: {
+      commitSha: string
+      commitDate: string
+      releaseNotes?: string
+    } | null
+    hasPendingChanges: boolean
+    pendingCommits: { sha: string; message: string; author: string; date: string }[]
+  }
 }
 
 // =====================================================
@@ -2888,6 +2927,246 @@ function FAQEditor({
 }
 
 // =====================================================
+// TROUBLESHOOTING EDITOR
+// =====================================================
+interface TroubleshootingProblem {
+  title: string
+  category?: string
+  causes?: {
+    description: string
+    responsible?: string
+    warning?: string
+    diagnosis?: string
+    solution?: string
+  }[]
+}
+
+interface TroubleshootingContent {
+  problems?: TroubleshootingProblem[]
+}
+
+function TroubleshootingEditor({ 
+  content, 
+  onChange 
+}: { 
+  content: TroubleshootingContent
+  onChange: (content: TroubleshootingContent) => void 
+}) {
+  const [localContent, setLocalContent] = useState<TroubleshootingContent>({
+    problems: content?.problems || [{ title: '', category: '', causes: [{ description: '', responsible: '', warning: '', diagnosis: '', solution: '' }] }]
+  })
+
+  useEffect(() => {
+    setLocalContent({
+      problems: content?.problems || [{ title: '', category: '', causes: [{ description: '', responsible: '', warning: '', diagnosis: '', solution: '' }] }]
+    })
+  }, [content])
+
+  const updateProblems = (problems: TroubleshootingProblem[]) => {
+    const updated = { ...localContent, problems }
+    setLocalContent(updated)
+    onChange(updated)
+  }
+
+  const addProblem = () => {
+    const problems = [...(localContent.problems || []), { title: '', category: '', causes: [{ description: '', responsible: '', warning: '', diagnosis: '', solution: '' }] }]
+    updateProblems(problems)
+  }
+
+  const updateProblem = (index: number, field: keyof TroubleshootingProblem, value: unknown) => {
+    const problems = [...(localContent.problems || [])]
+    problems[index] = { ...problems[index], [field]: value }
+    updateProblems(problems)
+  }
+
+  const removeProblem = (index: number) => {
+    const problems = (localContent.problems || []).filter((_, i) => i !== index)
+    updateProblems(problems.length > 0 ? problems : [{ title: '', category: '', causes: [{ description: '', responsible: '', warning: '', diagnosis: '', solution: '' }] }])
+  }
+
+  const addCause = (problemIndex: number) => {
+    const problems = [...(localContent.problems || [])]
+    const causes = [...(problems[problemIndex].causes || []), { description: '', responsible: '', warning: '', diagnosis: '', solution: '' }]
+    problems[problemIndex] = { ...problems[problemIndex], causes }
+    updateProblems(problems)
+  }
+
+  const updateCause = (problemIndex: number, causeIndex: number, field: string, value: string) => {
+    const problems = [...(localContent.problems || [])]
+    const causes = [...(problems[problemIndex].causes || [])]
+    causes[causeIndex] = { ...causes[causeIndex], [field]: value }
+    problems[problemIndex] = { ...problems[problemIndex], causes }
+    updateProblems(problems)
+  }
+
+  const removeCause = (problemIndex: number, causeIndex: number) => {
+    const problems = [...(localContent.problems || [])]
+    const causes = (problems[problemIndex].causes || []).filter((_, i) => i !== causeIndex)
+    problems[problemIndex] = { ...problems[problemIndex], causes: causes.length > 0 ? causes : [{ description: '', responsible: '', warning: '', diagnosis: '', solution: '' }] }
+    updateProblems(problems)
+  }
+
+  const categoryOptions = [
+    'Instalação/Setup',
+    'Build/Compilação', 
+    'Runtime',
+    'Conexão/Rede',
+    'Banco de Dados',
+    'Integração',
+    'Performance',
+    'Entrada',
+    'Saída',
+    'OCR',
+    'RFID',
+    'Sincronização',
+    'Interface',
+    'Hardware',
+    'Outro'
+  ]
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+          🔧 Problemas e Soluções
+        </label>
+        <button
+          type="button"
+          onClick={addProblem}
+          className="text-sm text-primary hover:text-primary-dark flex items-center gap-1 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Adicionar Problema
+        </button>
+      </div>
+      
+      <div className="space-y-6">
+        {(localContent.problems || []).map((problem, problemIndex) => (
+          <div key={problemIndex} className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800 group">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div className="flex-1 space-y-4">
+                {/* Problem Header */}
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    value={problem.title}
+                    onChange={(e) => updateProblem(problemIndex, 'title', e.target.value)}
+                    placeholder="Título do problema (ex: Totem não imprime recibo)"
+                    className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent font-semibold transition-all"
+                  />
+                  <select
+                    value={problem.category || ''}
+                    onChange={(e) => updateProblem(problemIndex, 'category', e.target.value)}
+                    className="px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm transition-all"
+                  >
+                    <option value="">Categoria...</option>
+                    {categoryOptions.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Causes */}
+                <div className="space-y-3 ml-4 border-l-2 border-red-200 dark:border-red-700 pl-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">Causas Possíveis</span>
+                    <button
+                      type="button"
+                      onClick={() => addCause(problemIndex)}
+                      className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" />
+                      Adicionar Causa
+                    </button>
+                  </div>
+                  
+                  {(problem.causes || []).map((cause, causeIndex) => (
+                    <div key={causeIndex} className="bg-white dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-600 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <span className="text-sm">💡</span>
+                        <input
+                          type="text"
+                          value={cause.description}
+                          onChange={(e) => updateCause(problemIndex, causeIndex, 'description', e.target.value)}
+                          placeholder="Descrição da causa"
+                          className="flex-1 px-2 py-1 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded text-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeCause(problemIndex, causeIndex)}
+                          className="p-1 text-gray-400 hover:text-red-500 transition-all"
+                          disabled={(problem.causes || []).length <= 1}
+                        >
+                          <Trash className="w-3 h-3" />
+                        </button>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs">🏢</span>
+                          <input
+                            type="text"
+                            value={cause.responsible || ''}
+                            onChange={(e) => updateCause(problemIndex, causeIndex, 'responsible', e.target.value)}
+                            placeholder="Responsável (TI, Cliente...)"
+                            className="flex-1 px-2 py-1 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded text-xs focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs">⚠️</span>
+                          <input
+                            type="text"
+                            value={cause.warning || ''}
+                            onChange={(e) => updateCause(problemIndex, causeIndex, 'warning', e.target.value)}
+                            placeholder="Atenção/Aviso"
+                            className="flex-1 px-2 py-1 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded text-xs focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs">🔍</span>
+                        <input
+                          type="text"
+                          value={cause.diagnosis || ''}
+                          onChange={(e) => updateCause(problemIndex, causeIndex, 'diagnosis', e.target.value)}
+                          placeholder="Como diagnosticar"
+                          className="flex-1 px-2 py-1 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded text-xs focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs">✅</span>
+                        <textarea
+                          value={cause.solution || ''}
+                          onChange={(e) => updateCause(problemIndex, causeIndex, 'solution', e.target.value)}
+                          placeholder="Solução detalhada"
+                          className="flex-1 px-2 py-1 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded text-xs focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => removeProblem(problemIndex)}
+                className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                disabled={(localContent.problems || []).length <= 1}
+              >
+                <Trash className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// =====================================================
 // INSTALLATION EDITOR
 // =====================================================
 interface InstallStep {
@@ -3347,6 +3626,255 @@ function APIEditor({
 }
 
 // =====================================================
+// CHANGELOG / RELEASE NOTES EDITOR
+// =====================================================
+interface ChangelogContent {
+  version?: string
+  date?: string
+  summary?: string
+  categories?: {
+    novidades?: string[]
+    correcoes?: string[]
+    melhorias?: string[]
+    breaking?: string[]
+  }
+  releaseNotes?: string
+}
+
+interface ChangelogEditorProps {
+  content: ChangelogContent
+  onChange: (content: ChangelogContent) => void
+  onSync?: () => Promise<void>
+  isSyncing?: boolean
+  syncStatus?: {
+    lastSync: {
+      commitSha: string
+      commitDate: string
+      releaseNotes?: string
+    } | null
+    hasPendingChanges: boolean
+    pendingCommits: { sha: string; message: string; author: string; date: string }[]
+  }
+}
+
+function ChangelogEditor({ content, onChange, onSync, isSyncing, syncStatus }: ChangelogEditorProps) {
+  const [localContent, setLocalContent] = useState<ChangelogContent>(content || {})
+  
+  useEffect(() => {
+    setLocalContent(content || {})
+  }, [content])
+
+  const updateField = (field: keyof ChangelogContent, value: unknown) => {
+    const updated = { ...localContent, [field]: value }
+    setLocalContent(updated)
+    onChange(updated)
+  }
+
+  const updateCategory = (category: keyof NonNullable<ChangelogContent['categories']>, items: string[]) => {
+    const updated = {
+      ...localContent,
+      categories: {
+        ...localContent.categories,
+        [category]: items
+      }
+    }
+    setLocalContent(updated)
+    onChange(updated)
+  }
+
+  const addItem = (category: keyof NonNullable<ChangelogContent['categories']>) => {
+    const currentItems = localContent.categories?.[category] || []
+    updateCategory(category, [...currentItems, ''])
+  }
+
+  const removeItem = (category: keyof NonNullable<ChangelogContent['categories']>, index: number) => {
+    const currentItems = localContent.categories?.[category] || []
+    updateCategory(category, currentItems.filter((_, i) => i !== index))
+  }
+
+  const updateItem = (category: keyof NonNullable<ChangelogContent['categories']>, index: number, value: string) => {
+    const currentItems = [...(localContent.categories?.[category] || [])]
+    currentItems[index] = value
+    updateCategory(category, currentItems)
+  }
+
+  const categoryLabels = {
+    novidades: { label: '✨ Novidades', color: 'emerald' },
+    correcoes: { label: '🐛 Correções', color: 'red' },
+    melhorias: { label: '🔧 Melhorias', color: 'blue' },
+    breaking: { label: '⚠️ Breaking Changes', color: 'amber' }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Sync Section */}
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-indigo-100 dark:border-indigo-800">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
+              <GitCommit className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-slate-800 dark:text-white">Sincronização Git</h4>
+              {syncStatus?.lastSync ? (
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Último sync: {new Date(syncStatus.lastSync.commitDate).toLocaleDateString('pt-BR')} • 
+                  <span className="font-mono ml-1">{syncStatus.lastSync.commitSha.slice(0, 7)}</span>
+                </p>
+              ) : (
+                <p className="text-xs text-slate-500 dark:text-slate-400">Nenhuma sincronização ainda</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {syncStatus?.hasPendingChanges && (
+              <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300 rounded-full flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+                {syncStatus.pendingCommits.length} commit(s) pendente(s)
+              </span>
+            )}
+            <button
+              onClick={onSync}
+              disabled={isSyncing}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-lg transition-all text-sm font-medium"
+            >
+              {isSyncing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Sincronizando...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4" />
+                  Sincronizar
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+        
+        {/* Pending commits preview */}
+        {syncStatus?.hasPendingChanges && syncStatus.pendingCommits.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-indigo-200 dark:border-indigo-700">
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">Commits pendentes:</p>
+            <div className="space-y-1 max-h-32 overflow-y-auto">
+              {syncStatus.pendingCommits.slice(0, 5).map((commit) => (
+                <div key={commit.sha} className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-mono text-indigo-600 dark:text-indigo-400">{commit.sha.slice(0, 7)}</span>
+                  <span className="truncate">{commit.message.split('\n')[0]}</span>
+                </div>
+              ))}
+              {syncStatus.pendingCommits.length > 5 && (
+                <p className="text-xs text-slate-400 italic">+{syncStatus.pendingCommits.length - 5} mais...</p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Version and Date */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 block">Versão</label>
+          <input
+            type="text"
+            value={localContent.version || ''}
+            onChange={(e) => updateField('version', e.target.value)}
+            placeholder="1.0.0"
+            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all dark:bg-slate-900 dark:text-slate-100"
+          />
+        </div>
+        <div>
+          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 block">Data</label>
+          <input
+            type="text"
+            value={localContent.date || ''}
+            onChange={(e) => updateField('date', e.target.value)}
+            placeholder="Janeiro 2025"
+            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all dark:bg-slate-900 dark:text-slate-100"
+          />
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div>
+        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 block">Resumo</label>
+        <textarea
+          value={localContent.summary || ''}
+          onChange={(e) => updateField('summary', e.target.value)}
+          placeholder="Breve resumo das mudanças nesta versão..."
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all dark:bg-slate-900 dark:text-slate-100"
+          rows={2}
+        />
+      </div>
+
+      {/* Categories */}
+      <div className="space-y-4">
+        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Categorias</h4>
+        
+        {(Object.keys(categoryLabels) as Array<keyof typeof categoryLabels>).map((category) => (
+          <div key={category} className="border border-slate-200 dark:border-slate-600 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-medium text-slate-700 dark:text-slate-300">
+                {categoryLabels[category].label}
+              </span>
+              <button
+                type="button"
+                onClick={() => addItem(category)}
+                className="text-xs px-3 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-lg transition-all text-slate-600 dark:text-slate-300"
+              >
+                + Adicionar
+              </button>
+            </div>
+            
+            <div className="space-y-2">
+              {(localContent.categories?.[category] || []).map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={item}
+                    onChange={(e) => updateItem(category, index, e.target.value)}
+                    placeholder={`Descreva a ${category === 'correcoes' ? 'correção' : category === 'novidades' ? 'novidade' : category === 'melhorias' ? 'melhoria' : 'mudança'}...`}
+                    className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all dark:bg-slate-900 dark:text-slate-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeItem(category, index)}
+                    className="p-2 text-slate-400 hover:text-red-500 transition-all"
+                  >
+                    <Trash className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              {(!localContent.categories?.[category] || localContent.categories[category].length === 0) && (
+                <p className="text-sm text-slate-400 italic py-2">Nenhum item ainda. Clique em "+ Adicionar" para começar.</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Raw Release Notes (Markdown) */}
+      <div>
+        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 block">
+          Release Notes (Markdown)
+        </label>
+        <textarea
+          value={localContent.releaseNotes || ''}
+          onChange={(e) => updateField('releaseNotes', e.target.value)}
+          placeholder="## v1.0.0&#10;&#10;### ✨ Novidades&#10;- Nova funcionalidade X&#10;&#10;### 🐛 Correções&#10;- Correção do bug Y"
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl font-mono text-sm focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all dark:bg-slate-900 dark:text-slate-100"
+          rows={10}
+        />
+        <p className="text-xs text-gray-400 mt-1">
+          Texto em formato Markdown. Use a sincronização com Git para preencher automaticamente.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// =====================================================
 // GENERIC SECTION EDITOR
 // =====================================================
 function GenericEditor({ 
@@ -3409,7 +3937,7 @@ function GenericEditor({
 // =====================================================
 // MAIN SECTION EDITOR
 // =====================================================
-function SectionEditor({ section, onUpdate, onGenerateWithAI, isGenerating }: SectionEditorProps) {
+function SectionEditor({ section, onUpdate, onGenerateWithAI, isGenerating, onSync, isSyncing, syncStatus }: SectionEditorProps) {
   const [title, setTitle] = useState(section.title)
   
   useEffect(() => {
@@ -3470,6 +3998,13 @@ function SectionEditor({ section, onUpdate, onGenerateWithAI, isGenerating }: Se
             onChange={handleContentChange}
           />
         )
+      case 'troubleshooting':
+        return (
+          <TroubleshootingEditor 
+            content={section.content as TroubleshootingContent} 
+            onChange={handleContentChange}
+          />
+        )
       case 'installation':
         return (
           <InstallationEditor 
@@ -3484,7 +4019,35 @@ function SectionEditor({ section, onUpdate, onGenerateWithAI, isGenerating }: Se
             onChange={handleContentChange}
           />
         )
+      case 'changelog':
+        return (
+          <ChangelogEditor 
+            content={section.content as ChangelogContent} 
+            onChange={handleContentChange}
+            onSync={onSync}
+            isSyncing={isSyncing}
+            syncStatus={syncStatus}
+          />
+        )
       default:
+        // Fallback detection based on content structure
+        const contentObj = section.content as Record<string, unknown>
+        if (contentObj?.problems && Array.isArray(contentObj.problems)) {
+          return (
+            <TroubleshootingEditor 
+              content={section.content as TroubleshootingContent} 
+              onChange={handleContentChange}
+            />
+          )
+        }
+        if (contentObj?.questions && Array.isArray(contentObj.questions)) {
+          return (
+            <FAQEditor 
+              content={section.content as FAQContent} 
+              onChange={handleContentChange}
+            />
+          )
+        }
         return (
           <GenericEditor 
             content={section.content} 

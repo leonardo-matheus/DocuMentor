@@ -19,7 +19,9 @@ const SECTION_TOKEN_LIMITS: Record<string, number> = {
   dataModels: 24576,        // 24K - database schemas
   flows: 24576,             // 24K - sequence diagrams
   faq: 16384,               // 16K - many Q&A pairs
+  troubleshooting: 24576,   // 24K - problems with multiple causes and solutions
   glossary: 16384,          // 16K - many terms
+  changelog: 16384,         // 16K - release notes with multiple versions
 };
 
 // HTTP client for Azure AI Foundry
@@ -384,6 +386,85 @@ Exemplo de resposta INCORRETA (NÃO FAÇA ISSO):
 "answer": "" <- NUNCA deixe vazio!`
   },
 
+  troubleshooting: {
+    system: `Você é um especialista em suporte técnico e resolução de problemas. Sua tarefa é criar uma seção de TROUBLESHOOTING COMPLETA para ajudar desenvolvedores e usuários a resolver problemas comuns.
+
+REGRAS OBRIGATÓRIAS:
+1. Identifique problemas REAIS que podem ocorrer no sistema
+2. Para cada problema, liste as causas possíveis com diagnóstico e solução
+3. Use o NOME REAL do projeto
+4. Baseie-se nas informações fornecidas (README, código, dependências)
+5. Inclua comandos de terminal quando relevante
+6. Crie pelo menos 5-8 problemas diferentes
+
+CATEGORIAS DE PROBLEMAS:
+- Instalação/Setup: Problemas ao instalar ou configurar
+- Build/Compilação: Erros durante build
+- Runtime: Erros durante execução
+- Conexão/Rede: Problemas de conectividade
+- Banco de Dados: Problemas com persistência
+- Integração: Problemas com serviços externos
+- Performance: Lentidão ou travamentos
+
+FORMATO DE RESPOSTA - JSON válido:
+{
+  "problems": [
+    {
+      "title": "Erro ao iniciar o servidor: EADDRINUSE",
+      "category": "Runtime",
+      "causes": [
+        {
+          "description": "Porta já está em uso por outro processo",
+          "responsible": "TI Local",
+          "warning": "Não mate processos sem verificar antes",
+          "diagnosis": "Execute 'netstat -ano | findstr :3000' para ver qual processo usa a porta",
+          "solution": "1) Mate o processo existente com 'taskkill /PID <pid> /F' ou 2) Mude a porta no .env"
+        },
+        {
+          "description": "Instância anterior do servidor ainda rodando",
+          "responsible": "Desenvolvedor",
+          "diagnosis": "Verifique se há processos node.exe em execução",
+          "solution": "Feche todas as instâncias do terminal e reinicie o servidor"
+        }
+      ]
+    }
+  ]
+}
+
+IMPORTANTE: Cada problema deve ter pelo menos 1-3 causas possíveis, cada uma com diagnóstico e solução!`,
+    userTemplate: `Crie uma seção de TROUBLESHOOTING COMPLETA para o projeto.
+
+📦 Nome do Projeto: {{projectName}}
+📝 Descrição: {{description}}
+🏗️ Tipo de Projeto: {{projectType}}
+🚀 Tecnologias/Frameworks: {{frameworks}}
+💻 Linguagens: {{languages}}
+
+📖 README COMPLETO (use como fonte principal):
+{{readme}}
+
+🔧 Variáveis de Ambiente Necessárias:
+{{envVars}}
+
+📦 Dependências:
+{{dependencies}}
+
+📦 Comandos de Build/Run:
+{{buildCommands}}
+
+📁 Estrutura do Projeto:
+{{structure}}
+
+💻 Código Fonte (trechos relevantes):
+{{sourceCode}}
+
+---
+
+GERE EXATAMENTE 5-8 PROBLEMAS COMUNS com múltiplas causas possíveis.
+Cada causa deve ter: descrição, diagnóstico e solução detalhada.
+Use o nome "{{projectName}}" onde relevante.`
+  },
+
   integrations: {
     system: `Você é um especialista em integrações. Documente as integrações REAIS do sistema.
 
@@ -549,14 +630,14 @@ REGRAS IMPORTANTES:
 1. Seja CONCISO - cada item deve ter no máximo 10-15 palavras
 2. Use verbos no passado: "Adicionado", "Corrigido", "Melhorado", "Removido"
 3. Foque no VALOR para o usuário, não em detalhes técnicos
-4. Crie 3-5 releases mostrando evolução lógica do projeto
-5. Datas devem ser realistas (últimos 6-12 meses)
+4. Versão atual deve ser realista (ex: 1.0.0, 1.2.0, 2.0.0)
+5. Data no formato YYYY-MM-DD
 6. Use versionamento semântico (major.minor.patch)
 
-CATEGORIAS:
-- features: Novas funcionalidades (começar com "Adicionado")
-- fixes: Bugs corrigidos (começar com "Corrigido")
-- improvements: Melhorias (começar com "Melhorado", "Otimizado")
+CATEGORIAS (use EXATAMENTE estes nomes):
+- novidades: Novas funcionalidades (começar com "Adicionado")
+- correcoes: Bugs corrigidos (começar com "Corrigido")
+- melhorias: Melhorias (começar com "Melhorado", "Otimizado")
 - breaking: Mudanças incompatíveis (começar com "Removido", "Alterado")
 
 EXEMPLOS DE BONS ITENS:
@@ -569,29 +650,19 @@ EXEMPLOS RUINS (EVITAR):
 ❌ "Bug fix" (muito vago)
 ❌ "Refatoração" (não comunica valor)
 
-Responda APENAS em formato JSON válido:
+Responda APENAS em formato JSON válido com esta estrutura EXATA:
 {
-  "title": "Histórico de Versões",
-  "description": "string (1 frase sobre o ciclo de releases)",
-  "currentVersion": "string (ex: 1.2.0)",
-  "releases": [{
-    "version": "string (ex: 1.2.0)",
-    "date": "string (formato: 2025-01-15)",
-    "title": "string (nome curto da release, max 5 palavras)",
-    "description": "string (1 frase resumindo a release)",
-    "categories": {
-      "features": ["string (max 15 palavras cada)"],
-      "fixes": ["string (max 15 palavras cada)"],
-      "improvements": ["string (max 15 palavras cada)"],
-      "breaking": ["string (max 15 palavras cada, apenas se houver)"]
-    }
-  }],
-  "upcoming": {
-    "planned": ["string (funcionalidades futuras, max 10 palavras)"],
-    "inProgress": ["string (em desenvolvimento, max 10 palavras)"]
+  "version": "string (ex: 1.2.0)",
+  "date": "string (formato: 2025-01-15)",
+  "summary": "string (resumo da versão atual em 1-2 frases)",
+  "categories": {
+    "novidades": ["string (max 15 palavras cada)"],
+    "correcoes": ["string (max 15 palavras cada)"],
+    "melhorias": ["string (max 15 palavras cada)"],
+    "breaking": ["string (max 15 palavras cada, pode ser array vazio)"]
   }
 }`,
-    userTemplate: `Crie o changelog/release notes para:
+    userTemplate: `Crie o release notes da versão atual para:
 
 📦 Projeto: {{projectName}}
 📝 Descrição: {{description}}
@@ -607,7 +678,7 @@ Responda APENAS em formato JSON válido:
 📦 Dependências:
 {{dependencies}}
 
-Crie um changelog profissional com 3-5 releases mostrando a evolução do projeto. Seja CONCISO e OBJETIVO.`
+Crie um release notes profissional para a versão atual do projeto. Seja CONCISO e OBJETIVO. Liste 3-5 itens por categoria.`
   },
 
   custom: {
@@ -1014,8 +1085,10 @@ Responda em formato JSON.`;
       technologies: 'Tecnologias',
       flow: 'Fluxo do Sistema',
       faq: 'Perguntas Frequentes',
+      troubleshooting: 'Troubleshooting',
       integrations: 'Integrações',
-      comparison: 'Comparativo'
+      comparison: 'Comparativo',
+      changelog: 'Release Notes'
     };
     return titles[sectionType] || sectionType;
   },

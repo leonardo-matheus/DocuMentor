@@ -16,6 +16,7 @@ const SECTION_LABELS: Record<string, string> = {
   integrations: 'Integrações',
   api: 'API / Endpoints',
   faq: 'FAQ',
+  troubleshooting: 'Troubleshooting',
   glossary: 'Glossário',
   comparison: 'Comparativo',
   installation: 'Instalação',

@@ -11,6 +11,7 @@ import {
   ComparisonTable,
   FlowDiagram,
   FAQSection,
+  TroubleshootingSection,
   SummaryCard,
   Footer,
   EndpointsSection,
@@ -1595,6 +1596,34 @@ export default function PreviewPage() {
           </Section>
         )
         
+      case 'troubleshooting':
+        return (
+          <Section
+            key={section.id}
+            id={section.id}
+            number={index}
+            title={section.title}
+            subtitle="Problemas conhecidos e soluções"
+          >
+            <TroubleshootingSection
+              items={content.problems?.map((p: any) => ({
+                id: `problem-${p.title?.slice(0, 20) || Math.random()}`,
+                problem: p.title || 'Problema',
+                icon: '⚠️',
+                causes: (p.causes || []).map((c: any, i: number) => ({
+                  id: `cause-${i}`,
+                  title: c.description || '',
+                  description: c.warning ? `⚠️ ${c.warning}` : undefined,
+                  responsible: c.responsible,
+                  warning: c.warning,
+                  diagnosis: c.diagnosis,
+                  solution: c.solution
+                }))
+              })) || []}
+            />
+          </Section>
+        )
+        
       case 'api':
         return (
           <Section
@@ -1640,19 +1669,36 @@ export default function PreviewPage() {
         )
       
       case 'changelog':
+        // Normalize content - support both old (releases[]) and new (version, categories) formats
+        const normalizedRelease = content.version 
+          ? {
+              version: content.version,
+              date: content.date,
+              description: content.summary,
+              categories: {
+                features: content.categories?.novidades || [],
+                fixes: content.categories?.correcoes || [],
+                improvements: content.categories?.melhorias || [],
+                breaking: content.categories?.breaking || []
+              }
+            }
+          : null;
+        const releases = content.releases || (normalizedRelease ? [normalizedRelease] : []);
+        const currentVersion = content.currentVersion || content.version;
+        
         return (
           <Section
             key={section.id}
             id={section.id}
             number={index}
             title={section.title}
-            subtitle={content.description || 'Histórico de versões e releases'}
+            subtitle={content.description || content.summary || 'Histórico de versões e releases'}
           >
             {/* Current Version Badge */}
-            {content.currentVersion && (
+            {currentVersion && (
               <div className="flex justify-center mb-8">
                 <span className="px-6 py-2 bg-emerald-600 text-white rounded-full font-semibold text-lg shadow-lg">
-                  Versão Atual: {content.currentVersion}
+                  Versão Atual: {currentVersion}
                 </span>
               </div>
             )}
@@ -1660,11 +1706,13 @@ export default function PreviewPage() {
             {/* Roadmap Timeline */}
             <div className="relative max-w-4xl mx-auto">
               {/* Timeline Line - mais fina e sutil */}
-              <div className="absolute left-[7px] top-4 bottom-[15rem] w-px bg-slate-600" />
+              {releases.length > 1 && (
+                <div className="absolute left-[7px] top-4 bottom-[15rem] w-px bg-slate-600" />
+              )}
               
               {/* Releases */}
               <div className="space-y-6">
-                {(content.releases || []).map((release: any, releaseIndex: number) => (
+                {releases.map((release: any, releaseIndex: number) => (
                   <div key={releaseIndex} className="relative flex gap-4 pl-6">
                     {/* Timeline Node */}
                     <div className="absolute left-0 top-2">
@@ -1708,14 +1756,14 @@ export default function PreviewPage() {
                       
                       {/* Categories - layout mais compacto */}
                       <div className="space-y-3">
-                        {/* Features */}
-                        {release.categories?.features?.length > 0 && (
+                        {/* Features / Novidades */}
+                        {(release.categories?.features?.length > 0 || release.categories?.novidades?.length > 0) && (
                           <div>
                             <h5 className="text-sm font-semibold text-emerald-400 mb-1.5 flex items-center gap-2">
                               ✨ Novidades
                             </h5>
                             <ul className="space-y-1 pl-1">
-                              {release.categories.features.map((feature: string, i: number) => (
+                              {(release.categories?.features || release.categories?.novidades || []).map((feature: string, i: number) => (
                                 <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
                                   <span className="text-emerald-500 mt-0.5">›</span>
                                   {feature}
@@ -1725,14 +1773,14 @@ export default function PreviewPage() {
                           </div>
                         )}
                         
-                        {/* Fixes */}
-                        {release.categories?.fixes?.length > 0 && (
+                        {/* Fixes / Correções */}
+                        {(release.categories?.fixes?.length > 0 || release.categories?.correcoes?.length > 0) && (
                           <div>
                             <h5 className="text-sm font-semibold text-amber-400 mb-1.5 flex items-center gap-2">
                               🐛 Correções
                             </h5>
                             <ul className="space-y-1 pl-1">
-                              {release.categories.fixes.map((fix: string, i: number) => (
+                              {(release.categories?.fixes || release.categories?.correcoes || []).map((fix: string, i: number) => (
                                 <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
                                   <span className="text-amber-500 mt-0.5">›</span>
                                   {fix}
@@ -1742,14 +1790,14 @@ export default function PreviewPage() {
                           </div>
                         )}
                         
-                        {/* Improvements */}
-                        {release.categories?.improvements?.length > 0 && (
+                        {/* Improvements / Melhorias */}
+                        {(release.categories?.improvements?.length > 0 || release.categories?.melhorias?.length > 0) && (
                           <div>
                             <h5 className="text-sm font-semibold text-sky-400 mb-1.5 flex items-center gap-2">
                               🔧 Melhorias
                             </h5>
                             <ul className="space-y-1 pl-1">
-                              {release.categories.improvements.map((improvement: string, i: number) => (
+                              {(release.categories?.improvements || release.categories?.melhorias || []).map((improvement: string, i: number) => (
                                 <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
                                   <span className="text-sky-500 mt-0.5">›</span>
                                   {improvement}
@@ -1822,6 +1870,53 @@ export default function PreviewPage() {
         )
         
       default:
+        // Fallback detection based on content structure
+        if (content?.problems && Array.isArray(content.problems)) {
+          return (
+            <Section
+              key={section.id}
+              id={section.id}
+              number={index}
+              title={section.title}
+              subtitle="Problemas conhecidos e soluções"
+            >
+              <TroubleshootingSection
+                items={content.problems.map((p: any) => ({
+                  id: `problem-${p.title?.slice(0, 20) || Math.random()}`,
+                  problem: p.title || 'Problema',
+                  icon: '⚠️',
+                  causes: (p.causes || []).map((c: any, i: number) => ({
+                    id: `cause-${i}`,
+                    title: c.description || '',
+                    description: c.warning ? `⚠️ ${c.warning}` : undefined,
+                    responsible: c.responsible,
+                    warning: c.warning,
+                    diagnosis: c.diagnosis,
+                    solution: c.solution
+                  }))
+                }))}
+              />
+            </Section>
+          )
+        }
+        if (content?.questions && Array.isArray(content.questions)) {
+          return (
+            <Section
+              key={section.id}
+              id={section.id}
+              number={index}
+              title={section.title}
+              subtitle="Perguntas frequentes"
+            >
+              <FAQSection
+                items={content.questions.map((q: any) => ({
+                  question: q.question,
+                  answer: q.answer
+                }))}
+              />
+            </Section>
+          )
+        }
         return (
           <Section
             key={section.id}
