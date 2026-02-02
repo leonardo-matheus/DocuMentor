@@ -430,8 +430,9 @@ export const giteaService = {
     );
     
     // Read important source files - be aggressive about finding API/controller files
+    // NO LIMITS - get ALL endpoints possible!
     const filesToRead = [
-      ...mainFiles.slice(0, 3),
+      ...mainFiles.slice(0, 10),
 
       // ANY file that might contain API endpoints (case-insensitive matching)
       ...structure.filter(p => {
@@ -458,7 +459,7 @@ export const giteaService = {
           // Views (Python/Django)
           lowerPath.includes('/views/')
         );
-      }).slice(0, 15),
+      }), // NO LIMIT - get all controller files
 
       // Also get any file ending with common API file patterns
       ...structure.filter(p => {
@@ -483,9 +484,9 @@ export const giteaService = {
           lowerPath === 'conf/routes' ||
           lowerPath.endsWith('/routes')
         );
-      }).slice(0, 10),
+      }), // NO LIMIT - get all API files
 
-      // Play Framework routes (conf/routes, routes2.routes, etc.)
+      // Play Framework routes (conf/routes, routes2.routes, etc.) - PRIORITY
       ...structure.filter(p => {
         const lowerPath = p.toLowerCase();
         return (
@@ -498,24 +499,38 @@ export const giteaService = {
       // Env files
       ...structure.filter(p => p.endsWith('.env.example') || p.endsWith('.env.sample')),
     ];
-    
+
     const sourceCode: Record<string, string> = {};
     // Filter out directories (paths without file extension) and get unique files
-    const uniqueFiles = [...new Set(filesToRead)]
+    // Prioritize route files first, then limit other files
+    const routeFiles = [...new Set(filesToRead)]
       .filter(f => {
-        // Must have a file extension to be a file (not a directory)
+        const lowerPath = f.toLowerCase();
+        return lowerPath.endsWith('.routes') || lowerPath === 'conf/routes' || lowerPath.endsWith('/routes');
+      });
+
+    const otherFiles = [...new Set(filesToRead)]
+      .filter(f => {
         const fileName = f.split('/').pop() || '';
-        return fileName.includes('.') && !fileName.startsWith('.');
+        const lowerPath = f.toLowerCase();
+        const isRouteFile = lowerPath.endsWith('.routes') || lowerPath === 'conf/routes' || lowerPath.endsWith('/routes');
+        return !isRouteFile && fileName.includes('.') && !fileName.startsWith('.');
       })
-      .slice(0, 20);
-    console.log(`[Gitea] Reading ${uniqueFiles.length} source files:`, uniqueFiles);
+      .slice(0, 50); // Limit other files to 50
+
+    const uniqueFiles = [...routeFiles, ...otherFiles];
+    console.log(`[Gitea] Reading ${uniqueFiles.length} source files (${routeFiles.length} route files + ${otherFiles.length} other files)`);
 
     for (const file of uniqueFiles) {
       try {
         const content = await this.getFileContent(owner, repo, file);
-        // Limit file content to 6000 chars to give AI more context for understanding endpoints
-        sourceCode[file] = content.substring(0, 6000);
-        console.log(`[Gitea] ✅ Read file: ${file} (${content.length} chars)`);
+        const lowerPath = file.toLowerCase();
+        const isRouteFile = lowerPath.endsWith('.routes') || lowerPath === 'conf/routes' || lowerPath.endsWith('/routes');
+
+        // Route files: read entire content (they contain ALL endpoints)
+        // Other files: limit to 4000 chars
+        sourceCode[file] = isRouteFile ? content : content.substring(0, 4000);
+        console.log(`[Gitea] ✅ Read file: ${file} (${content.length} chars${isRouteFile ? ' - ROUTE FILE' : ''})`);
       } catch (err: any) {
         console.log(`[Gitea] ❌ Failed to read: ${file} - ${err.message}`);
         // Skip files that can't be read
@@ -528,9 +543,9 @@ export const giteaService = {
     const projectType = this.detectProjectType(structure, languages);
     const frameworks = this.detectFrameworks(structure, sourceCode);
 
-    // Extract API routes from source code
+    // Extract API routes from source code - NO LIMITS!
     const apiRoutes = this.extractApiRoutes(sourceCode);
-    console.log(`[Gitea] Extracted ${apiRoutes.length} API routes:`, apiRoutes.slice(0, 10));
+    console.log(`[Gitea] Extracted ${apiRoutes.length} API routes total`);
     
     // Extract environment variables from .env.example
     const envVars = await this.extractEnvVars(owner, repo, structure);
@@ -830,9 +845,14 @@ export const giteaService = {
       }
     }
 
-    // Remove duplicates and limit
-    const uniqueRoutes = [...new Set(routes)].slice(0, 50);
-    console.log(`[Gitea] Extracted ${uniqueRoutes.length} routes:`, uniqueRoutes.slice(0, 10));
+    // Remove duplicates - NO LIMIT on routes!
+    const uniqueRoutes = [...new Set(routes)];
+    console.log(`[Gitea] Extracted ${uniqueRoutes.length} routes total`);
+    if (uniqueRoutes.length > 20) {
+      console.log(`[Gitea] Sample routes:`, uniqueRoutes.slice(0, 20));
+    } else {
+      console.log(`[Gitea] All routes:`, uniqueRoutes);
+    }
     return uniqueRoutes;
   },
 
