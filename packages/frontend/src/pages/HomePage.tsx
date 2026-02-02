@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom'
-import { 
-  FileText, 
-  GitBranch, 
-  Sparkles, 
+import {
+  GitBranch,
+  Sparkles,
   ArrowRight,
   Zap,
   Eye,
@@ -25,9 +24,11 @@ export default function HomePage() {
         
         <div className="relative z-10 text-center max-w-4xl mx-auto px-6 py-16">
           {/* Logo */}
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg mb-6 animate-fade-in-down">
-            <FileText className="w-10 h-10" />
-          </div>
+          <img
+            src="/assets/logo-movemais-contorno.svg"
+            alt="Move Mais"
+            className="h-20 mb-6 animate-fade-in-down"
+          />
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 animate-fade-in-up leading-tight">
             DocuMentor
