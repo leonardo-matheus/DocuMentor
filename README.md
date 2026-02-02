@@ -503,5 +503,5 @@ MIT License - Veja [LICENSE](LICENSE) para detalhes.
 ---
 
 <p align="center">
-  Feito com ❤️ para o time MULTIPARK
+  Feito com ❤️ por Leonardo Matheus
 </p>
