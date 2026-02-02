@@ -8,42 +8,84 @@
 
 ## 🎯 Visão Geral
 
-O **DocuMentor** é uma plataforma completa que automatiza a criação de documentação técnica de alta qualidade. Utilizando IA avançada (Claude via Azure AI Foundry ou API direta), o sistema analisa código fonte e gera documentação visual profissional.
+O **DocuMentor** é uma plataforma completa que automatiza a criação de documentação técnica de alta qualidade. Utilizando IA avançada (Azure OpenAI ou Anthropic Claude), o sistema analisa código fonte e gera documentação visual profissional.
 
 ### ✨ Principais Funcionalidades
 
 - 🔗 **Integração com Git** - Suporta GitHub, GitLab, Gitea e outros
-- 🤖 **IA Generativa** - Claude analisa código e gera documentação
+- 🤖 **IA Generativa** - Analisa código e gera documentação contextualizada
 - 🎨 **Templates Visuais** - Documentação profissional e customizável
 - 💬 **Chat com IA** - Edição em tempo real via conversação
 - 📄 **Export HTML** - Páginas standalone prontas para uso
 - 💾 **Versionamento** - Armazenamento e histórico de todas as versões
 - 🌙 **Modo Escuro** - Interface adaptável com tema claro/escuro
 - 📦 **Publicações por Categoria** - Organize e compartilhe documentação
-- 🔄 **Drag & Drop** - Reordene seções e publicações facilmente
-- 🔔 **Sincronização Git** - Acompanhe commits e atualize documentação
+- 🔄 **Sincronização Git** - Auto-sync com commits e release notes
+- 🔌 **API Playground** - Teste endpoints estilo Swagger UI
 
-## 🏗️ Arquitetura
+## 🏗️ Arquitetura do Sistema
 
+### Diagrama de Componentes
+
+```mermaid
+graph TB
+    subgraph Frontend["🖥️ Frontend (React + Vite)"]
+        UI[Interface do Usuário]
+        Editor[Editor de Seções]
+        Preview[Preview & Chat]
+        APIPlayground[API Playground]
+    end
+
+    subgraph Backend["⚙️ Backend (Express + Prisma)"]
+        API[REST API]
+        Services[Services Layer]
+        Scheduler[Auto-Sync Scheduler]
+    end
+
+    subgraph External["🌐 Serviços Externos"]
+        Git[Git Provider<br/>GitHub/GitLab/Gitea]
+        AI[Azure OpenAI<br/>GPT-4o]
+    end
+
+    subgraph Storage["💾 Armazenamento"]
+        DB[(SQLite Database)]
+    end
+
+    UI --> API
+    Editor --> API
+    Preview --> API
+    APIPlayground --> API
+
+    API --> Services
+    Services --> DB
+    Services --> Git
+    Services --> AI
+    Scheduler --> Services
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                          DocuMentor                                  │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  ┌────────────────┐    ┌────────────────┐    ┌────────────────┐    │
-│  │    Frontend    │◄──►│    Backend     │◄──►│   MCP Server   │    │
-│  │  React + Vite  │    │Express + Prisma│    │     Gitea      │    │
-│  │  TailwindCSS   │    │    SQLite      │    │                │    │
-│  └────────────────┘    └────────────────┘    └────────────────┘    │
-│         │                     │                      │              │
-│         │                     ▼                      ▼              │
-│         │              ┌────────────────┐    ┌────────────────┐    │
-│         │              │   Claude AI    │    │     Gitea      │    │
-│         └─────────────►│ Azure Foundry  │    │  Repositories  │    │
-│                        │  Opus 4.5      │    │                │    │
-│                        └────────────────┘    └────────────────┘    │
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
+
+### Fluxo de Dados
+
+```mermaid
+sequenceDiagram
+    participant U as Usuário
+    participant F as Frontend
+    participant B as Backend
+    participant G as Git Provider
+    participant AI as Azure OpenAI
+
+    U->>F: Seleciona repositório
+    F->>B: POST /api/repositories/analyze
+    B->>G: Busca estrutura do projeto
+    G-->>B: Arquivos e metadados
+    B->>B: Analisa controllers, routes, etc.
+    B-->>F: Dados do repositório
+
+    U->>F: Clica "Gerar com IA"
+    F->>B: POST /api/ai/generate-section
+    B->>AI: Envia código + prompt
+    AI-->>B: Documentação gerada
+    B-->>F: Conteúdo da seção
+    F-->>U: Exibe documentação
 ```
 
 ## 📁 Estrutura do Projeto
@@ -54,49 +96,80 @@ DocuMentor/
 │   ├── frontend/              # React 18 + Vite + TailwindCSS
 │   │   ├── src/
 │   │   │   ├── components/    # Componentes reutilizáveis
-│   │   │   │   └── documentation/  # Componentes de documentação
+│   │   │   │   └── documentation/  # Seções de documentação
 │   │   │   ├── contexts/      # ThemeContext (dark mode)
 │   │   │   ├── pages/         # Páginas da aplicação
 │   │   │   ├── services/      # API clients (Axios)
-│   │   │   ├── types/         # TypeScript types
-│   │   │   └── styles/        # CSS global + Tailwind
+│   │   │   └── types/         # TypeScript types
 │   │   └── ...
 │   │
 │   ├── backend/               # Node.js + Express + Prisma
 │   │   ├── src/
 │   │   │   ├── routes/        # Rotas da API REST
-│   │   │   │   ├── projects.ts    # CRUD projetos
-│   │   │   │   ├── publications.ts # Sistema de publicação
-│   │   │   │   └── ai.ts          # Endpoints de IA
 │   │   │   ├── services/      # Lógica de negócio
-│   │   │   ├── integrations/  # Claude AI, Gitea
-│   │   │   └── index.ts       # Entry point
+│   │   │   └── integrations/  # Claude AI, Gitea
 │   │   ├── prisma/
 │   │   │   └── schema.prisma  # Schema do banco
 │   │   └── ...
 │   │
 │   └── mcp-server/            # MCP Server para Gitea
-│       └── src/
-│           └── index.ts       # Tools e Resources MCP
 │
 ├── modelo-exemplo/            # Exemplo de documentação gerada
-│   ├── apresentacao-multipark-movemais.html
-│   ├── css/styles.css
-│   └── js/scripts.js
-│
-├── .env.example               # Template de variáveis de ambiente
-├── package.json               # Monorepo config
-└── README.md                  # Este arquivo
+├── .env.example               # Template de variáveis
+└── README.md
+```
+
+## 🔄 Fluxo de Geração de Documentação
+
+```mermaid
+flowchart LR
+    subgraph Input["📥 Entrada"]
+        R[Repositório Git]
+        C[Código Fonte]
+    end
+
+    subgraph Analysis["🔍 Análise"]
+        S[Estrutura]
+        D[Dependências]
+        A[APIs/Routes]
+        CT[Controllers]
+    end
+
+    subgraph Generation["🤖 Geração IA"]
+        P[Prompts<br/>Especializados]
+        AI[Azure OpenAI]
+    end
+
+    subgraph Output["📤 Saída"]
+        DOC[Documentação]
+        FLOW[Fluxos]
+        API[API Docs]
+    end
+
+    R --> S
+    C --> D
+    C --> A
+    C --> CT
+
+    S --> P
+    D --> P
+    A --> P
+    CT --> P
+
+    P --> AI
+    AI --> DOC
+    AI --> FLOW
+    AI --> API
 ```
 
 ## 🚀 Quick Start
 
 ### Pré-requisitos
 
-- **Node.js** 18+ 
+- **Node.js** 18+
 - **npm** ou **yarn**
 - Acesso a um servidor Git (GitHub, GitLab, Gitea)
-- Credenciais **Azure AI Foundry** ou **Anthropic API** (Claude)
+- Credenciais **Azure OpenAI** ou **Anthropic API**
 
 ### Instalação
 
@@ -122,7 +195,7 @@ cd ../..
 npm run dev
 ```
 
-### 🌐 Acessar a Aplicação
+### 🌐 URLs da Aplicação
 
 | Serviço | URL |
 |---------|-----|
@@ -135,18 +208,16 @@ npm run dev
 
 ### Variáveis de Ambiente
 
-Crie o arquivo `packages/backend/.env` baseado no `.env.example`:
-
 ```env
-# Git (Repositório de código) - Configure conforme seu provedor
+# Git Provider
 GITEA_URL=https://github.com
 GITEA_TOKEN=seu_token_aqui
 
-# Claude AI (Azure AI Foundry)
-AZURE_AI_ENDPOINT=https://sua-conta.services.ai.azure.com/anthropic/v1/messages
-AZURE_AI_API_KEY=sua_chave_api_aqui
-AZURE_AI_MODEL=claude-opus-4-5
-AZURE_AI_MAX_TOKENS=16384
+# Azure OpenAI
+AZURE_OPENAI_ENDPOINT=https://seu-recurso.openai.azure.com
+AZURE_OPENAI_API_KEY=sua_chave_aqui
+AZURE_OPENAI_DEPLOYMENT=o1
+AZURE_OPENAI_API_VERSION=2024-12-01-preview
 
 # Database
 DATABASE_URL=file:./prisma/documentor.db
@@ -156,93 +227,193 @@ PORT=3001
 FRONTEND_URL=http://localhost:5173
 ```
 
-### Como obter o Token
-
-**GitHub:**
-1. Acesse https://github.com/settings/tokens
-2. Clique em **Generate new token (classic)**
-3. Selecione permissões: `repo`, `read:org`
-4. Copie o token para a variável `GITEA_TOKEN`
-
-**Gitea/GitLab:**
-1. Acesse Settings → Applications → Access Tokens
-2. Crie um token com permissões de leitura
-3. Copie o token para a variável `GITEA_TOKEN`
-
-## 📜 Scripts Disponíveis
-
-```bash
-# Desenvolvimento (frontend + backend em paralelo)
-npm run dev
-
-# Apenas Frontend (porta 5173)
-npm run dev:frontend
-
-# Apenas Backend (porta 3001)
-npm run dev:backend
-
-# Build para produção
-npm run build
-
-# Iniciar MCP Server
-npm run mcp:start
-```
-
 ## 🎨 Seções de Documentação
 
-O sistema gera documentação modular com os seguintes tipos de seção:
+O sistema gera documentação modular com as seguintes seções:
 
-| Tipo | Descrição | Ícone |
-|------|-----------|-------|
-| `hero` | Banner de abertura com logos | 🎯 |
-| `overview` | Visão geral do projeto | 📋 |
-| `about` | Sobre o sistema | 📖 |
-| `architecture` | Arquitetura e diagramas | 🏗️ |
-| `technologies` | Stack tecnológica | ⚙️ |
-| `installation` | Guia de instalação | 📦 |
-| `flow` | Fluxo / Diagramas de sequência | 🔄 |
-| `comparison` | Tabela comparativa | 📊 |
-| `faq` | Perguntas frequentes | ❓ |
-| `changelog` | Release Notes | 📝 |
-| `api` | Documentação de APIs | 🔌 |
-| `custom` | Seção personalizada | ✏️ |
+```mermaid
+mindmap
+  root((DocuMentor))
+    Apresentação
+      Hero
+      Overview
+      About
+    Técnico
+      Architecture
+      Technologies
+      Installation
+    Funcional
+      Flow
+      API/Endpoints
+      Troubleshooting
+    Referência
+      FAQ
+      Changelog
+      Comparison
+```
 
-## 🌙 Modo Escuro
+| Tipo | Descrição | Geração IA |
+|------|-----------|------------|
+| `hero` | Banner de abertura | ✅ |
+| `overview` | Visão geral do projeto | ✅ |
+| `about` | Sobre o sistema | ✅ |
+| `architecture` | Arquitetura e diagramas | ✅ |
+| `technologies` | Stack tecnológica | ✅ |
+| `installation` | Guia de instalação | ✅ |
+| `flow` | Fluxos baseados no código | ✅ |
+| `api` | Documentação Swagger-like | ✅ |
+| `troubleshooting` | Problemas e soluções | ✅ |
+| `faq` | Perguntas frequentes | ✅ |
+| `changelog` | Release Notes (Git sync) | ✅ |
 
-O DocuMentor suporta tema claro e escuro:
+## 🔌 API Playground
 
-- **Toggle automático** via botão no navbar
-- **Persistência** em localStorage
-- **Paleta suave** sem branco/preto puros para melhor leitura
-- **Transição suave** entre temas
+O DocuMentor inclui um playground de APIs estilo Swagger UI:
 
-## 📦 Sistema de Publicações
+```mermaid
+stateDiagram-v2
+    [*] --> SelectEndpoint
+    SelectEndpoint --> ConfigureRequest
+    ConfigureRequest --> SetHeaders
+    ConfigureRequest --> SetParams
+    ConfigureRequest --> SetBody
+    SetHeaders --> Execute
+    SetParams --> Execute
+    SetBody --> Execute
+    Execute --> ViewResponse
+    ViewResponse --> SelectEndpoint
+```
 
-Organize e compartilhe sua documentação:
+### Funcionalidades:
+- 🎯 **Agrupamento por Tags** - Endpoints organizados por categoria
+- 📝 **Editor de Request** - Headers, Query Params, Body
+- 🔐 **Autenticação** - Suporte a Bearer Token, API Key
+- 📊 **Response Viewer** - Formatação JSON com syntax highlight
+- ⚡ **Try It Out** - Execute requests direto da documentação
 
-- **Categorias personalizáveis** com ícones e cores
-- **Drag & Drop** para reordenar publicações
-- **URLs públicas** acessíveis em `/docs/:slug`
-- **Versionamento** para cada publicação
-- **Status automático** - projeto marcado como "✅ Publicado"
+## 🔄 Sincronização Git
+
+### Auto-Sync com Release Notes
+
+```mermaid
+flowchart TD
+    subgraph Scheduler["⏰ Auto-Sync (1h)"]
+        T[Timer]
+    end
+
+    subgraph Check["🔍 Verificação"]
+        C{Novos commits?}
+    end
+
+    subgraph Update["📝 Atualização"]
+        F[Fetch commits]
+        G[Gerar changelog]
+        S[Salvar versão]
+    end
+
+    T -->|A cada hora| C
+    C -->|Sim| F
+    C -->|Não| T
+    F --> G
+    G --> S
+    S --> T
+```
+
+### Configurações de Sync:
+- **Branch selecionável** com busca/filtro
+- **Auto-sync** configurável (1h por padrão)
+- **Histórico de commits** com diff view
+- **Release notes** geradas automaticamente
+
+## 🧪 Stack Tecnológica
+
+### Frontend
+
+```mermaid
+graph LR
+    subgraph Core
+        R[React 18]
+        V[Vite]
+        TS[TypeScript]
+    end
+
+    subgraph Styling
+        TW[TailwindCSS]
+        LC[Lucide Icons]
+    end
+
+    subgraph State
+        RQ[React Query]
+        RR[React Router]
+    end
+
+    subgraph Features
+        DND[dnd-kit]
+        MD[Markdown]
+    end
+
+    R --> TW
+    R --> RQ
+    V --> R
+    TS --> R
+```
+
+### Backend
+
+```mermaid
+graph LR
+    subgraph Core
+        N[Node.js]
+        E[Express]
+        TS[TypeScript]
+    end
+
+    subgraph Database
+        P[Prisma ORM]
+        S[(SQLite)]
+    end
+
+    subgraph AI
+        AO[Azure OpenAI]
+    end
+
+    subgraph Git
+        G[Gitea Service]
+    end
+
+    E --> P
+    P --> S
+    E --> AO
+    E --> G
+```
 
 ## 💬 Chat com IA
 
-O DocuMentor possui um chat integrado com Claude que permite:
+O DocuMentor possui um chat integrado com IA:
 
-- ✏️ **Editar seções** - Peça para a IA modificar conteúdo
-- ❓ **Tirar dúvidas** - Pergunte sobre a documentação
-- 🔄 **Regenerar** - Peça para refazer uma seção
-- 📝 **Adicionar** - Solicite novos conteúdos
+```mermaid
+sequenceDiagram
+    participant U as Usuário
+    participant C as Chat
+    participant AI as Azure OpenAI
+    participant E as Editor
 
-**Exemplo de comandos:**
+    U->>C: "Melhore a seção Overview"
+    C->>AI: Contexto + Comando
+    AI-->>C: Conteúdo atualizado
+    C->>E: Atualiza seção
+    E-->>U: Preview atualizado
+```
+
+**Comandos de exemplo:**
 ```
 "Melhore a descrição da seção Overview"
 "Adicione mais 3 perguntas no FAQ sobre segurança"
 "Corrija o diagrama de arquitetura"
+"Gere fluxos baseados nos controllers"
 ```
 
-## 🔧 API Endpoints
+## 🔧 API Reference
 
 ### Projetos
 
@@ -253,10 +424,10 @@ O DocuMentor possui um chat integrado com Claude que permite:
 | POST | `/api/projects` | Criar projeto |
 | PUT | `/api/projects/:id` | Atualizar projeto |
 | DELETE | `/api/projects/:id` | Remover projeto |
-| POST | `/api/projects/:id/generate` | Gerar documentação |
-| GET | `/api/projects/:id/sections` | Listar seções |
-| PUT | `/api/projects/:id/sections/:sectionId` | Atualizar seção |
-| GET | `/api/projects/:id/export/html` | Exportar HTML |
+| GET | `/api/projects/:id/sync` | Status de sincronização |
+| POST | `/api/projects/:id/sync` | Sincronizar com Git |
+| GET | `/api/projects/:id/sync/settings` | Configurações de sync |
+| PUT | `/api/projects/:id/sync/settings` | Atualizar sync settings |
 
 ### Publicações
 
@@ -267,8 +438,6 @@ O DocuMentor possui um chat integrado com Claude que permite:
 | PUT | `/api/publications/:id` | Atualizar publicação |
 | DELETE | `/api/publications/:id` | Remover publicação |
 | GET | `/api/publications/view/:slug` | Visualizar pública |
-| GET | `/api/publications/categories` | Listar categorias |
-| POST | `/api/publications/categories` | Criar categoria |
 
 ### IA
 
@@ -277,77 +446,29 @@ O DocuMentor possui um chat integrado com Claude que permite:
 | GET | `/api/ai/status` | Status da conexão IA |
 | POST | `/api/ai/chat` | Chat simples |
 | POST | `/api/ai/chat-edit` | Chat com edição |
-| POST | `/api/ai/generate-section` | Gerar seção específica |
+| POST | `/api/ai/generate-section` | Gerar seção |
 
 ### Repositórios
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | POST | `/api/repositories/analyze` | Analisar repositório |
-| GET | `/api/repositories/files` | Listar arquivos |
-
-## 🧪 Desenvolvimento
-
-### Stack Frontend
-
-- **React 18** - Biblioteca de UI
-- **Vite** - Build tool
-- **TailwindCSS** - Estilização utility-first
-- **React Query** - Gerenciamento de estado servidor
-- **React Router** - Roteamento SPA
-- **dnd-kit** - Drag and Drop
-- **Lucide React** - Ícones
-
-### Stack Backend
-
-- **Node.js + Express** - Servidor HTTP
-- **Prisma** - ORM + SQLite
-- **TypeScript** - Tipagem estática
-- **Azure AI / Anthropic** - Claude AI
-
-### Estrutura do Frontend
-
-```
-src/
-├── components/
-│   ├── AIChat.tsx          # Chat com IA
-│   ├── Layout.tsx          # Layout principal
-│   ├── Navbar.tsx          # Navegação
-│   └── documentation/      # Componentes de doc
-│       ├── Hero.tsx
-│       ├── Section.tsx
-│       ├── FAQSection.tsx
-│       ├── FlowDiagram.tsx
-│       └── ...
-├── pages/
-│   ├── HomePage.tsx        # Página inicial
-│   ├── ProjectsPage.tsx    # Lista de projetos
-│   ├── NewProjectPage.tsx  # Criar projeto
-│   ├── EditorPage.tsx      # Editor de seções
-│   └── PreviewPage.tsx     # Preview + Chat
-└── services/
-    └── api.ts              # Cliente API
-```
-
-### Estrutura do Backend
-
-```
-src/
-├── routes/
-│   ├── projects.ts         # CRUD de projetos
-│   ├── ai.ts              # Endpoints de IA
-│   ├── repositories.ts    # Análise de repos
-│   └── templates.ts       # Templates
-├── services/
-│   ├── project.service.ts # Lógica de projetos
-│   └── gitea.service.ts   # Cliente Gitea
-├── integrations/
-│   ├── claude.ts          # Claude AI
-│   └── gitea.ts          # Gitea API
-└── index.ts               # Entry point
-```
+| GET | `/api/repositories` | Listar repositórios |
+| GET | `/api/repositories/:owner/:repo/branches` | Listar branches |
 
 ## 📝 Contribuindo
+
+```mermaid
+gitGraph
+    commit id: "main"
+    branch feature/nova-feature
+    commit id: "feat: inicio"
+    commit id: "feat: implementação"
+    commit id: "test: testes"
+    checkout main
+    merge feature/nova-feature
+    commit id: "release"
+```
 
 1. Crie uma branch: `git checkout -b feature/nova-feature`
 2. Faça suas alterações
@@ -357,19 +478,19 @@ src/
 
 ### Convenção de Commits
 
-```
-feat: nova funcionalidade
-fix: correção de bug
-docs: documentação
-style: formatação
-refactor: refatoração
-test: testes
-chore: manutenção
-```
+| Prefixo | Descrição |
+|---------|-----------|
+| `feat` | Nova funcionalidade |
+| `fix` | Correção de bug |
+| `docs` | Documentação |
+| `style` | Formatação |
+| `refactor` | Refatoração |
+| `test` | Testes |
+| `chore` | Manutenção |
 
 ## 🔐 Segurança
 
-⚠️ **IMPORTANTE**: Nunca commite arquivos `.env` com credenciais reais!
+> ⚠️ **IMPORTANTE**: Nunca commite arquivos `.env` com credenciais reais!
 
 - Use `.env.example` como template
 - Adicione credenciais apenas no `.env` local
