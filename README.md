@@ -510,5 +510,5 @@ MIT License - Veja [LICENSE](LICENSE) para detalhes.
 <p align="center">
   <img src="packages/frontend/public/assets/logo-movemais.svg" alt="Move Mais" width="120"/>
   <br/><br/>
-  Desenvolvido para <strong>Move Mais - Tagepeágio</strong>
+  Desenvolvido para <strong>Move Mais - Tag de Pedágio</strong>
 </p>
