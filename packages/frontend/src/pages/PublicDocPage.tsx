@@ -458,8 +458,8 @@ function renderSection(section: ProjectSection, index: number, _total: number) {
         >
           <div className="grid md:grid-cols-2 gap-6">
             {(content.categories || []).map((cat: any, catIdx: number) => (
-              <div key={catIdx} className="p-6 bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300">
-                <h4 className="font-bold text-lg mb-4 flex items-center gap-2">
+              <div key={catIdx} className="p-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300">
+                <h4 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
                   <span className="w-8 h-8 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm">
                     {catIdx + 1}
                   </span>
@@ -470,12 +470,12 @@ function renderSection(section: ProjectSection, index: number, _total: number) {
                     // Check if icon is a URL or emoji
                     const isUrl = tech.icon && (tech.icon.startsWith('http') || tech.icon.startsWith('/'))
                     return (
-                      <div key={i} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 group cursor-default">
-                        <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center p-2 group-hover:scale-110 transition-transform duration-300">
+                      <div key={i} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 transition-all duration-300 group cursor-default">
+                        <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-600 shadow-sm flex items-center justify-center p-2 group-hover:scale-110 transition-transform duration-300">
                           {isUrl ? (
-                            <img 
-                              src={tech.icon} 
-                              alt={tech.name} 
+                            <img
+                              src={tech.icon}
+                              alt={tech.name}
                               className="w-8 h-8 object-contain"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = 'none'
@@ -491,15 +491,15 @@ function renderSection(section: ProjectSection, index: number, _total: number) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">{tech.name}</span>
+                            <span className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors">{tech.name}</span>
                             {tech.version && (
-                              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                              <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs rounded-full font-medium">
                                 v{tech.version}
                               </span>
                             )}
                           </div>
                           {tech.description && (
-                            <p className="text-sm text-gray-600 mt-1 line-clamp-2">{tech.description}</p>
+                            <p className="text-sm text-gray-600 dark:text-slate-300 mt-1 line-clamp-2">{tech.description}</p>
                           )}
                         </div>
                       </div>
@@ -610,11 +610,24 @@ function renderSection(section: ProjectSection, index: number, _total: number) {
           id={section.id}
           number={index}
           title={section.title}
-          subtitle={content.description}
+          subtitle={content.info?.description || content.description}
         >
           <EndpointsSection
-            baseUrl={content.baseUrl}
-            endpoints={content.endpoints || []}
+            info={content.info}
+            tags={content.tags}
+            baseUrl={content.info?.baseUrl || content.baseUrl}
+            endpoints={(content.endpoints || []).map((ep: any) => ({
+              method: ep.method || 'GET',
+              path: ep.path || ep.endpoint,
+              summary: ep.summary || ep.description || '',
+              description: ep.description,
+              tag: ep.tag,
+              security: ep.security,
+              parameters: ep.parameters,
+              requestBody: ep.requestBody,
+              responses: ep.responses,
+              tags: ep.tags
+            }))}
           />
         </Section>
       )

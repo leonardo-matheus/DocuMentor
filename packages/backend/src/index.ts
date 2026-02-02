@@ -55,6 +55,39 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
+// Auto-sync scheduler (runs every hour)
+let autoSyncInterval: NodeJS.Timeout | null = null;
+
+const runAutoSync = async () => {
+  console.log('⏰ Running auto-sync check...');
+  try {
+    const response = await fetch(`http://localhost:${PORT}/api/projects/auto-sync/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const result = await response.json();
+    console.log(`✅ Auto-sync completed: ${result.checked} projects checked`);
+    if (result.results) {
+      const synced = result.results.filter((r: any) => r.synced);
+      if (synced.length > 0) {
+        console.log(`   📦 ${synced.length} projects updated`);
+      }
+    }
+  } catch (error: any) {
+    console.error('❌ Auto-sync error:', error.message);
+  }
+};
+
+const startAutoSyncScheduler = () => {
+  // Run every hour (3600000 ms)
+  const ONE_HOUR = 60 * 60 * 1000;
+  autoSyncInterval = setInterval(runAutoSync, ONE_HOUR);
+  console.log('⏰ Auto-sync scheduler started (runs every 1 hour)');
+
+  // Run first check after 1 minute to allow server to fully start
+  setTimeout(runAutoSync, 60 * 1000);
+};
+
 // Start server
 const startServer = async () => {
   try {
@@ -65,6 +98,9 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`🚀 DocuMentor Backend running on http://localhost:${PORT}`);
       console.log(`📚 API endpoints available at http://localhost:${PORT}/api`);
+
+      // Start auto-sync scheduler
+      startAutoSyncScheduler();
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
@@ -75,12 +111,14 @@ const startServer = async () => {
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('\n🛑 Shutting down gracefully...');
+  if (autoSyncInterval) clearInterval(autoSyncInterval);
   await prisma.$disconnect();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   console.log('\n🛑 Shutting down gracefully...');
+  if (autoSyncInterval) clearInterval(autoSyncInterval);
   await prisma.$disconnect();
   process.exit(0);
 });

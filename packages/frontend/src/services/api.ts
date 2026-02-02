@@ -85,10 +85,14 @@ export const projectsApi = {
   // Git Sync
   getSyncStatus: (projectId: string) =>
     api.get<GitSyncStatus>(`/projects/${projectId}/sync`),
-  sync: (projectId: string, generateReleaseNotes?: boolean) =>
-    api.post<GitSyncResult>(`/projects/${projectId}/sync`, { generateReleaseNotes }),
+  sync: (projectId: string, generateReleaseNotes?: boolean, updateChangelog?: boolean) =>
+    api.post<GitSyncResult>(`/projects/${projectId}/sync`, { generateReleaseNotes, updateChangelog }),
   getCommits: (projectId: string, limit?: number) =>
     api.get<GitCommit[]>(`/projects/${projectId}/sync/commits`, { params: { limit } }),
+  getSyncSettings: (projectId: string) =>
+    api.get<SyncSettings>(`/projects/${projectId}/sync/settings`),
+  updateSyncSettings: (projectId: string, settings: { syncBranch?: string; autoSync?: boolean }) =>
+    api.put<SyncSettings>(`/projects/${projectId}/sync/settings`, settings),
 }
 
 // Git Sync types
@@ -135,6 +139,14 @@ export interface GitSyncResult {
   sync?: GitSyncRecord
   commitsIncluded?: number
   upToDate: boolean
+  changelogUpdated?: boolean
+}
+
+export interface SyncSettings {
+  syncBranch: string
+  autoSync: boolean
+  lastAutoSync: string | null
+  branches: Branch[]
 }
 
 // Project Version type
@@ -148,13 +160,22 @@ export interface ProjectVersion {
   createdBy?: string
 }
 
+// Branch type
+export interface Branch {
+  name: string
+  commit: { sha: string; url: string }
+  protected: boolean
+}
+
 // ===== Repositories API =====
 export const repositoriesApi = {
-  list: (org?: string) => 
+  list: (org?: string) =>
     api.get<Repository[]>('/repositories', { params: { org } }),
-  get: (owner: string, repo: string) => 
+  get: (owner: string, repo: string) =>
     api.get<Repository>(`/repositories/${owner}/${repo}`),
-  getTree: (owner: string, repo: string, ref?: string) => 
+  getBranches: (owner: string, repo: string) =>
+    api.get<Branch[]>(`/repositories/${owner}/${repo}/branches`),
+  getTree: (owner: string, repo: string, ref?: string) =>
     api.get(`/repositories/${owner}/${repo}/tree`, { params: { ref } }),
   getFile: (owner: string, repo: string, path: string, ref?: string) => 
     api.get<{ content: string }>(`/repositories/${owner}/${repo}/file`, { params: { path, ref } }),

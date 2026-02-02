@@ -60,11 +60,26 @@ router.post('/generate-section', async (req: Request, res: Response) => {
     }
     
     // Generate section content
+    console.log(`[AI] Generating section: ${actualSectionType}`);
+    console.log(`[AI] Repository data keys:`, Object.keys(repositoryData));
+    console.log(`[AI] API Routes found:`, repositoryData.apiRoutes?.length || 0);
+    console.log(`[AI] Source code files:`, Object.keys(repositoryData.sourceCode || {}));
+
+    // Log source code preview for flow section
+    if (actualSectionType === 'flow') {
+      const sourceCodePreview = Object.entries(repositoryData.sourceCode || {})
+        .map(([file, code]) => `${file}: ${(code as string).substring(0, 200)}...`)
+        .join('\n');
+      console.log(`[AI] Source code preview for flow:\n${sourceCodePreview}`);
+    }
+
     const content = await claudeService.generateSection(actualSectionType, repositoryData, context);
-    
-    res.json({ 
+
+    console.log(`[AI] Generated content for ${actualSectionType}:`, JSON.stringify(content).substring(0, 500));
+
+    res.json({
       title: SECTION_LABELS[actualSectionType] || sectionType,
-      content 
+      content
     });
   } catch (error: any) {
     console.error('Error generating section:', error);

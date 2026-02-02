@@ -20,6 +20,11 @@ model Project {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  // Git sync settings
+  syncBranch    String   @default("master") // Branch to sync with
+  autoSync      Boolean  @default(false)    // Enable auto-sync every hour
+  lastAutoSync  DateTime?                   // Last auto-sync check time
+
   sectionsList  Section[] @relation(name: "ProjectSections")
   metadata      ProjectMetadata?
   versions      ProjectVersion[] @relation(name: "ProjectVersions")

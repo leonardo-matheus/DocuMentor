@@ -1,11 +1,11 @@
 ﻿import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate, useBlocker } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { 
-  Eye, Sparkles, Plus, Trash, 
+import {
+  Eye, Sparkles, Plus, Trash,
   Loader2, FileText, Settings, CheckCircle2, Clock, Zap, AlertTriangle,
-  GripVertical, GitCommit, RotateCcw, History, Check, X, ChevronUp, ChevronDown,
-  RefreshCw, Globe, ExternalLink
+  GripVertical, GitCommit, GitBranch, RotateCcw, History, Check, X, ChevronUp, ChevronDown,
+  RefreshCw, Globe, ExternalLink, Search
 } from 'lucide-react'
 import { projectsApi, aiApi, publicationsApi, type Category } from '@/services/api'
 import toast from 'react-hot-toast'
@@ -196,9 +196,39 @@ export default function EditorPage() {
     enabled: !!id,
     refetchInterval: 60000, // Refetch every minute
   })
-  
+
+  // Fetch sync settings (branches, auto-sync config)
+  const { data: syncSettings, refetch: refetchSyncSettings } = useQuery({
+    queryKey: ['syncSettings', id],
+    queryFn: () => projectsApi.getSyncSettings(id!).then(res => res.data),
+    enabled: !!id,
+  })
+
   // State for syncing
   const [isSyncing, setIsSyncing] = useState(false)
+
+  // Handle branch change
+  const handleBranchChange = async (branch: string) => {
+    try {
+      await projectsApi.updateSyncSettings(id!, { syncBranch: branch })
+      toast.success(`Branch alterada para ${branch}`)
+      refetchSyncSettings()
+      refetchSync() // Refetch sync status with new branch
+    } catch (error: any) {
+      toast.error('Erro ao alterar branch')
+    }
+  }
+
+  // Handle auto-sync toggle
+  const handleAutoSyncChange = async (enabled: boolean) => {
+    try {
+      await projectsApi.updateSyncSettings(id!, { autoSync: enabled })
+      toast.success(enabled ? 'Auto-sync ativado' : 'Auto-sync desativado')
+      refetchSyncSettings()
+    } catch (error: any) {
+      toast.error('Erro ao alterar configuração')
+    }
+  }
   const [showReleaseNotes, setShowReleaseNotes] = useState(false)
   
   // State for publication
@@ -1208,8 +1238,15 @@ export default function EditorPage() {
                     releaseNotes: syncStatus.lastSync.releaseNotes
                   } : null,
                   hasPendingChanges: syncStatus.hasPendingChanges,
-                  pendingCommits: syncStatus.pendingCommits
+                  pendingCommits: syncStatus.pendingCommits,
+                  branch: syncSettings?.syncBranch,
+                  autoSync: syncSettings?.autoSync
                 } : undefined}
+                branches={syncSettings?.branches || []}
+                selectedBranch={syncSettings?.syncBranch || 'master'}
+                autoSync={syncSettings?.autoSync || false}
+                onBranchChange={handleBranchChange}
+                onAutoSyncChange={handleAutoSyncChange}
               />
             ) : (
               <div className="doc-card dark:bg-slate-800 dark:border dark:border-slate-700 p-12 text-center">
@@ -1754,7 +1791,15 @@ interface SectionEditorProps {
     } | null
     hasPendingChanges: boolean
     pendingCommits: { sha: string; message: string; author: string; date: string }[]
+    branch?: string
+    autoSync?: boolean
   }
+  // Branch selector props
+  branches?: Array<{ name: string; commit: { sha: string } }>
+  selectedBranch?: string
+  autoSync?: boolean
+  onBranchChange?: (branch: string) => void
+  onAutoSyncChange?: (enabled: boolean) => void
 }
 
 // =====================================================
@@ -3442,35 +3487,97 @@ interface APIEndpoint {
   path: string
   summary?: string
   description?: string
-  requestBody?: string
+  tag?: string
+  security?: string[]
+  parameters?: Array<{
+    name: string
+    in: 'path' | 'query' | 'body' | 'header'
+    type: string
+    required?: boolean
+    description?: string
+    example?: any
+  }>
+  requestBody?: string | {
+    contentType?: string
+    required?: boolean
+    schema?: {
+      type: string
+      properties?: Record<string, { type: string; description?: string; format?: string; example?: any }>
+      required?: string[]
+    }
+  }
+  responses?: Array<{
+    status: number
+    description: string
+    example?: any
+  }>
   response?: string
 }
 
+interface APIInfo {
+  title?: string
+  description?: string
+  version?: string
+  baseUrl?: string
+}
+
+interface APITag {
+  name: string
+  description?: string
+}
+
 interface APIContent {
+  // Old format fields (for backward compatibility)
   baseUrl?: string
   description?: string
+  // New format fields
+  info?: APIInfo
+  tags?: APITag[]
+  securitySchemes?: Record<string, any>
   endpoints?: APIEndpoint[]
 }
 
-function APIEditor({ 
-  content, 
-  onChange 
-}: { 
+// Helper function to normalize API content (handle both old and new formats)
+function normalizeAPIContent(content: any): APIContent {
+  if (!content) {
+    return {
+      baseUrl: '',
+      description: '',
+      endpoints: [{ method: 'GET', path: '', summary: '', description: '' }]
+    }
+  }
+
+  // New format with info object
+  if (content.info) {
+    return {
+      baseUrl: content.info.baseUrl || content.baseUrl || '',
+      description: content.info.description || content.description || '',
+      info: content.info,
+      tags: content.tags || [],
+      securitySchemes: content.securitySchemes,
+      endpoints: content.endpoints || []
+    }
+  }
+
+  // Old format
+  return {
+    baseUrl: content.baseUrl || '',
+    description: content.description || '',
+    endpoints: content.endpoints || [{ method: 'GET', path: '', summary: '', description: '' }]
+  }
+}
+
+function APIEditor({
+  content,
+  onChange
+}: {
   content: APIContent
-  onChange: (content: APIContent) => void 
+  onChange: (content: APIContent) => void
 }) {
-  const [localContent, setLocalContent] = useState<APIContent>({
-    baseUrl: content?.baseUrl || '',
-    description: content?.description || '',
-    endpoints: content?.endpoints || [{ method: 'GET', path: '', summary: '', description: '', requestBody: '', response: '' }]
-  })
+  const [localContent, setLocalContent] = useState<APIContent>(() => normalizeAPIContent(content))
 
   useEffect(() => {
-    setLocalContent({
-      baseUrl: content?.baseUrl || '',
-      description: content?.description || '',
-      endpoints: content?.endpoints || [{ method: 'GET', path: '', summary: '', description: '', requestBody: '', response: '' }]
-    })
+    setLocalContent(normalizeAPIContent(content))
   }, [content])
 
   const updateField = <K extends keyof APIContent>(field: K, value: APIContent[K]) => {
@@ -3480,11 +3587,12 @@ function APIEditor({
   }
 
   const addEndpoint = () => {
-    const endpoints = [...(localContent.endpoints || []), { method: 'GET' as const, path: '', summary: '', description: '', requestBody: '', response: '' }]
+    const newEndpoint: APIEndpoint = { method: 'GET', path: '', summary: '', description: '' }
+    const endpoints = [...(localContent.endpoints || []), newEndpoint]
     updateField('endpoints', endpoints)
   }
 
-  const updateEndpoint = (index: number, field: keyof APIEndpoint, value: string) => {
+  const updateEndpoint = (index: number, field: keyof APIEndpoint, value: any) => {
     const endpoints = [...(localContent.endpoints || [])]
     endpoints[index] = { ...endpoints[index], [field]: value }
     updateField('endpoints', endpoints)
@@ -3492,7 +3600,34 @@ function APIEditor({
 
   const removeEndpoint = (index: number) => {
     const endpoints = (localContent.endpoints || []).filter((_, i) => i !== index)
-    updateField('endpoints', endpoints.length > 0 ? endpoints : [{ method: 'GET', path: '', summary: '', description: '', requestBody: '', response: '' }])
+    updateField('endpoints', endpoints.length > 0 ? endpoints : [{ method: 'GET', path: '', summary: '', description: '' }])
+  }
+
+  // Get request body as string for display
+  const getRequestBodyString = (endpoint: APIEndpoint): string => {
+    if (!endpoint.requestBody) return ''
+    if (typeof endpoint.requestBody === 'string') return endpoint.requestBody
+    // Convert schema object to example JSON
+    if (endpoint.requestBody.schema?.properties) {
+      const example: Record<string, any> = {}
+      Object.entries(endpoint.requestBody.schema.properties).forEach(([key, prop]) => {
+        example[key] = prop.example ?? `<${prop.type}>`
+      })
+      return JSON.stringify(example, null, 2)
+    }
+    return JSON.stringify(endpoint.requestBody, null, 2)
+  }
+
+  // Get responses as string for display
+  const getResponseString = (endpoint: APIEndpoint): string => {
+    if (endpoint.response) return endpoint.response
+    if (endpoint.responses && endpoint.responses.length > 0) {
+      const successResponse = endpoint.responses.find(r => r.status >= 200 && r.status < 300)
+      if (successResponse?.example) {
+        return JSON.stringify(successResponse.example, null, 2)
+      }
+    }
+    return ''
   }
 
   const METHOD_COLORS: Record<string, string> = {
@@ -3505,6 +3640,56 @@ function APIEditor({
 
   return (
     <div className="space-y-6">
+      {/* API Info Header (if available) */}
+      {localContent.info && (
+        <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-2xl">🔌</span>
+            <div>
+              <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                {localContent.info.title || 'API'}
+                {localContent.info.version && (
+                  <span className="px-2 py-0.5 bg-indigo-500 text-white text-xs rounded-full font-mono">
+                    v{localContent.info.version}
+                  </span>
+                )}
+              </h3>
+              {localContent.info.description && (
+                <p className="text-sm text-slate-600 dark:text-slate-400">{localContent.info.description}</p>
+              )}
+            </div>
+          </div>
+          {localContent.tags && localContent.tags.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap mt-3 pt-3 border-t border-indigo-200 dark:border-indigo-700">
+              <span className="text-xs text-slate-500 dark:text-slate-400">Tags:</span>
+              {localContent.tags.map((tag, i) => (
+                <span key={i} className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs rounded-full">
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Stats */}
+      {localContent.endpoints && localContent.endpoints.length > 0 && (
+        <div className="flex items-center gap-4 text-sm">
+          <span className="text-slate-500 dark:text-slate-400">
+            📊 {localContent.endpoints.length} endpoint{localContent.endpoints.length !== 1 ? 's' : ''}
+          </span>
+          {['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].map(method => {
+            const count = localContent.endpoints?.filter(e => e.method === method).length || 0
+            if (count === 0) return null
+            return (
+              <span key={method} className={`px-2 py-0.5 rounded text-xs font-bold text-white ${METHOD_COLORS[method]}`}>
+                {count} {method}
+              </span>
+            )
+          })}
+        </div>
+      )}
+
       {/* Base URL */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
@@ -3512,7 +3697,7 @@ function APIEditor({
         </label>
         <input
           type="text"
-          value={localContent.baseUrl || ''}
+          value={localContent.baseUrl || localContent.info?.baseUrl || ''}
           onChange={(e) => updateField('baseUrl', e.target.value)}
           placeholder="https://api.exemplo.com/v1"
           className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-mono text-sm"
@@ -3525,7 +3710,7 @@ function APIEditor({
           📝 Descrição da API
         </label>
         <textarea
-          value={localContent.description || ''}
+          value={localContent.description || localContent.info?.description || ''}
           onChange={(e) => updateField('description', e.target.value)}
           placeholder="Descrição geral da API e autenticação..."
           className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
@@ -3585,11 +3770,26 @@ function APIEditor({
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none transition-all"
                     rows={2}
                   />
+                  {/* Tag and Security indicators */}
+                  {(endpoint.tag || (endpoint.security && endpoint.security.length > 0)) && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {endpoint.tag && (
+                        <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs rounded-full">
+                          {endpoint.tag}
+                        </span>
+                      )}
+                      {endpoint.security && endpoint.security.length > 0 && (
+                        <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-xs rounded-full flex items-center gap-1">
+                          🔐 Auth
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="text-xs text-gray-500 mb-1 block">Request Body (JSON)</label>
                       <textarea
-                        value={endpoint.requestBody || ''}
+                        value={getRequestBodyString(endpoint)}
                         onChange={(e) => updateEndpoint(index, 'requestBody', e.target.value)}
                         placeholder='{ "name": "string" }'
                         className="w-full px-3 py-2 bg-gray-900 text-green-400 rounded-lg font-mono text-xs resize-none transition-all"
@@ -3599,7 +3799,7 @@ function APIEditor({
                     <div>
                       <label className="text-xs text-gray-500 mb-1 block">Response (JSON)</label>
                       <textarea
-                        value={endpoint.response || ''}
+                        value={getResponseString(endpoint)}
                         onChange={(e) => updateEndpoint(index, 'response', e.target.value)}
                         placeholder='{ "id": 1, "name": "John" }'
                         className="w-full px-3 py-2 bg-gray-900 text-green-400 rounded-lg font-mono text-xs resize-none transition-all"
@@ -3639,6 +3839,23 @@ interface ChangelogContent {
     breaking?: string[]
   }
   releaseNotes?: string
+  history?: Array<{
+    version: string
+    date: string
+    summary?: string
+    categories?: {
+      novidades?: string[]
+      correcoes?: string[]
+      melhorias?: string[]
+      breaking?: string[]
+    }
+    commits?: Array<{
+      sha: string
+      message: string
+      author: string
+      date: string
+    }>
+  }>
 }
 
 interface ChangelogEditorProps {
@@ -3654,11 +3871,36 @@ interface ChangelogEditorProps {
     } | null
     hasPendingChanges: boolean
     pendingCommits: { sha: string; message: string; author: string; date: string }[]
+    branch?: string
+    autoSync?: boolean
   }
+  branches?: Array<{ name: string; commit: { sha: string } }>
+  selectedBranch?: string
+  autoSync?: boolean
+  onBranchChange?: (branch: string) => void
+  onAutoSyncChange?: (enabled: boolean) => void
 }
 
-function ChangelogEditor({ content, onChange, onSync, isSyncing, syncStatus }: ChangelogEditorProps) {
+function ChangelogEditor({
+  content,
+  onChange,
+  onSync,
+  isSyncing,
+  syncStatus,
+  branches = [],
+  selectedBranch = 'master',
+  autoSync = false,
+  onBranchChange,
+  onAutoSyncChange
+}: ChangelogEditorProps) {
   const [localContent, setLocalContent] = useState<ChangelogContent>(content || {})
+  const [branchSearch, setBranchSearch] = useState('')
+  const [showBranchDropdown, setShowBranchDropdown] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+
+  const filteredBranches = branches.filter(b =>
+    b.name.toLowerCase().includes(branchSearch.toLowerCase())
+  )
   
   useEffect(() => {
     setLocalContent(content || {})
@@ -3709,7 +3951,7 @@ function ChangelogEditor({ content, onChange, onSync, isSyncing, syncStatus }: C
     <div className="space-y-6">
       {/* Sync Section */}
       <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-indigo-100 dark:border-indigo-800">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-100 dark:bg-indigo-800 rounded-lg">
               <GitCommit className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
@@ -3718,7 +3960,7 @@ function ChangelogEditor({ content, onChange, onSync, isSyncing, syncStatus }: C
               <h4 className="font-semibold text-slate-800 dark:text-white">Sincronização Git</h4>
               {syncStatus?.lastSync ? (
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Último sync: {new Date(syncStatus.lastSync.commitDate).toLocaleDateString('pt-BR')} • 
+                  Último sync: {new Date(syncStatus.lastSync.commitDate).toLocaleDateString('pt-BR')} •
                   <span className="font-mono ml-1">{syncStatus.lastSync.commitSha.slice(0, 7)}</span>
                 </p>
               ) : (
@@ -3752,7 +3994,93 @@ function ChangelogEditor({ content, onChange, onSync, isSyncing, syncStatus }: C
             </button>
           </div>
         </div>
-        
+
+        {/* Branch Selector and Auto-sync Toggle */}
+        <div className="flex items-center gap-4 py-3 border-t border-indigo-200 dark:border-indigo-700">
+          {/* Branch Selector */}
+          <div className="relative flex-1 max-w-xs">
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">Branch</label>
+            <div className="relative">
+              <button
+                onClick={() => setShowBranchDropdown(!showBranchDropdown)}
+                className="w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-700 dark:text-slate-200 hover:border-indigo-300 dark:hover:border-indigo-500 transition-all"
+              >
+                <span className="flex items-center gap-2">
+                  <GitBranch className="w-4 h-4 text-indigo-500" />
+                  {selectedBranch}
+                </span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showBranchDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showBranchDropdown && (
+                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                  <div className="p-2 border-b border-slate-200 dark:border-slate-600">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        type="text"
+                        value={branchSearch}
+                        onChange={(e) => setBranchSearch(e.target.value)}
+                        placeholder="Buscar branch..."
+                        className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-md bg-slate-50 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {filteredBranches.length > 0 ? (
+                      filteredBranches.map((branch) => (
+                        <button
+                          key={branch.name}
+                          onClick={() => {
+                            onBranchChange?.(branch.name)
+                            setShowBranchDropdown(false)
+                            setBranchSearch('')
+                          }}
+                          className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors ${
+                            branch.name === selectedBranch ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'
+                          }`}
+                        >
+                          <GitBranch className="w-4 h-4" />
+                          <span className="truncate">{branch.name}</span>
+                          {branch.name === selectedBranch && (
+                            <Check className="w-4 h-4 ml-auto" />
+                          )}
+                        </button>
+                      ))
+                    ) : (
+                      <p className="px-3 py-2 text-sm text-slate-400">Nenhuma branch encontrada</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Auto-sync Toggle */}
+          <div className="flex items-center gap-3">
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Auto-sync (1h)</label>
+            <button
+              onClick={() => onAutoSyncChange?.(!autoSync)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${
+                autoSync ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  autoSync ? 'translate-x-5' : ''
+                }`}
+              />
+            </button>
+            {autoSync && (
+              <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                Ativo
+              </span>
+            )}
+          </div>
+        </div>
+
         {/* Pending commits preview */}
         {syncStatus?.hasPendingChanges && syncStatus.pendingCommits.length > 0 && (
           <div className="mt-3 pt-3 border-t border-indigo-200 dark:border-indigo-700">
@@ -3771,6 +4099,44 @@ function ChangelogEditor({ content, onChange, onSync, isSyncing, syncStatus }: C
           </div>
         )}
       </div>
+
+      {/* Release History */}
+      {localContent.history && localContent.history.length > 0 && (
+        <div className="border border-slate-200 dark:border-slate-600 rounded-xl overflow-hidden">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            <span className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <History className="w-4 h-4" />
+              Histórico de Releases ({localContent.history.length})
+            </span>
+            <ChevronDown className={`w-4 h-4 transition-transform ${showHistory ? 'rotate-180' : ''}`} />
+          </button>
+          {showHistory && (
+            <div className="max-h-64 overflow-y-auto divide-y divide-slate-200 dark:divide-slate-600">
+              {localContent.history.map((release, idx) => (
+                <div key={idx} className="px-4 py-3 bg-white dark:bg-slate-900">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-mono text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                      v{release.version}
+                    </span>
+                    <span className="text-xs text-slate-400">{release.date}</span>
+                  </div>
+                  {release.summary && (
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mb-2">{release.summary}</p>
+                  )}
+                  {release.commits && release.commits.length > 0 && (
+                    <div className="text-xs text-slate-400">
+                      {release.commits.length} commit(s) incluído(s)
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Version and Date */}
       <div className="grid grid-cols-2 gap-4">
@@ -3937,7 +4303,20 @@ function GenericEditor({
 // =====================================================
 // MAIN SECTION EDITOR
 // =====================================================
-function SectionEditor({ section, onUpdate, onGenerateWithAI, isGenerating, onSync, isSyncing, syncStatus }: SectionEditorProps) {
+function SectionEditor({
+  section,
+  onUpdate,
+  onGenerateWithAI,
+  isGenerating,
+  onSync,
+  isSyncing,
+  syncStatus,
+  branches,
+  selectedBranch,
+  autoSync,
+  onBranchChange,
+  onAutoSyncChange
+}: SectionEditorProps) {
   const [title, setTitle] = useState(section.title)
   
   useEffect(() => {
@@ -4021,12 +4400,17 @@ function SectionEditor({ section, onUpdate, onGenerateWithAI, isGenerating, onSy
         )
       case 'changelog':
         return (
-          <ChangelogEditor 
-            content={section.content as ChangelogContent} 
+          <ChangelogEditor
+            content={section.content as ChangelogContent}
             onChange={handleContentChange}
             onSync={onSync}
             isSyncing={isSyncing}
             syncStatus={syncStatus}
+            branches={branches}
+            selectedBranch={selectedBranch}
+            autoSync={autoSync}
+            onBranchChange={onBranchChange}
+            onAutoSyncChange={onAutoSyncChange}
           />
         )
       default:

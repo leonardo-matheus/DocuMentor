@@ -25,6 +25,17 @@ router.get('/:owner/:repo', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/repositories/:owner/:repo/branches - List repository branches
+router.get('/:owner/:repo/branches', async (req: Request, res: Response) => {
+  try {
+    const { owner, repo } = req.params;
+    const branches = await giteaService.listBranches(owner, repo);
+    res.json(branches);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/repositories/:owner/:repo/tree - Get repository file tree
 router.get('/:owner/:repo/tree', async (req: Request, res: Response) => {
   try {

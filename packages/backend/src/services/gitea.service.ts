@@ -123,6 +123,30 @@ export const giteaService = {
   },
 
   /**
+   * List branches for a repository
+   */
+  async listBranches(owner: string, repo: string): Promise<Array<{
+    name: string;
+    commit: { sha: string; url: string };
+    protected: boolean;
+  }>> {
+    try {
+      const response = await giteaClient.get(`/api/v1/repos/${owner}/${repo}/branches`);
+      return response.data.map((branch: any) => ({
+        name: branch.name,
+        commit: {
+          sha: branch.commit?.id || branch.commit?.sha || '',
+          url: branch.commit?.url || ''
+        },
+        protected: branch.protected || false
+      }));
+    } catch (error: any) {
+      console.error('Error listing branches:', error.message);
+      throw new Error(`Failed to list branches: ${error.message}`);
+    }
+  },
+
+  /**
    * Get repository file tree
    */
   async getRepositoryTree(
@@ -160,27 +184,38 @@ export const giteaService = {
    * Get file content
    */
   async getFileContent(
-    owner: string, 
-    repo: string, 
-    path: string, 
+    owner: string,
+    repo: string,
+    path: string,
     ref?: string
   ): Promise<string> {
-    try {
-      const response = await giteaClient.get<FileContent>(
-        `/api/v1/repos/${owner}/${repo}/contents/${path}`,
-        { params: { ref: ref || 'main' } }
-      );
-      
-      // Decode base64 content
-      if (response.data.encoding === 'base64') {
-        return Buffer.from(response.data.content, 'base64').toString('utf-8');
+    // Try multiple branch names if ref not specified
+    const branchesToTry = ref ? [ref] : ['main', 'master', 'develop'];
+
+    for (const branch of branchesToTry) {
+      try {
+        const response = await giteaClient.get<FileContent>(
+          `/api/v1/repos/${owner}/${repo}/contents/${path}`,
+          { params: { ref: branch } }
+        );
+
+        // Decode base64 content
+        if (response.data.encoding === 'base64') {
+          return Buffer.from(response.data.content, 'base64').toString('utf-8');
+        }
+
+        return response.data.content;
+      } catch (error: any) {
+        // Try next branch
+        if (branch === branchesToTry[branchesToTry.length - 1]) {
+          // Last branch, throw error
+          console.error(`Error getting file content for ${path}:`, error.message);
+          throw new Error(`Failed to get file content: ${error.message}`);
+        }
       }
-      
-      return response.data.content;
-    } catch (error: any) {
-      console.error('Error getting file content:', error.message);
-      throw new Error(`Failed to get file content: ${error.message}`);
     }
+
+    throw new Error(`Failed to get file content from any branch`);
   },
 
   /**
@@ -332,17 +367,20 @@ export const giteaService = {
     }
     
     const [, owner, repo] = urlMatch;
-    
+
     // Get repository info
     const repoInfo = await this.getRepository(owner, repo);
-    
-    // Get tree
-    const tree = await this.getRepositoryTree(owner, repo);
+    const defaultBranch = repoInfo.default_branch || 'main';
+    console.log(`[Gitea] Repository ${owner}/${repo} default branch: ${defaultBranch}`);
+
+    // Get tree using default branch
+    const tree = await this.getRepositoryTree(owner, repo, defaultBranch);
     const structure = tree.map(entry => entry.path);
-    
+    console.log(`[Gitea] Found ${structure.length} files/folders in tree`);
+
     // Get languages
     const languages = await this.getLanguages(owner, repo);
-    
+
     // Get README
     const readme = await this.getReadme(owner, repo);
     
@@ -391,31 +429,93 @@ export const giteaService = {
       mainFilePatterns.some(pattern => pattern.test(path))
     );
     
-    // Read important source files (limit to avoid too much data)
+    // Read important source files - be aggressive about finding API/controller files
     const filesToRead = [
       ...mainFiles.slice(0, 3),
-      ...structure.filter(p => p.includes('/routes/') || p.includes('/controllers/')).slice(0, 5),
-      ...structure.filter(p => p.includes('/services/') || p.includes('/api/')).slice(0, 3),
+
+      // ANY file that might contain API endpoints (case-insensitive matching)
+      ...structure.filter(p => {
+        const lowerPath = p.toLowerCase();
+        return (
+          // Controllers (any pattern)
+          lowerPath.includes('controller') ||
+          // Routes
+          lowerPath.includes('/routes/') ||
+          lowerPath.includes('/route/') ||
+          // REST/API
+          lowerPath.includes('/rest/') ||
+          lowerPath.includes('/api/') ||
+          lowerPath.includes('/endpoint') ||
+          // Resources (JAX-RS style)
+          lowerPath.includes('/resource/') ||
+          lowerPath.includes('/resources/') ||
+          // Web layer
+          lowerPath.includes('/web/') ||
+          lowerPath.includes('/presentation/') ||
+          // Handlers
+          lowerPath.includes('/handler/') ||
+          lowerPath.includes('/handlers/') ||
+          // Views (Python/Django)
+          lowerPath.includes('/views/')
+        );
+      }).slice(0, 15),
+
+      // Also get any file ending with common API file patterns
+      ...structure.filter(p => {
+        const fileName = p.split('/').pop()?.toLowerCase() || '';
+        return (
+          fileName.endsWith('controller.java') ||
+          fileName.endsWith('controller.ts') ||
+          fileName.endsWith('controller.js') ||
+          fileName.endsWith('controller.cs') ||
+          fileName.endsWith('resource.java') ||
+          fileName.endsWith('routes.ts') ||
+          fileName.endsWith('routes.js') ||
+          fileName.endsWith('router.ts') ||
+          fileName.endsWith('router.js') ||
+          fileName.endsWith('api.ts') ||
+          fileName.endsWith('api.js') ||
+          fileName.endsWith('endpoints.ts') ||
+          fileName.endsWith('endpoints.js')
+        );
+      }).slice(0, 10),
+
+      // Env files
       ...structure.filter(p => p.endsWith('.env.example') || p.endsWith('.env.sample')),
     ];
     
     const sourceCode: Record<string, string> = {};
-    for (const file of filesToRead.slice(0, 10)) {
+    // Filter out directories (paths without file extension) and get unique files
+    const uniqueFiles = [...new Set(filesToRead)]
+      .filter(f => {
+        // Must have a file extension to be a file (not a directory)
+        const fileName = f.split('/').pop() || '';
+        return fileName.includes('.') && !fileName.startsWith('.');
+      })
+      .slice(0, 20);
+    console.log(`[Gitea] Reading ${uniqueFiles.length} source files:`, uniqueFiles);
+
+    for (const file of uniqueFiles) {
       try {
         const content = await this.getFileContent(owner, repo, file);
-        // Limit file content to first 2000 chars to save tokens
-        sourceCode[file] = content.substring(0, 2000);
-      } catch {
+        // Limit file content to 6000 chars to give AI more context for understanding endpoints
+        sourceCode[file] = content.substring(0, 6000);
+        console.log(`[Gitea] ✅ Read file: ${file} (${content.length} chars)`);
+      } catch (err: any) {
+        console.log(`[Gitea] ❌ Failed to read: ${file} - ${err.message}`);
         // Skip files that can't be read
       }
     }
-    
+
+    console.log(`[Gitea] Successfully read ${Object.keys(sourceCode).length} of ${uniqueFiles.length} files`);
+
     // Detect project type and frameworks
     const projectType = this.detectProjectType(structure, languages);
     const frameworks = this.detectFrameworks(structure, sourceCode);
-    
+
     // Extract API routes from source code
     const apiRoutes = this.extractApiRoutes(sourceCode);
+    console.log(`[Gitea] Extracted ${apiRoutes.length} API routes:`, apiRoutes.slice(0, 10));
     
     // Extract environment variables from .env.example
     const envVars = await this.extractEnvVars(owner, repo, structure);
@@ -583,32 +683,110 @@ export const giteaService = {
 
   /**
    * Extract API routes from source code
+   * This extracts what it can, but the AI will analyze the full source code for complete understanding
    */
   extractApiRoutes(sourceCode: Record<string, string>): string[] {
     const routes: string[] = [];
-    const routePatterns = [
-      // Express.js patterns
-      /\.(get|post|put|patch|delete)\s*\(\s*['"`]([^'"`]+)['"`]/gi,
-      // Decorators (NestJS, Spring, etc.)
-      /@(Get|Post|Put|Patch|Delete|RequestMapping)\s*\(\s*['"`]?([^'"`)\s]+)['"`]?\s*\)/gi,
-      // FastAPI/Flask patterns
-      /@(app|router)\.(get|post|put|patch|delete)\s*\(\s*['"`]([^'"`]+)['"`]/gi,
-    ];
-    
+    const basePaths: Record<string, string> = {}; // Track base paths per file
+
     for (const [file, code] of Object.entries(sourceCode)) {
-      for (const pattern of routePatterns) {
-        let match;
+      // First, find class-level base paths
+      // Spring: @RequestMapping on class
+      const classBaseMatch = code.match(/@RequestMapping\s*\(\s*(?:(?:value|path)\s*=\s*)?["']([^"']+)["']/i);
+      if (classBaseMatch) {
+        basePaths[file] = classBaseMatch[1];
+      }
+
+      // Express.js patterns: router.get('/path', ...) or app.post('/path', ...)
+      const expressPattern = /\.(get|post|put|patch|delete)\s*\(\s*['"`]([^'"`]+)['"`]/gi;
+      let match;
+      while ((match = expressPattern.exec(code)) !== null) {
+        const method = match[1].toUpperCase();
+        const path = match[2];
+        if (path && path.length < 100) {
+          routes.push(`${method} ${path}`);
+        }
+      }
+
+      // Spring Boot: @GetMapping, @PostMapping, etc.
+      const springMethods = ['Get', 'Post', 'Put', 'Patch', 'Delete'];
+      for (const springMethod of springMethods) {
+        // Pattern: @GetMapping("/path") or @GetMapping(value = "/path") or @GetMapping(path = "/path")
+        const pattern = new RegExp(`@${springMethod}Mapping\\s*\\(\\s*(?:(?:value|path)\\s*=\\s*)?["']([^"']+)["']`, 'gi');
         while ((match = pattern.exec(code)) !== null) {
-          const method = match[1].toUpperCase();
-          const path = match[2] || match[3];
-          if (path && !path.includes('{') && path.length < 100) {
-            routes.push(`${method} ${path}`);
+          const method = springMethod.toUpperCase();
+          const methodPath = match[1];
+          const basePath = basePaths[file] || '';
+          const fullPath = basePath + methodPath;
+          if (fullPath.length < 150) {
+            routes.push(`${method} ${fullPath}`);
+          }
+        }
+        // Also handle @GetMapping without path (uses class-level path)
+        const noPathPattern = new RegExp(`@${springMethod}Mapping\\s*(?:\\(\\s*\\))?\\s*(?:public|private|protected)`, 'gi');
+        while ((match = noPathPattern.exec(code)) !== null) {
+          const method = springMethod.toUpperCase();
+          const basePath = basePaths[file] || '';
+          if (basePath) {
+            routes.push(`${method} ${basePath}`);
           }
         }
       }
+
+      // NestJS patterns: @Get('/path'), @Post('/path')
+      const nestPattern = /@(Get|Post|Put|Patch|Delete)\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/gi;
+      while ((match = nestPattern.exec(code)) !== null) {
+        const method = match[1].toUpperCase();
+        const path = match[2];
+        if (path && path.length < 100) {
+          routes.push(`${method} ${path}`);
+        }
+      }
+
+      // FastAPI/Flask patterns
+      const fastapiPattern = /@(?:app|router)\.(get|post|put|patch|delete)\s*\(\s*['"`]([^'"`]+)['"`]/gi;
+      while ((match = fastapiPattern.exec(code)) !== null) {
+        const method = match[1].toUpperCase();
+        const path = match[2];
+        if (path && path.length < 100) {
+          routes.push(`${method} ${path}`);
+        }
+      }
+
+      // JAX-RS patterns
+      const jaxrsPathPattern = /@Path\s*\(\s*["']([^"']+)["']\s*\)/gi;
+      while ((match = jaxrsPathPattern.exec(code)) !== null) {
+        const path = match[1];
+        if (path && path.length < 100) {
+          // Look for HTTP method annotations
+          if (code.includes('@GET')) routes.push(`GET ${path}`);
+          if (code.includes('@POST')) routes.push(`POST ${path}`);
+          if (code.includes('@PUT')) routes.push(`PUT ${path}`);
+          if (code.includes('@DELETE')) routes.push(`DELETE ${path}`);
+          if (code.includes('@PATCH')) routes.push(`PATCH ${path}`);
+        }
+      }
+
+      // ASP.NET patterns
+      const aspnetPattern = /\[Http(Get|Post|Put|Patch|Delete)\s*\(\s*["']([^"']+)["']\s*\)\]/gi;
+      while ((match = aspnetPattern.exec(code)) !== null) {
+        const method = match[1].toUpperCase();
+        const path = match[2];
+        if (path && path.length < 100) {
+          routes.push(`${method} ${path}`);
+        }
+      }
+
+      // Detect if file has Swagger/OpenAPI annotations (useful context for AI)
+      if (code.includes('@ApiResponse') || code.includes('@Operation') || code.includes('@Tag')) {
+        console.log(`[Gitea] File ${file} has Swagger/OpenAPI annotations`);
+      }
     }
-    
-    return [...new Set(routes)].slice(0, 20);
+
+    // Remove duplicates and limit
+    const uniqueRoutes = [...new Set(routes)].slice(0, 50);
+    console.log(`[Gitea] Extracted ${uniqueRoutes.length} routes:`, uniqueRoutes.slice(0, 10));
+    return uniqueRoutes;
   },
 
   /**

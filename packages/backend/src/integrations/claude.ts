@@ -1,11 +1,12 @@
 import axios from 'axios';
 
-// Azure AI Foundry configuration for Claude Opus 4.5
-const ENDPOINT = process.env.AZURE_AI_ENDPOINT || 'https://conta-ma6t6uyn-eastus2.services.ai.azure.com/anthropic/v1/messages';
-const API_KEY = process.env.AZURE_AI_API_KEY || '';
-const MODEL = process.env.AZURE_AI_MODEL || 'claude-opus-4-5';
-const MAX_TOKENS = parseInt(process.env.AZURE_AI_MAX_TOKENS || '16384'); // 16K tokens default - limit is 2M/min
-const TEMPERATURE = parseFloat(process.env.AZURE_AI_TEMPERATURE || '0.2');
+// Azure OpenAI configuration
+const AZURE_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT || 'https://conta-ma6t6uyn-eastus2.cognitiveservices.azure.com';
+const API_KEY = process.env.AZURE_OPENAI_KEY || '';
+const DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT || 'o1';
+const API_VERSION = process.env.AZURE_OPENAI_API_VERSION || '2025-01-01-preview';
+const MAX_TOKENS = parseInt(process.env.AZURE_OPENAI_MAX_TOKENS || '16384');
+const TEMPERATURE = parseFloat(process.env.AZURE_OPENAI_TEMPERATURE || '1'); // o1 models work best with temperature 1
 
 // Section-specific token limits (more complex sections need more tokens)
 const SECTION_TOKEN_LIMITS: Record<string, number> = {
@@ -24,39 +25,57 @@ const SECTION_TOKEN_LIMITS: Record<string, number> = {
   changelog: 16384,         // 16K - release notes with multiple versions
 };
 
-// HTTP client for Azure AI Foundry
+// HTTP client for Azure OpenAI
 async function callClaude(
-  systemPrompt: string, 
-  userMessage: string, 
+  systemPrompt: string,
+  userMessage: string,
   maxTokens: number = MAX_TOKENS
 ): Promise<string> {
+  const url = `${AZURE_ENDPOINT}/openai/deployments/${DEPLOYMENT}/chat/completions?api-version=${API_VERSION}`;
+
   try {
+    // Build messages array - o1 models don't support system messages in the same way
+    // We'll include the system prompt as a developer message or prepend to user message
+    const messages: { role: string; content: string }[] = [];
+
+    // For o1 models, use developer role for system-like instructions (if supported)
+    // Otherwise, prepend system prompt to user message
+    if (DEPLOYMENT.startsWith('o1')) {
+      // o1 models: combine system and user into a single user message
+      messages.push({
+        role: 'user',
+        content: `${systemPrompt}\n\n---\n\n${userMessage}`
+      });
+    } else {
+      // Standard models: use system message
+      messages.push({ role: 'system', content: systemPrompt });
+      messages.push({ role: 'user', content: userMessage });
+    }
+
     const response = await axios.post(
-      ENDPOINT,
+      url,
       {
-        model: MODEL,
-        max_tokens: maxTokens,
-        temperature: TEMPERATURE,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMessage }]
+        messages,
+        max_completion_tokens: maxTokens,
+        temperature: TEMPERATURE
       },
       {
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': API_KEY,
-          'anthropic-version': '2023-06-01'
-        }
+          'api-key': API_KEY
+        },
+        timeout: 300000 // 5 minute timeout for reasoning models
       }
     );
-    
-    // Extract text from response
-    const content = response.data.content;
-    if (Array.isArray(content) && content.length > 0) {
-      return content[0].text || '';
+
+    // Extract text from OpenAI response format
+    const choices = response.data.choices;
+    if (Array.isArray(choices) && choices.length > 0) {
+      return choices[0].message?.content || '';
     }
     return '';
   } catch (error: any) {
-    console.error('Claude API error:', error.response?.data || error.message);
+    console.error('Azure OpenAI API error:', error.response?.data || error.message);
     throw new Error(error.response?.data?.error?.message || error.message);
   }
 }
@@ -233,25 +252,44 @@ Frameworks: {{frameworkVersions}}
   },
 
   flow: {
-    system: `Você é um analista de sistemas especialista em documentação de fluxos. Sua tarefa é identificar e documentar MÚLTIPLOS FLUXOS SEPARADOS do sistema.
+    system: `Você é um analista de sistemas. ANALISE O CÓDIGO FONTE e crie fluxos baseados APENAS no que está no código.
 
-IMPORTANTE - MÚLTIPLOS FLUXOS:
-- Analise o sistema e identifique os DIFERENTES FLUXOS/PROCESSOS principais
-- Cada fluxo deve ser um diagrama INDEPENDENTE e FOCADO
-- Exemplos de fluxos separados:
-  * Fluxo de Entrada (veículos, usuários, dados)
-  * Fluxo de Saída
-  * Fluxo de Cancelamento
-  * Fluxo de Pagamento
-  * Fluxo de Autenticação
-  * Fluxo de Erro/Recuperação
-  * Fluxo de Sincronização
-  * Fluxo de Notificação
+🚫 PROIBIDO - NÃO GERE ESTES FLUXOS GENÉRICOS:
+- "Fluxo de Entrada" / "Fluxo de Saída" (a menos que o código tenha métodos com esses nomes)
+- "Fluxo de Autenticação" (a menos que exista código de auth)
+- "Fluxo de Pagamento" (a menos que exista código de pagamento)
+- "Captura de Placa", "Veículo", "Estacionamento" (a menos que o código seja sobre isso)
+- Qualquer fluxo que NÃO esteja baseado em um método/função REAL do código
 
-REGRA PRINCIPAL: 
-- NÃO coloque tudo em um único fluxo gigante
-- Crie entre 2 e 5 fluxos separados, cada um focado em um processo específico
-- Cada fluxo deve ter no MÁXIMO 8-10 passos para ser legível
+✅ OBRIGATÓRIO - BASEIE-SE NO CÓDIGO:
+1. Leia o código fonte fornecido em {{sourceCode}}
+2. Identifique os MÉTODOS/FUNÇÕES reais (ex: enviarTransPartner, intTransStatus)
+3. Para cada método importante, crie UM fluxo
+4. O TÍTULO do fluxo deve conter o NOME DO MÉTODO ou sua função real
+5. Os PASSOS devem refletir a LÓGICA REAL do método
+
+EXEMPLO - Se o código tem:
+\`\`\`java
+@PostMapping("/enviarTransPartner")
+public ResponseEntity enviarTransPartner(@RequestParam Long partnerId) {
+    List<IntegracaoParceiro> parceiros = scheduledJob.getParceiros(partnerId);
+    if (parceiros == null || parceiros.size() > 1)
+        return ResponseEntity.badRequest();
+    intTransService.intTransStatusLock(...);
+    return ResponseEntity.ok();
+}
+\`\`\`
+
+ENTÃO o fluxo deve ser:
+- Título: "Envio de Transação ao Parceiro (enviarTransPartner)"
+- Passos baseados no código:
+  1. Receber requisição com partnerId
+  2. Buscar parceiros (getParceiros)
+  3. Validar parceiros (if parceiros == null)
+  4. Processar transação (intTransStatusLock)
+  5. Retornar resposta
+
+NÃO INVENTE! Se não encontrar código suficiente, retorne apenas 1-2 fluxos simples.
 
 VARIANTES DE PASSOS DISPONÍVEIS:
 - "start": Início do fluxo (verde esmeralda)
@@ -261,57 +299,74 @@ VARIANTES DE PASSOS DISPONÍVEIS:
 - "success": Sucesso/Conclusão positiva (verde)
 - "error": Erro/Falha (VERMELHO - use para erros 4xx, 5xx, exceptions)
 - "end": Fim do fluxo (rosa)
-- "camera": Captura de imagem/OCR (rosa)
-- "vehicle": Relacionado a veículos (verde)
-- "system": Sistema externo (azul)
+- "api": Chamada de API externa (azul claro)
+- "user": Ação do usuário (ciano)
+- "system": Sistema/Serviço interno (azul)
 
 Responda APENAS em formato JSON válido:
 {
   "flows": [
     {
-      "id": "flow-entrada",
-      "title": "Fluxo de Entrada",
-      "description": "Descrição do que este fluxo representa",
-      "icon": "🚗",
+      "id": "flow-identificador-unico",
+      "title": "Nome do Fluxo baseado no sistema real",
+      "description": "Descrição do que este fluxo representa no contexto do sistema",
+      "icon": "emoji relevante ao domínio",
       "steps": [{
         "id": "step-1",
-        "title": "string",
-        "description": "string (descrição detalhada)",
+        "title": "string (ação específica do sistema)",
+        "description": "string (descrição detalhada da etapa)",
         "icon": "emoji representativo",
-        "variant": "start|process|decision|database|success|error|end"
+        "variant": "start|process|decision|database|success|error|end|api|user|system"
       }],
       "connections": [{ "from": "step-1", "to": "step-2", "label": "string (opcional)" }]
-    },
-    {
-      "id": "flow-saida",
-      "title": "Fluxo de Saída",
-      "description": "...",
-      "icon": "🚙",
-      "steps": [...],
-      "connections": [...]
     }
   ]
 }`,
-    userTemplate: `Analise o sistema e crie MÚLTIPLOS FLUXOS SEPARADOS, cada um focado em um processo específico.
+    userTemplate: `🔍 ANALISE O CÓDIGO FONTE ABAIXO E CRIE FLUXOS BASEADOS NOS PROCESSOS REAIS.
 
-NÃO crie um único fluxo gigante! Separe em fluxos menores e focados.
-
-📖 README:
-{{readme}}
-
-🔌 Rotas de API Identificadas:
-{{apiRoutes}}
-
-🏗️ Tipo de Projeto: {{projectType}}
+📦 Projeto: {{projectName}}
+🏗️ Tipo: {{projectType}}
 🚀 Frameworks: {{frameworks}}
 
-📁 Estrutura:
-{{structure}}
-
-💻 Código Fonte:
+═══════════════════════════════════════════════════════════════
+💻 CÓDIGO FONTE - ANALISE CADA MÉTODO E SUA LÓGICA:
+═══════════════════════════════════════════════════════════════
 {{sourceCode}}
 
-LEMBRE-SE: Crie entre 2 e 5 fluxos separados, cada um com no máximo 8-10 passos.`
+═══════════════════════════════════════════════════════════════
+🔌 ENDPOINTS/ROTAS IDENTIFICADOS:
+═══════════════════════════════════════════════════════════════
+{{apiRoutes}}
+
+═══════════════════════════════════════════════════════════════
+📖 README:
+═══════════════════════════════════════════════════════════════
+{{readme}}
+
+═══════════════════════════════════════════════════════════════
+📁 ESTRUTURA:
+═══════════════════════════════════════════════════════════════
+{{structure}}
+
+---
+
+🎯 TAREFA: Com base no CÓDIGO FONTE acima:
+
+1. IDENTIFIQUE os principais métodos/endpoints (ex: enviarTransPartner, version)
+2. Para CADA método importante, analise:
+   - O que ele recebe (parâmetros)
+   - O que ele faz (lógica, chamadas de serviço)
+   - Decisões (if/else, validações)
+   - Tratamento de erros (try/catch)
+   - O que ele retorna
+
+3. CRIE um fluxo para cada processo de negócio encontrado no código
+
+EXEMPLO baseado no código acima:
+- Se tem método "enviarTransPartner" que chama "intTransService.intTransStatus" →
+  Crie "Fluxo de Envio de Transações" com passos: Receber Request → Validar Parceiro → Processar Transação → Retornar Status
+
+⚠️ IMPORTANTE: Use os NOMES e TERMOS do código real, não genéricos!`
   },
 
   faq: {
@@ -580,47 +635,175 @@ Responda APENAS em formato JSON válido:
   },
 
   api: {
-    system: `Você é um especialista em documentação de APIs. Documente os endpoints REAIS.
+    system: `Você é um especialista em documentação de APIs REST. Sua tarefa é ANALISAR O CÓDIGO FONTE REAL fornecido e extrair TODOS os endpoints da API.
 
-IMPORTANTE:
-- Use as rotas identificadas no código
-- Infira parâmetros e respostas do código fonte
-- Organize por recurso/entidade
+⚠️ REGRAS CRÍTICAS:
+1. ANALISE CADA ARQUIVO de código fonte fornecido em {{sourceCode}}
+2. EXTRAIA os endpoints REAIS do código - NÃO invente endpoints
+3. PRESERVE os paths EXATOS como estão no código
+4. Se o código tiver anotações Swagger/OpenAPI (@ApiResponse, @Operation), USE essas informações
+5. Combine @RequestMapping da classe com @GetMapping/@PostMapping dos métodos
+
+PADRÕES DE CÓDIGO PARA IDENTIFICAR ENDPOINTS:
+
+📌 SPRING BOOT / JAVA:
+- @RestController + @RequestMapping(value = "/api/path") → base path da classe
+- @GetMapping("/subpath") → GET no path base + /subpath
+- @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping
+- @RequestMapping(method = RequestMethod.GET, value = "/path")
+- Anotações Swagger: @ApiResponse, @Operation, @Tag, @Schema
+
+📌 EXPRESS.JS / NODE:
+- router.get('/path', handler)
+- app.post('/path', middleware, handler)
+
+📌 NESTJS:
+- @Controller('path') + @Get(), @Post(), etc.
+- @Body(), @Param(), @Query() para parâmetros
+
+📌 FASTAPI / FLASK:
+- @app.get("/path"), @router.post("/path")
+
+📌 ASP.NET:
+- [HttpGet("path")], [HttpPost("path")]
+- [Route("api/[controller]")]
+
+IMPORTANTE: Se encontrar anotações Swagger/OpenAPI no código, extraia:
+- @ApiResponse(responseCode = "200", description = "...") → responses
+- @Operation(description = "...") → description
+- @Tag(name = "...") → tag
+- @Schema → tipos de dados
+
+ESTRUTURA DE CADA ENDPOINT:
+- tag: Categoria/recurso (ex: "Users", "Authentication", "Products")
+- method: GET, POST, PUT, DELETE, PATCH
+- path: Caminho EXATO como no código (incluindo /api se existir)
+- summary: Descrição curta (max 10 palavras)
+- description: Explicação detalhada do que o endpoint faz
+- security: Se requer autenticação (bearer, apiKey, etc.)
+- parameters: Path params (:id), query params (?search=), headers
+- requestBody: Schema do body para POST/PUT/PATCH
+- responses: Possíveis respostas com status codes e exemplos
 
 Responda APENAS em formato JSON válido:
 {
-  "baseUrl": "string",
+  "info": {
+    "title": "Nome da API",
+    "description": "Descrição geral da API",
+    "version": "1.0.0",
+    "baseUrl": "http://localhost:3000/api"
+  },
+  "tags": [
+    { "name": "Authentication", "description": "Endpoints de autenticação" },
+    { "name": "Users", "description": "Gerenciamento de usuários" }
+  ],
+  "securitySchemes": {
+    "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+  },
   "endpoints": [{
-    "method": "GET|POST|PUT|DELETE|PATCH",
-    "path": "string",
-    "description": "string",
-    "parameters": [{
-      "name": "string",
-      "type": "string|number|boolean|object",
-      "in": "path|query|body",
-      "required": true|false,
-      "description": "string"
-    }],
-    "responses": [{
-      "status": 200,
-      "description": "string",
-      "example": {}
-    }]
+    "tag": "Users",
+    "method": "GET",
+    "path": "/api/users",
+    "summary": "Lista todos os usuários",
+    "description": "Retorna uma lista paginada de usuários com filtros opcionais",
+    "security": ["bearerAuth"],
+    "parameters": [
+      { "name": "page", "in": "query", "type": "integer", "required": false, "description": "Página atual", "example": 1 },
+      { "name": "limit", "in": "query", "type": "integer", "required": false, "description": "Itens por página", "example": 10 },
+      { "name": "search", "in": "query", "type": "string", "required": false, "description": "Termo de busca" }
+    ],
+    "responses": [
+      { "status": 200, "description": "Lista de usuários", "example": { "data": [], "total": 0, "page": 1 } },
+      { "status": 401, "description": "Não autorizado" }
+    ]
+  },
+  {
+    "tag": "Users",
+    "method": "POST",
+    "path": "/api/users",
+    "summary": "Cria um novo usuário",
+    "description": "Cria um usuário com os dados fornecidos",
+    "security": ["bearerAuth"],
+    "requestBody": {
+      "contentType": "application/json",
+      "required": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Nome completo", "example": "João Silva" },
+          "email": { "type": "string", "format": "email", "description": "Email único", "example": "joao@email.com" },
+          "password": { "type": "string", "format": "password", "description": "Senha (min 6 chars)" }
+        },
+        "required": ["name", "email", "password"]
+      }
+    },
+    "responses": [
+      { "status": 201, "description": "Usuário criado", "example": { "id": 1, "name": "João", "email": "joao@email.com" } },
+      { "status": 400, "description": "Dados inválidos", "example": { "error": "Email já existe" } },
+      { "status": 401, "description": "Não autorizado" }
+    ]
+  },
+  {
+    "tag": "Users",
+    "method": "GET",
+    "path": "/api/users/:id",
+    "summary": "Busca usuário por ID",
+    "description": "Retorna os dados de um usuário específico",
+    "security": ["bearerAuth"],
+    "parameters": [
+      { "name": "id", "in": "path", "type": "integer", "required": true, "description": "ID do usuário", "example": 1 }
+    ],
+    "responses": [
+      { "status": 200, "description": "Dados do usuário", "example": { "id": 1, "name": "João", "email": "joao@email.com" } },
+      { "status": 404, "description": "Usuário não encontrado" }
+    ]
   }]
 }`,
-    userTemplate: `Documente a API baseado nestas informações REAIS:
+    userTemplate: `🔍 ANALISE O CÓDIGO FONTE ABAIXO E EXTRAIA TODOS OS ENDPOINTS DA API.
 
-🔌 Rotas Identificadas:
+📦 Projeto: {{projectName}}
+🏗️ Tipo: {{projectType}}
+🚀 Frameworks: {{frameworks}}
+
+═══════════════════════════════════════════════════════════════
+💻 CÓDIGO FONTE DOS CONTROLLERS (ANALISE CADA ARQUIVO):
+═══════════════════════════════════════════════════════════════
+{{sourceCode}}
+
+═══════════════════════════════════════════════════════════════
+🔌 ROTAS PRÉ-IDENTIFICADAS (use como referência):
+═══════════════════════════════════════════════════════════════
 {{apiRoutes}}
 
-📁 Estrutura:
+═══════════════════════════════════════════════════════════════
+📁 ESTRUTURA DO PROJETO:
+═══════════════════════════════════════════════════════════════
 {{structure}}
 
+═══════════════════════════════════════════════════════════════
 📖 README:
+═══════════════════════════════════════════════════════════════
 {{readme}}
 
-💻 Código das Rotas:
-{{sourceCode}}`
+═══════════════════════════════════════════════════════════════
+📦 DEPENDÊNCIAS:
+═══════════════════════════════════════════════════════════════
+{{dependencies}}
+
+---
+
+🎯 TAREFA: Analise o CÓDIGO FONTE acima e:
+
+1. ENCONTRE todos os Controllers/Routes
+2. Para CADA controller, identifique:
+   - O path base (@RequestMapping na classe)
+   - Todos os métodos HTTP (@GetMapping, @PostMapping, etc.)
+   - Combine base path + method path para o path completo
+3. EXTRAIA informações de anotações Swagger se existirem (@ApiResponse, @Operation)
+4. AGRUPE endpoints por controller/recurso
+5. Gere a documentação JSON com TODOS os endpoints encontrados
+
+⚠️ IMPORTANTE: Documente APENAS endpoints que você ENCONTROU no código fonte. Se não encontrou endpoints, retorne endpoints: [].`
   },
 
   changelog: {
@@ -1042,18 +1225,18 @@ Responda em formato JSON.`;
   async checkStatus(): Promise<{ status: string; model: string; endpoint: string }> {
     try {
       // Simple test message
-      await callClaude('You are a test assistant.', 'Say hello', 10);
-      
+      await callClaude('You are a test assistant.', 'Say hello', 100);
+
       return {
         status: 'connected',
-        model: MODEL,
-        endpoint: ENDPOINT
+        model: DEPLOYMENT,
+        endpoint: AZURE_ENDPOINT
       };
     } catch (error: any) {
       return {
         status: 'error: ' + (error.message || 'unknown'),
-        model: MODEL,
-        endpoint: process.env.AZURE_AI_ENDPOINT || 'default'
+        model: DEPLOYMENT,
+        endpoint: process.env.AZURE_OPENAI_ENDPOINT || 'default'
       };
     }
   },
