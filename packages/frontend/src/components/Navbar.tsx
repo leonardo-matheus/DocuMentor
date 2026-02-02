@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { FileText, FolderOpen, Plus, Home, Globe } from 'lucide-react'
+import { FolderOpen, Plus, Home, Globe } from 'lucide-react'
 import clsx from 'clsx'
 import ThemeToggle from './ThemeToggle'
 
@@ -19,12 +19,14 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl gradient-movemais flex items-center justify-center shadow-lg group-hover:shadow-glow-green transition-all">
-              <FileText className="w-5 h-5 text-white" />
-            </div>
+            <img
+              src="/assets/logo-movemais.svg"
+              alt="Move Mais"
+              className="h-10 group-hover:scale-105 transition-transform"
+            />
             <div>
               <span className="font-bold text-xl text-gray-900 dark:text-white">DocuMentor</span>
-              <span className="block text-xs text-gray-500 dark:text-gray-400">by MoveMais</span>
+              <span className="block text-xs text-gray-500 dark:text-gray-400">Tagepeágio</span>
             </div>
           </Link>
           
