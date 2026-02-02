@@ -463,6 +463,7 @@ export const giteaService = {
       // Also get any file ending with common API file patterns
       ...structure.filter(p => {
         const fileName = p.split('/').pop()?.toLowerCase() || '';
+        const lowerPath = p.toLowerCase();
         return (
           fileName.endsWith('controller.java') ||
           fileName.endsWith('controller.ts') ||
@@ -476,9 +477,23 @@ export const giteaService = {
           fileName.endsWith('api.ts') ||
           fileName.endsWith('api.js') ||
           fileName.endsWith('endpoints.ts') ||
-          fileName.endsWith('endpoints.js')
+          fileName.endsWith('endpoints.js') ||
+          // Play Framework route files
+          fileName.endsWith('.routes') ||
+          lowerPath === 'conf/routes' ||
+          lowerPath.endsWith('/routes')
         );
       }).slice(0, 10),
+
+      // Play Framework routes (conf/routes, routes2.routes, etc.)
+      ...structure.filter(p => {
+        const lowerPath = p.toLowerCase();
+        return (
+          lowerPath === 'conf/routes' ||
+          lowerPath.endsWith('.routes') ||
+          (lowerPath.includes('conf/') && lowerPath.endsWith('routes'))
+        );
+      }),
 
       // Env files
       ...structure.filter(p => p.endsWith('.env.example') || p.endsWith('.env.sample')),
@@ -775,6 +790,38 @@ export const giteaService = {
         if (path && path.length < 100) {
           routes.push(`${method} ${path}`);
         }
+      }
+
+      // Play Framework routes (conf/routes, *.routes files)
+      // Format: GET     /api/users              controllers.UserController.list
+      // Format: POST    /api/users              controllers.UserController.create(request: Request)
+      // Format: ->      /api/v2                 routes2.Routes
+      if (file.toLowerCase().endsWith('routes') || file.toLowerCase().endsWith('.routes')) {
+        const lines = code.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          // Skip comments and empty lines
+          if (!trimmed || trimmed.startsWith('#')) continue;
+
+          // Match Play Framework route format: METHOD  /path  controller.action
+          const playRouteMatch = trimmed.match(/^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(\S+)/i);
+          if (playRouteMatch) {
+            const method = playRouteMatch[1].toUpperCase();
+            const path = playRouteMatch[2];
+            if (path && path.length < 150 && path.startsWith('/')) {
+              routes.push(`${method} ${path}`);
+            }
+          }
+
+          // Match route includes: ->  /prefix  other.Routes
+          const includeMatch = trimmed.match(/^->\s+(\S+)\s+(\S+)/);
+          if (includeMatch) {
+            const prefix = includeMatch[1];
+            const routeFile = includeMatch[2];
+            routes.push(`INCLUDE ${prefix} -> ${routeFile}`);
+          }
+        }
+        console.log(`[Gitea] Parsed Play Framework routes from ${file}`);
       }
 
       // Detect if file has Swagger/OpenAPI annotations (useful context for AI)
