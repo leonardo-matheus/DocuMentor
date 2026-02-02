@@ -9,6 +9,7 @@ import EditorPage from './pages/EditorPage'
 import PreviewPage from './pages/PreviewPage'
 import PublicationsPage from './pages/PublicationsPage'
 import PublicDocPage from './pages/PublicDocPage'
+import HelpPage from './pages/HelpPage'
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,7 @@ const router = createBrowserRouter([
       { path: 'projects/:id/edit', element: <EditorPage /> },
       { path: 'projects/:id/preview', element: <PreviewPage /> },
       { path: 'publications', element: <PublicationsPage /> },
+      { path: 'help', element: <HelpPage /> },
     ],
   },
   // Public route (without Layout)

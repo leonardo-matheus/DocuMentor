@@ -1,16 +1,17 @@
 import { Link, useLocation } from 'react-router-dom'
-import { FolderOpen, Plus, Home, Globe } from 'lucide-react'
+import { FolderOpen, Plus, Home, Globe, HelpCircle } from 'lucide-react'
 import clsx from 'clsx'
 import ThemeToggle from './ThemeToggle'
 
 export default function Navbar() {
   const location = useLocation()
-  
+
   const links = [
     { to: '/', label: 'Início', icon: Home },
     { to: '/projects', label: 'Projetos', icon: FolderOpen },
     { to: '/publications', label: 'Publicações', icon: Globe },
     { to: '/projects/new', label: 'Novo Projeto', icon: Plus },
+    { to: '/help', label: 'Ajuda', icon: HelpCircle },
   ]
   
   return (
@@ -24,10 +25,7 @@ export default function Navbar() {
               alt="Move Mais"
               className="h-10 group-hover:scale-105 transition-transform"
             />
-            <div>
-              <span className="font-bold text-xl text-gray-900 dark:text-white">DocuMentor</span>
-              <span className="block text-xs text-gray-500 dark:text-gray-400">Tagepeágio</span>
-            </div>
+            <span className="font-bold text-xl text-gray-900 dark:text-white">DocuMentor</span>
           </Link>
           
           {/* Navigation Links */}
