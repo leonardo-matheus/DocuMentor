@@ -1,10 +1,15 @@
 # DocuMentor 📚
 
-> Sistema inteligente de geração de documentação técnica com IA.
+<p align="center">
+  <img src="packages/frontend/public/assets/logo-movemais.svg" alt="Move Mais" width="200"/>
+</p>
+
+> Sistema inteligente de geração de documentação técnica com IA - Desenvolvido para **Move Mais**.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Node](https://img.shields.io/badge/node-18+-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Move Mais](https://img.shields.io/badge/Move%20Mais-Tagepeágio-orange.svg)
 
 ## 🎯 Visão Geral
 
@@ -503,5 +508,7 @@ MIT License - Veja [LICENSE](LICENSE) para detalhes.
 ---
 
 <p align="center">
-  Feito com ❤️ por Leonardo Matheus
+  <img src="packages/frontend/public/assets/logo-movemais.svg" alt="Move Mais" width="120"/>
+  <br/><br/>
+  Desenvolvido para <strong>Move Mais - Tagepeágio</strong>
 </p>
